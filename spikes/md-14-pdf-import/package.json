@@ -1,0 +1,17 @@
+{
+  "name": "spike-md-14-pdf-import",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "extract": "node src/extract.mjs ../../slides --data data/slides-text.json",
+    "ocr": "node src/ocr.mjs",
+    "bench-deck": "node src/make-bench-deck.mjs"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.10",
+    "mupdf": "^1.28.1",
+    "pdfjs-dist": "^6.3.289",
+    "tesseract.js": "^7.0.0"
+  }
+}

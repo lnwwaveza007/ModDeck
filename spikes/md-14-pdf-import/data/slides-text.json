@@ -1,0 +1,1196 @@
+[
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 1,
+    "text": "Bandwidth Utilization\nMULTIPLEXING & SPREAD SPECTRUM\nTRANSMISSION\nDigital and\nAnalog conversion"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 2,
+    "text": "Learning Outcome\nMULTIPLEXING &\nSPREAD SPECTRUM\nDIGITAL to DIGITAL CONVERSION\nAnalog to DIGITAL CONVERSION\nDIGITAL to\nAnalog CONVERSION\nAnalog to\nAnalog CONVERSION"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 3,
+    "text": "OLT\nOptical Line Termination\nONT\nOptical network terminal\nWHAT ARE THE LAYER 1 TECHNOLOGIES ?\nHOW THE TECHNIQUE USED IN LAYER 1 ?\nFiber Optic\nSingleMode\nSet top box\nCoaxial\nRG6\nUTP\nCAT6\nUTP\nCAT3"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 4,
+    "text": "1.4"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 5,
+    "text": "1.5"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 6,
+    "text": ""
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 7,
+    "text": "OLT\nOptical Line Termination"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 8,
+    "text": "Prisms in wavelength division multiplexing"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 9,
+    "text": "Wavelength division\nmultiplexing\nTime Division\nmultiplexing"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 10,
+    "text": "1.10\nDATA\nDigital\nDATA\nAnalog\nSIGNAL\nDigital\nLine coding\nBlock coding\nPCM\nSIGNAL\nAnalog\nASK\nFSK\nPSK\nQAM\nAM\nFM\nPM\nDigital and\nAnalog conversion"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 11,
+    "text": "SIGNAL elements vs DATA elements"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 12,
+    "text": "1.12"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 13,
+    "text": "1.13\nFigure 3.21: Baseband transmission using a dedicated medium"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 14,
+    "text": "1.14\nFigure 3.26: Causes of impairment"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 15,
+    "text": "1.15\nFigure 3.27: Attenuation and amplification"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 16,
+    "text": "1.16\nFigure 3.29: Distortion"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 17,
+    "text": "1.17\nFigure 3.30: Noise"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 18,
+    "text": "1.18\nFigure 3.31: Two cases of SNR: a high SNR and a low SNR"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 19,
+    "text": "Polar schemes\nNRZ-L and NRZ-I\nRZ"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 20,
+    "text": "Digital to\nDigital conversion\nLine coding and decoding"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 21,
+    "text": "Multilevel schemes cont.\nMultilevel: 4D-PAMS"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 22,
+    "text": "Dividing a link into channels"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 23,
+    "text": "Time-Division Multiplexing"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 24,
+    "text": "Synchronous time-division multiplexing"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 25,
+    "text": "Frequency-division multiplexing\nPlain Old Telephone System"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 26,
+    "text": "1.26\nFDM Process\nFDM demultiplexing\nFDM multiplexing"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 27,
+    "text": "Analog hierarchy"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 28,
+    "text": "Analog to\nDIGITAL CONVERSION\nComponents of PCM encoder\nClick to add text"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 29,
+    "text": "Spread spectrum\nFHSS or DSSS"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 30,
+    "text": "Direct Sequence Spread Spectrum (DSSS)"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 31,
+    "text": "Concept of a constellation diagram"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 32,
+    "text": "Quadrature Amplitude Modulation (QAM)"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 33,
+    "text": ""
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 34,
+    "text": "1.34\nDATA\nDigital\nDATA\nAnalog\nSIGNAL\nDigital\nLine coding\nBlock coding\nPCM\nSIGNAL\nAnalog\nASK\nFSK\nPSK\nQAM\nAM\nFM\nPM\nDigital and\nAnalog conversion"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 35,
+    "text": "Digital\nSource\nDigital\nData\n1.35"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 36,
+    "text": "Analog\nSource PCM\n• Sampling\n• Quantization\n• Encoding\nDigital\nData\n1.36"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 37,
+    "text": "Digtal\nData\nDigital\nSignal\n•NRZ,\nBipolar,\netc.\n1.37"
+  },
+  {
+    "deck": "101-signal-and-data-bandwidth-utilization-v1-01",
+    "file": "101 Signal and Data Bandwidth Utilization v1.01.pdf",
+    "page": 38,
+    "text": "Digtal\nData\nAnalog\nSignal\n•Spread\nspectrum\n•QAM\n1.38"
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 1,
+    "text": "TRANSMISSION\nCabling\nLayer 1 Physical Layer\nCable and Structure Cabling\nNetwork\nPerformance"
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 2,
+    "text": "* ได้รับ Private IPv4 พร้อมฟรี THDDNS และ Public IPv6\nโดยสามารถทำ Port Forwarding และใช้งาน Bridge Mode ได้"
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 3,
+    "text": "OLT\nOptical Line Termination\nONT\nOptical network terminal\nWHAT ARE THE LAYER 1 TECHNOLOGIES ?\nHOW THE TECHNIQUE USED IN LAYER 1 ?\nFiber Optic\nSingleMode\nCoaxial\nRG6\nUTP\nCAT6\nUTP\nCAT3"
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 4,
+    "text": "4 https://thestandard.co/bangkok-underground-power-cable-project/"
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 5,
+    "text": ""
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 6,
+    "text": "6 https://www.submarinecablemap.com"
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 7,
+    "text": "https://youtu.be/1ex7uTQf4bQ\nDon't blame sharks for Asian\nInternet problems\nhttps://www.computerworld.com/article/287\n2728/dont-blame-sharks-for-asian-internet-\nproblems.html"
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 8,
+    "text": "1.8\nFigure 7.10: Bending of light ray\nShows how a ray of light changes\ndirection when going from a\nmore dense to a less dense\nsubstance."
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 9,
+    "text": "Differences in fiber optic cables"
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 10,
+    "text": "Interconnect AKA Connector Medium Media Type Wavelength Max range\n10GBASE-USR ultra short reach X2, SFP+ fiber serial multi-mode 850 nm 100 or 150 m\n10GBASE-SR short reach XENPAK, X2, XFP,\nSFP+ fiber serial multi-mode 850 nm OM3: 300 m\nOM4: 400 m\n10GBASE-LR long reach XENPAK, X2, XFP,\nSFP+ fiber serial single-mode 1310 nm 10 km\n10GBASE-ER extended reach XENPAK, X2, XFP,\nSFP+ fiber serial single-mode 1550 nm 40 km\n10GBASE-ZR XENPAK, X2, XFP,\nSFP+ fiber serial single-mode 1550 nm 80 km\n10GBASE-LX4 XENPAK, X2,\nSFP+ fiber WDM multi-mode or\nsingle-mode 1310 nm 300 m (multi-mode)\n10 km (single-mode)\nSFP+ Direct\nAttach\nDA, \"10GBASE-\nCR\" SFP+ copper twinaxial 2-pair - 15 m\n10GBASE-T 8P8C copper\nClass E channel\nusing category 6,\nClass Ea channel\nusing 6a or 7 twisted\npair\n- 55 m (Class E cat 6)\n100 m (Class Ea cat\n6a or 7)\n10GBASE-PR 802.3av fiber Passive Optical\nNetwork\n1270 nm/\n1577 nm 20 km\nhttps://en.wikipedia.org/wiki/10_Gigabit_Ethernet"
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 11,
+    "text": "OLT\nOptical Line Termination"
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 12,
+    "text": ""
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 13,
+    "text": "Digital to\nDigital conversion\nLine coding and decoding"
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 14,
+    "text": "Multilevel schemes cont.\nMultilevel: 4D-PAMS ANSI/TIA-568.2-D: Balanced Twisted-Pair\nTelecommunications Cabling and Components\nhttps://en.wikipedia.org/wiki/ANSI/TIA-\n568#:~:text=Under%20TIA%2FEIA%2D568%2D,be%20longer%20than%205%\n20meters."
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 15,
+    "text": "Category 1 / Class A: (100kHz) - basic twisted-pair cabling used in telephone system.\nCategory 2 / Class B: (1MHz) suitable for voice and for data transmission of up to 4 Mbps.\nCategory 3 / Class C: (16MHz) data transmission of up to 10 Mbps.\nCategory 4 up to 16 Mbps.\nCategory 5 (100MHz) data transmission up to 100 Mbps.\nCategory 5e / Class D: (100MHz) Gigabit speed data, 100m.\nCategory 6 / Class E: (250MHz) Gigabit speed data, 10Gbps-55m.\nCategory 6A / Class EA: (500MHz) 10Gbps (Augmented Cat 6)\nCategory 7 / Class F: (600Mhz) 10Gbps-40Gbps\nCategory 7A / Class FA: (1000MHz) 40Gbps 50m., 100Gbps 15m.\n*Category 8.1-8.2 / Class I-II: (1600MHz-2000MHz) Cat 6A Cat 8.2\nRJ-45 plugs and jacks"
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 16,
+    "text": "Effect of noise on twisted-pair lines\nSender Receiver\n14\n14\nThe total\neffect\nis 14-14=0\nNoise source\nEffect of noise on parallel line\nThe total\neffect\nis 16-12=4\n16\n12\nSender Receiver\nNoise effect = 16 units\nNoise source\nNoise effect = 12 units WHY ARE WIRES\nTWISTED ???"
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 17,
+    "text": ""
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 18,
+    "text": "18"
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 19,
+    "text": "Network performance\nBandwidth in hertz (Hz) / bits per second (bps) / bytes\nThroughput\nThe throughput is a measure of how fast\nwe can actually send data through a network."
+  },
+  {
+    "deck": "102-cables",
+    "file": "102-Cables.pdf",
+    "page": 20,
+    "text": "latency or delay defines how long it takes for an entire\nmessage to completely arrive at the destination from the time\nthe first bit is sent out from the source\nLatency = propagation time + transmission time + queuing time + processing delay\nJitter !!!!!\nJitter !!"
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 1,
+    "text": "Chapter 1 - Introduction to\nVue3 Composition API and Dev Tools\nAsst.Prof. Dr. Umaporn Supasitthimethee"
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 2,
+    "text": "2Asst.Prof.Dr. Umaporn Supasitthimethee\nหลักการและแนวปฏิบัติการใช้เครื่องมือปัญญาประดิษฐ์ในรายวิชา\n• รายวิชาอนุญาตให้ใช้เครื่องมือทางปัญญาประดิษฐ์ (AI Tools) เป็นแหล่งหนึ่งของการเรียนรู้ ค้นคว้า เช่นเดียวกับแหล่ง\nเรียนรู้อื่น ๆ *ไม่สนับสนุนให้ใช้เพื่อหาผลลัพธ์ของโปรแกรมโดยขาดความรู้ความเข้าใจ*\n• การประเมินผลในการทำ Project และการสอบ มีวัตถุประสงค์เพื่อวัดระดับความรู้และทักษะของนักศึกษาในรายวิชา *\nไม่อนุญาตให้ใช้เครื่องมือทางปัญญาประดิษฐ์ (AI Tools) ทุกประเภท* ทั้งที่ติดตั้งใน Editor บนบราวเซอร์ หรือบน\nแอปพลิเคชันใด ๆ ให้ถือการนำผลลัพธ์จากเครื่องมือปัญญาประดิษฐ์มาใช้ในการประเมินผลทุกประเภทของวิชา เป็นการ\nกระทำการทุจริตและจะถูกพิจารณาโทษตามที่มหาวิทยาลัยกำหนด\n• การทำ Project รายวิชา *ไม่อนุญาตให้นักศึกษานำ Source Code ส่วนใดส่วนหนึ่งหรือทั้งหมดที่จะถูกวัดผลจาก\nแหล่งเรียนรู้ใด ๆ มาใช้ใน project* หากระหว่างการทวนสอบผ่านการถามตอบในห้องเรียนหรือการนำเสนอผลงาน\nตรวจพบ นักศึกษาจะถูกพิจารณาให้ทำ Project ใหม่ หรือจะได้รับคะแนนเป็น 0 แล้วแต่กรณี\n• กรณีมีความจำเป็นต้องอ้างอิงเนื้อหาส่วนอื่น ๆ ไม่ใช่เนื้อหาในรายวิชา *ต้องระบุความจำเป็นและแหล่งอ้างอิงทุกครั้ง*"
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 3,
+    "text": "3Asst.Prof.Dr. Umaporn Supasitthimethee\nClient-Side Technology Stack\nJavaScript Framework, Libraries, and Tools\n• Vue.js: The current latest stable version of Vue is v3.5.13\n• Composition API Style (script setup syntax) (Single-File Components format)\n• Vite Build Tool\n• Vue Router\n• Pinia store library for state management\nCSS Framework\n• TailwindCSS Framework (Recommend)\n• daisyUI components (Recommend)\n• Bootstrap Framework\nOther dev tools\n• VsCode Editor\n• Vue Browser Devtools\n• Git version control"
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 4,
+    "text": "4Asst.Prof.Dr. Umaporn Supasitthimethee\nAbout Vue.js\n• Vue.js: The Documentary\nhttps://youtu.be/OrxmtDw4pVI\n• Learn Vite with Evan You\nhttps://youtu.be/DkGV5F4XnfQ?si=XguRyVOEypqpGX4B"
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 5,
+    "text": "5Asst.Prof.Dr. Umaporn Supasitthimethee\nVue.js\n• Vue (pronounced /vjuː/, like view)\n• A JavaScript Framework for building user interfaces\n• It builds on top of standard HTML, CSS and JavaScript, and provides\na declarative and component-based programming model that helps you\nefficiently develop user interfaces, be it simple or complex.\n• The Vue official guide assumes intermediate level knowledge of\nHTML, CSS, and JavaScript.\n• If you are totally new to frontend development, it might not be the best\nidea to jump right into a framework as your first step\nhttps://vuejs.org/"
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 6,
+    "text": "6Asst.Prof.Dr. Umaporn Supasitthimethee\nSingle File Components\n• Vue Single File Components\n(aka *.vue files, abbreviated as SFC) is\na defining feature of Vue as a\nframework, and is the recommended\napproach for using Vue\n• SFC is a special file format that allows\nus to encapsulate\n• template (HTML)\n• logic (JavaScript)\n• styling (CSS)\nin a single file.\nhttps://vuejs.org/guide/introduction.html#single-file-components\n//Single File Components\n<script setup>\n//JavaScript Variables, functions, Vue libraries\n</script>\n<template>\n//html\n</template>\n<style>\n//styling\n</style>"
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 7,
+    "text": "7Asst.Prof.Dr. Umaporn Supasitthimethee\nAPI Styles: Composition API\n• With Composition API, we define a component's logic using imported\nAPI functions.\n• The Composition API is centered around declaring reactive state\nvariables directly in a function scope and composing state from\nmultiple functions together to handle complexity.\n• It is more free-form and requires an understanding of how reactivity\nworks in Vue to be used effectively. In return, its flexibility enables\nmore powerful patterns for organizing and reusing logic.\nhttps://vuejs.org/guide/introduction.html#composition-api"
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 8,
+    "text": "8Asst.Prof.Dr. Umaporn Supasitthimethee\nComposition API : <script setup>\n• In SFCs, Composition API is typically used with <script setup>.\n• The setup attribute is a hint that makes Vue perform compile-time\ntransforms that allow us to use Composition API with less boilerplate.\n• For example, imports and top-level variables / functions declared\nin <script setup> are directly usable in the template.\n• Go with Composition API + Single-File Components if you plan to\nbuild full applications with Vue.\nhttps://vuejs.org/guide/introduction.html#composition-api"
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 9,
+    "text": "9Asst.Prof.Dr. Umaporn Supasitthimethee\nVite (Veet)\n• A build tool that aims to provide a faster and leaner development experience for modern web\nprojects.\n• Vite improves the dev server start time by first dividing the modules in an application into\ntwo categories\n• Dependencies are mostly plain JavaScript that do not change often during development.\nSome large dependencies (e.g. component libraries with hundreds of modules) are also\nquite expensive to process.\n• Source code often contains non-plain JavaScript that needs transforming (e.g. JSX, CSS\nor Vue/Svelte components), and will be edited very often. When a file is edited, Vite only\nneeds to precisely invalidate the chain between the edited module and its closest HMR\nboundary (most of the time only the module itself), making HMR updates consistently\nfast regardless of the size of your application.\nhttps://vitejs.dev/"
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 10,
+    "text": "10Asst.Prof.Dr. Umaporn Supasitthimethee\nVite Requirement\n1. Install node.js, https://nodejs.org/en/\n2. npm package manager\n>node -v\n>npm -v"
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 11,
+    "text": "11Asst.Prof.Dr. Umaporn Supasitthimethee\nVSCode Extension Recommendation\n• Prettier - Code Formatter\n• Vue Language Features - Vue3 Syntax Highlight and Auto Complete\n• Tailwind CSS IntelliSense\n• Live Share – Real-time Collaborative Development"
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 12,
+    "text": "12Asst.Prof.Dr. Umaporn Supasitthimethee\nVSCode Snippet SFC\nFile > Preferences >Configure User Snippets > Vue.json\nhttps://code.visualstudio.com/docs/editor/userdefinedsnippets#_create-your-own-snippets\n{\n\"Vue SFC Script Setup\": {\n\"prefix\": \"sfc\",\n\"body\": [\n\"<script setup>\",\n\"$1\",\n\"</script>\",\n\" \",\n\"<template>\",\n\"<div>\",\n\"$2\",\n\"</div>\",\n\"</template>\",\n\" \",\n\"<style scoped>\",\n\"$3\",\n\"</style>\"\n],\n\"description\": \"Making simple Vue SFC Script Setup\"\n}\n}"
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 13,
+    "text": "13Asst.Prof.Dr. Umaporn Supasitthimethee\nVue.js Browser devtools\n• Get the Chrome Extension\nhttps://chrome.google.com/webstore/detail/vuejs-\ndevtools/nhdogjmejiglipccpnnnanhbledajbpd\n• Get the Firefox Addon\nhttps://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/\n• Get on Edge\nhttps://microsoftedge.microsoft.com/addons/detail/vuejs-\ndevtools/olofadcdnkkjdfgjcmjaadnlehnnihnl\nhttps://devtools.vuejs.org/guide/installation.html"
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 14,
+    "text": "14Asst.Prof.Dr. Umaporn Supasitthimethee\nYour First Vue Project\n>npm create vue@latest <your-project-name>\n>cd <your-project-name>\n>npm install\n>npm run dev\n*use kebab-case to your project name Ex., hello-vite, basic-vue-comp\nhttps://vuejs.org/guide/quick-start.html#creating-a-vue-application\nThis command will install and\nexecute create-vue, the official\nVue project scaffolding tool.\nYou will be presented with\nprompts for several optional\nfeatures such as TypeScript\nand testing support.\nThe created project will be\nusing a build setup based on\nVite and allow us to use Vue\nSingle-File Components (SFCs)."
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 15,
+    "text": "15Asst.Prof.Dr. Umaporn Supasitthimethee\nThe Application Instance\n//main.js\nimport { createApp } from 'vue'\n// import the root component Application\nimport App from './App.vue'\ncreateApp(App).mount('#app')\n• Every Vue application starts by creating a new application instance with\nthe createApp function:\n• The object we are passing into createApp is in fact a component. Every app\nrequires a \"root component\" that can contain other components as its children.\n• An application instance won't render anything until its .mount() method is called.\n<!—index.html-->\n<body>\n<div id=\"app\"></div>\n<script type=\"module\" src=\"/src/main.js\"></script>\n</body>"
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 16,
+    "text": "16Asst.Prof.Dr. Umaporn Supasitthimethee\nCSS Frameworks: Tailwind CSS\n• tailwindCSS\nhttps://tailwindcss.com/\n• Install Tailwind CSS with Vue 3 and Vite (Start at step 2),\nhttps://tailwindcss.com/docs/guides/vite#vue\n• In case you create ./src/style.css file to add @tailwind directives , do not forget\nto import './style.css' at main.js.\n• In case you replace an original CSS with @tailwind directives in\nyour ./assets/main.css file, do nothing.\n• daisyUI, Tailwind CSS Components\nhttps://daisyui.com/docs/install"
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 17,
+    "text": "17Asst.Prof.Dr. Umaporn Supasitthimethee\nCSS Frameworks: Bootstrap\nInstall Bootstrap in your Node.js with the npm package:\nhttps://getbootstrap.com/docs/5.0/getting-started/download/#npm\n>npm install bootstrap\n//main.js\nimport 'bootstrap/dist/css/bootstrap.min.css'"
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 18,
+    "text": "18Asst.Prof.Dr. Umaporn Supasitthimethee\nTwo Core features of Vue\n• Declarative Rendering: Vue extends standard HTML with a template\nsyntax that allows us to declaratively describe HTML output based on\nJavaScript state.\n• Reactivity: Vue automatically tracks JavaScript state changes and\nefficiently updates the DOM when changes happen."
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 19,
+    "text": "19Asst.Prof.Dr. Umaporn Supasitthimethee\nOfficial Web Resources\n• JavaScript\nhttps://developer.mozilla.org/en-\nUS/docs/Web/JavaScript/Reference\n• Vue3\nhttps://vuejs.org/\n• Single File Components <script setup>\nhttps://vuejs.org/api/sfc-spec.html\nhttps://vuejs.org/api/sfc-script-setup.html\n• Vue Devtools\nhttps://devtools.vuejs.org/guide/installation.html\n• Vite Build Tool\nhttps://vitejs.dev/\n• Vue Router\nhttps://router.vuejs.org/\n• Pinia store library for Vue\nhttps://pinia.vuejs.org/introduction.html\n• CSS Framework\nhttps://tailwindcss.com/\nhttps://daisyui.com/\nhttps://getbootstrap.com/\n• Images\nhttps://picsum.photos/\nhttps://unsplash.com/\n• Icons\nhttps://material.io/resources/icons/?style=baseline\nhttps://heroicons.com/\nhttps://icones.netlify.app/\n• Emoji\nhttps://emojipedia.org/\n• Colors\nhttps://coolors.co/"
+  },
+  {
+    "deck": "chapter1-introductiontovue",
+    "file": "Chapter1-IntroductiontoVue.pdf",
+    "page": 20,
+    "text": "20Asst.Prof.Dr. Umaporn Supasitthimethee\nINT203 GitHub\nhttps://github.com/umaporn-sup/2-2567-Vuejs-Resources.git"
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 1,
+    "text": "Chapter 2 - Vue Template Syntax\nAsst.Prof. Dr. Umaporn Supasitthimethee\nผศ.ดร.อุมาพร สุภสิทธิเมธี\nhttps://vuejs.org/guide/essentials/template-syntax.html#template-syntax"
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 2,
+    "text": "2Asst.Prof.Dr. Umaporn Supasitthimethee\nVue Two Core Features\n• Declarative Rendering: Vue extends standard HTML with templating\nsyntax that allows us to declaratively describe HTML output based on\nJavaScript state.\n• Reactivity: Vue automatically tracks JavaScript state changes and\nefficiently updates the DOM when changes happen."
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 3,
+    "text": "3Asst.Prof.Dr. Umaporn Supasitthimethee\nHTML-based Template Syntax\n• Vue.js uses an HTML-based template syntax that allows you to\ndeclaratively bind the rendered DOM to the underlying component\ninstance's data.\n• All Vue.js templates are valid HTML that can be parsed by spec-\ncompliant browsers and HTML parsers.\n• Under the hood, Vue compiles the templates into Virtual DOM render\nfunctions. Combined with the reactivity system, Vue is able to\nintelligently figure out the minimal number of components to re-\nrender and apply the minimal amount of DOM manipulations when\nthe app state changes."
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 4,
+    "text": "4Asst.Prof.Dr. Umaporn Supasitthimethee\nTemplate Syntax\n• Directives are special attributes with the v- prefix.\n• v-text\n• v-html\n• v-bind\n• v-show\n• v-if\n• v-else\n• v-else-if\n• v-for\n• v-model\n• v-on"
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 5,
+    "text": "5Asst.Prof.Dr. Umaporn Supasitthimethee\nTemplate Syntax : v-text\n<script setup>\nconst counter = 1\n</script>\n<template>\nCounter:\n// <p v-text=\"counter\"></p>\n<p>{{ counter }}</p>\n</template>\n<style></style>\n• v-text or using {{ }} \"Mustache\"\nsyntax (double curly braces)\n• update the element’s textContent\n• The mustache tag will be replaced\nwith the value of\nthe counter property from the\ncorresponding component instance."
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 6,
+    "text": "6Asst.Prof.Dr. Umaporn Supasitthimethee\nTemplate Syntax : v-html\n<script setup>\nconst rawHTML = '<b><i>This should be bold and italic</i></b>'\nconst notHTML = '<b><i>This should not be bold and italic</i></b>'\n</script>\n<template>\n<p v-html=\"rawHTML\"></p>\n<p>{{ notHTML }}</p>\n</template>\n<style></style>\n• The double mustaches interpret the data as plain text, not HTML.\n• In order to output real HTML, you will need to use the v-html directive:"
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 7,
+    "text": "7Asst.Prof.Dr. Umaporn Supasitthimethee\nTemplate Syntax : v-bind\n<script setup>\nconst headingStyle = 'color:Green'\n</script>\n<template>\n<!-- <h2 :style=\"headingStyle\">Hello, Vue</h2> -->\n<h2 v-bind:style=\"headingStyle\">Hello, Vue</h2>\n</template>\n<style></style>\n• Mustaches cannot be used inside HTML attributes. Instead, use a v-bind directive:\n• v-bind or using colon (:) for short syntax\n• Dynamically bind one or more attributes, or a component prop to an expression."
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 8,
+    "text": "8Asst.Prof.Dr. Umaporn Supasitthimethee\nBoolean Attributes\n• Boolean attributes are attributes that can indicate true/false values by their\npresence on an element. For example, disabled is one of the most\ncommonly used boolean attributes.\n• v-bind works a bit differently in this case:\n• The disabled attribute will be included if isButtonDisabled has a truthy\nvalue.\n• It will also be included if the value is an empty string, maintaining\nconsistency with <button disabled=\"\">.\n• For other falsy values the attribute will be omitted.\n<button :disabled=\"isButtonDisabled\">Button</button>"
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 9,
+    "text": "9Asst.Prof.Dr. Umaporn Supasitthimethee\nUsing JavaScript Expressions\n• Vue supports the full power of JavaScript expressions inside all data bindings:\n• In Vue templates, JavaScript expressions can be used in the following positions:\n• Inside text interpolations (mustaches)\n• In the attribute value of any Vue directives (special attributes that start with v-)\n• Each binding can only contain one single expression. An expression is a piece of\ncode that can be evaluated to a value.\n{{ number + 1 }}\n{{ ok ? 'YES' : 'NO' }}\n{{ message.split('').reverse().join('') }}\n<div :id=\"`list-${id}`\"></div>"
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 10,
+    "text": "10Asst.Prof.Dr. Umaporn Supasitthimethee\nExpressions Only\n<!-- this is a statement, not an expression: -->\n{{ let a = 1 }}\n<!-- flow control won't work either, use ternary expressions -->\n{{ if (ok) { return message } }}\nTherefore, the following will NOT work:"
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 11,
+    "text": "11Asst.Prof.Dr. Umaporn Supasitthimethee\nCalling Functions\n• It is possible to call a component-exposed method inside a binding\nexpression:\n<span :title=\"toTitleDate(date)\">\n{{ formatDate(date) }}\n</span>"
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 12,
+    "text": "12Asst.Prof.Dr. Umaporn Supasitthimethee\nTemplate Syntax : v-show\n<script setup>\nconst notHTML = '<b><i>This should not be\nbold and italic</i></b>’\nconst hide = false\n</script>\n<template>\n<p v-show=\"hide\">{{ notHTML }}</p>\n</template>\n<style></style>\n• Toggles the element's display CSS\nproperty based on the truthy-ness of\nthe expression value.\n• An element with v-show will always\nbe rendered and remain in the DOM\n(using style: \"display: none\")\n• This directive triggers transitions\nwhen its condition changes."
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 13,
+    "text": "13Asst.Prof.Dr. Umaporn Supasitthimethee\nTemplate Syntax : v-if/v-else/v-else-if\n<script setup>\nconst score = 70\n</script>\n<template>\n<p v-if=\"score >= 80\">Very Good</p>\n<p v-else-if=\"score >= 70\">Good</p>\n<p v-else>Need Improvement</p>\n</template>\n<style></style>\n• The directive v-if is used to\nconditionally render a block. The\nblock will only be rendered if the\ndirective's expression returns a\ntruthy value.\n• The v-else uses to indicate an\n\"else block\" for v-if\n• The v-else-if, as the name\nsuggests, serves as an \"else if\nblock\" for v-if. It can also be\nchained multiple times."
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 14,
+    "text": "14Asst.Prof.Dr. Umaporn Supasitthimethee\nv-if vs. v-show\n• v-if is \"real\" conditional rendering because it ensures that\nevent listeners and child components inside the conditional\nblock are properly destroyed and re-created during toggles.\n• v-if is also lazy: if the condition is false on initial render,\nit will not do anything - the conditional block won't be\nrendered until the condition becomes true for the first time.\n• In comparison, v-show is much simpler - the element is\nalways rendered regardless of initial condition, with CSS-\nbased toggling.\n• Generally speaking, v-if has higher toggle costs while v-\nshow has higher initial render costs.\nUsage\n• prefer v-show if you\nneed to toggle\nsomething very often,\n• prefer v-if if the\ncondition is unlikely\nto change at runtime."
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 15,
+    "text": "15Asst.Prof.Dr. Umaporn Supasitthimethee\nTemplate Syntax : v-for (with a Range)\n• v-for can also take an integer. In this case it will repeat the template\nthat many times, based on a range of 1...n.\n<span v-for=\"n in 10\">{{ n }}</span>"
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 16,
+    "text": "16Asst.Prof.Dr. Umaporn Supasitthimethee\nTemplate Syntax : v-for (for Array)\n<script setup>\nconst courses = [\n'Discrete Mathematics for Information Technology',\n'Statistics for Information Technology',\n'Applied Mathematic for data science',\n'Programming Fundamental'\n]\n</script>\n<template>\n<ul >\n<li v-for=\"course in courses\">{{ course }}</li>\n</ul>\n</template>\n<style></style>\n• We can use the v-for directive to render a list of items based on an array.\n• The v-for directive requires a special syntax in the form of course in courses,\nwhere courses is the source data array and course is an alias for the array element\nbeing iterated on:"
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 17,
+    "text": "17Asst.Prof.Dr. Umaporn Supasitthimethee\nMaintaining State\n• To give Vue a hint so that it can track each node's identity, and thus\nreuse and reorder existing elements, you need to provide a\nunique key attribute for each item:\n• It is recommended to provide a key attribute with v-for whenever\npossible\n<ul>\n<li v-for=\"(course, index) in filterCourses\" :key= \"course.id\">\n{{ index + 1 }}- {{ course }}\n</li>\n</ul>"
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 18,
+    "text": "18Asst.Prof.Dr. Umaporn Supasitthimethee\nTemplate Syntax : v-for (for Object)\n<script setup>\nconst authors = {\nfirstname: 'Evan',\nlastname: 'You'\n}\n</script>\n<template>\n<div>\n<p v-for=\"(value, key, index) in authors\" :key=\"index\">\n{{ index }}-{{ key }}: {{ value }}\n</p>\n</div>\n</template>\n<style></style>\nYou can also use v-for to iterate through the properties of an object."
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 19,
+    "text": "19Asst.Prof.Dr. Umaporn Supasitthimethee\nUse Destructuring on the v-for\nconst items = ref([{ message: 'Foo' }, { message: 'Bar' }])\n<li v-for=\"{ message } in items\"> {{ message }} </li>\n<!-- with index alias -->\n<li v-for=\"({ message }, index) in items\"> {{ message }} {{ index }} </li>"
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 20,
+    "text": "20Asst.Prof.Dr. Umaporn Supasitthimethee\nNested v-for\n<li v-for=\"item in items\">\n<span v-for=\"childItem in item.children\">\n{{ item.message }} {{ childItem }}\n</span>\n</li>"
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 21,
+    "text": "21Asst.Prof.Dr. Umaporn Supasitthimethee\nAssets Handling"
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 22,
+    "text": "22Asst.Prof.Dr. Umaporn Supasitthimethee\nStatic Assets\n• If you have assets that refer in source\ncode (e.g. the file vue-icon.png)\n• put your assets under assets folder, for\nexample, ./assets/vue-icon.png\n• during development the file\n./assets/vue-icon.png will become\n\"/assets/vue-icon-Ie_m9Yqk.png\" in the\nproduction build.\nhttps://vitejs.dev/guide/assets"
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 23,
+    "text": "23Asst.Prof.Dr. Umaporn Supasitthimethee\nDynamic Assets\n• If you have assets that are:\n• never referenced in source code (e.g. robots.txt) then\nyou can place the asset in a special public directory\nunder your project root.\n• assets in public directory will be served at root path /\nduring dev, and copied to the root of the dist directory\nas-is.\n• Note that:\n• you should always reference public assets using root\nabsolute path\n• for example,\n• public/icon.png should be referenced in source code\nas /icon.png\n• public/groupImages/pic-1.jpg should be referenced in\nsource code as /groupImages/pic-1.jpg\n• Assets in public cannot be imported from JavaScript.\nhttps://vitejs.dev/guide/assets#the-public-directory"
+  },
+  {
+    "deck": "chapter2-templatesyntax",
+    "file": "Chapter2-TemplateSyntax.pdf",
+    "page": 24,
+    "text": "JavaScript implicit type conversions"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 1,
+    "text": "Chapter 3 – Reactive, Form Input\nBindings, Computed, and Watchers\nAsst.Prof. Dr. Umaporn Supasitthimethee\nผศ.ดร.อุมาพร สุภสิทธิเมธี"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 2,
+    "text": "2Asst.Prof.Dr. Umaporn Supasitthimethee\nReactive Fundamentals"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 3,
+    "text": "3Asst.Prof.Dr. Umaporn Supasitthimethee\nReactivity Variable with ref()\n• Vue provides a ref()function\nwhich allows us to create\nreactive that can hold any value\ntype.\n• ref()takes the argument and\nreturns it wrapped within a ref\nobject with a .value property.\n• When ref are accessed as top-\nlevel properties in the template,\nthey are automatically\n\"unwrapped\" so there is no need to\nuse .value\n<script setup>\nimport { ref } from 'vue'\nconst msg = ref('hello, vue')\nsetTimeout(() => {\nmsg.value = 'good bye'\nconsole.log(msg)\n}, 3000)\n</script>\n<template>\n<p>Message: {{ msg }}</p>\n</template>\n<style></style>"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 4,
+    "text": "4Asst.Prof.Dr. Umaporn Supasitthimethee\nUsing ref()with Object and Array\n<script setup>\nimport { ref} from 'vue'\nconst profile = ref({\nname: 'Evan You',\ncreator: 'Vue.js'\n})\nconsole.log(profile.value.name)\nconsole.log(profile.value.creator)\n</script>\n<template>\n<p>{{ profile.name }}</p>\n<p>{{ profile.creator }}</p>\n</template>\n<style></style>\n<script setup>\nimport { ref } from 'vue'\nconst topics = ref(['template syntax',\n'declarative rendering', 'ref function'])\nconsole.log(topics.value[0])\nconsole.log(topics.value[1])\nconsole.log(topics.value[2])\n// topics.value.forEach((topic) =>\nconsole.log(topic))\n</script>\n<template>\n<div>{{ topics[0] }}</div>\n<div>{{ topics[1] }}</div>\n<div>{{ topics[2] }}</div>\n</template>\n<style></style>\n//ref() with Object //ref() with Array"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 5,
+    "text": "5Asst.Prof.Dr. Umaporn Supasitthimethee\nReactivity Variable with reactive()\n• We can create a reactive object or array with the reactive() function.\n• It only works for object types (objects, arrays, and collection types such\nas Map and Set).\n• It cannot hold primitive types such as string, number or Boolean."
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 6,
+    "text": "6Asst.Prof.Dr. Umaporn Supasitthimethee\nUsing reactive()with Object and Array\n<script setup>\nimport { reactive} from 'vue'\nconst profile = reactive({\nname: 'Evan You',\ncreator: 'Vue.js'\n})\nconsole.log(profile.name)\nconsole.log(profile.creator)\n</script>\n<template>\n<p>{{ profile.name }}</p>\n<p>{{ profile.creator }}</p>\n</template>\n<style></style>\n<script setup>\nimport { reactive } from 'vue'\nconst topics = reactive(['template syntax',\n'declarative rendering', 'ref function’])\nconsole.log(topics[0])\nconsole.log(topics[1])\nconsole.log(topics[2])\n// topics.forEach((topic) => console.log(topic))\n</script>\n<template>\n<div>{{ topics[0] }}</div>\n<div>{{ topics[1] }}</div>\n<div>{{ topics[2] }}</div>\n</template>\n<style></style>\n//ref() with Object //ref() with Array"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 7,
+    "text": "7Asst.Prof.Dr. Umaporn Supasitthimethee\nReactive() to Ref() Function\n<script setup>\nimport { ref, reactive, toRef, toRefs } from 'vue'\nconst cube = reactive({\nlength: 10,\nwidth: 20,\nheight: 33\n})\nconst length = toRef(cube, 'length')\nconsole.log(length.value)\nconsole.log(cube.width)\nconst { width, height } = toRefs(cube)\nconsole.log(width.value)\nconsole.log(height.value)\n</script>\n<template>\n<p>{{ length }}</p>\n<p>{{ width }}</p>\n<p>{{ height }}</p>\n</template>"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 8,
+    "text": "8Asst.Prof.Dr. Umaporn Supasitthimethee\nForm Input Bindings"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 9,
+    "text": "9Asst.Prof.Dr. Umaporn Supasitthimethee\nTemplate Syntax : v-model\n<script setup>\nimport { ref } from 'vue’\nconst yourName = ref('')\n</script>\n<template>\n<input type=\"text\" v-model=\"yourName\" />\n<h2>{{ yourName }}</h2>\n</template>\n<style></style>\n• Create a two-way binding on form <input>,\n<textarea>, and <select> elements.\n• It automatically picks the correct way to\nupdate the element based on the input type.\n• If you want whitespace from user input to be\ntrimmed automatically, you can add\nthe trim modifier to your v-model-managed\ninputs:\n<input v-model.trim=\"yourName\" />\n• If you want user input to be automatically\ntypecast as a number, you can add\nthe number modifier to your v-\nmodel managed inputs:\n<input v-model.number=\"age\" />"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 10,
+    "text": "10Asst.Prof.Dr. Umaporn Supasitthimethee\nText\n<input v-model= \"nickname\" placeholder= \"your nickname\" />\n<p>Your nickname is: {{ nickname }}</p>\n<textarea v-model= \"address\" placeholder=\"your address\"></textarea>\n<p>Your address is: {{ address }}</p>"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 11,
+    "text": "11Asst.Prof.Dr. Umaporn Supasitthimethee\nRadio\n<div>\n<!-- favorColor is a string \"Red\" when the first option is checked -->\n<input type=\"radio\" id= \"red\" value= \"Red\" v-model= \"favorColor\" />\n<label for= \"red\">Red</label>\n<input type=\"radio\" id= \"green\" value= \"Green\" v-model= \"favorColor\" />\n<label for= \"green\">Green</label>\n<input type=\"radio\" id= \"blue\" value= \"Blue\" v-model= \"favorColor\" />\n<label for= \"blue\">Blue</label>\n<span>Your most favorite color: {{ favorColor }}</span>\n</div>"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 12,
+    "text": "12Asst.Prof.Dr. Umaporn Supasitthimethee\nCheckbox\n• Single checkbox, boolean value:\n<!-- agree is either true or false -->\n<input type=\"checkbox\" id= \"agree\" v-model= \"agree\" />\n<label for=\"checkbox\"> I {{ agree }} the terms and use </label>\n• Multiple checkboxes, bound to the same array:\n<div>\n<input type=\"checkbox\" id= \"reading\" value= \"Reading\" v-model=\"checkedActivities\" />\n<label for=\"reading\">Reading</label>\n<input type=\"checkbox\" id= \"shopping\" value= \"Shopping\" v-model=\" checkedActivities \" />\n<label for=\"shopping\">Shopping</label>\n<input type=\"checkbox\" id= \"travel\" value= \"Travel\" v-model=\" checkedActivities \" />\n<label for=\"travel\">Travel</label>\n<br />\n<span>Checked Activities: {{ checkedActivities }}</span>\n</div>"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 13,
+    "text": "13Asst.Prof.Dr. Umaporn Supasitthimethee\nSelect\n• Single Select:\n<div >\n<select v-model=\"jobSelected\">\n<!-- jobSelected is a string \" frontend\" when the first option is selected -->\n<option value=\"\">Please select your target job</option>\n<option value=\"frontend\">Frontend Developer</option>\n<option value=\"backend\">Backend Developer</option>\n<option value=\"devops\">Devops</option>\n<option value=\"network\">Network Admin</option>\n<option value=\"database\">Database Admin</option>\n</select>\n<span>Job Selected: {{ jobSelected }}</span>\n</div>"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 14,
+    "text": "14Asst.Prof.Dr. Umaporn Supasitthimethee\nSelect\n• Multiple Select (bound to array):\n<select v-model= \"favorPlace\" multiple>\n<option value= \"sea\" >Sea</option>\n<option value= \"mountain\" >Mountain</option>\n<option value= \"museum\" >Museum</option>\n</select>\n<span>Your favorite place: {{ favorPlace }}</span>"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 15,
+    "text": "15Asst.Prof.Dr. Umaporn Supasitthimethee\nEvent Handling by v-on"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 16,
+    "text": "16Asst.Prof.Dr. Umaporn Supasitthimethee\nTemplate Syntax : v-on\n• We can use the v-on directive, which we typically shorten to the @ symbol, to listen to DOM events and\nrun some JavaScript when they're triggered.\n• The usage would be v-on:click =\"handler\" or with the shortcut, @click= \"handler\"\n<template>\n<h1 class=\"text-3xl p-2\">Counter: {{ counter }}</h1>\n<button @click=\"increment\">+</button>\n</template>\nimport { ref } from 'vue'\nconst counter = ref(1)\nconst increment = () => {\ncounter.value++\n}"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 17,
+    "text": "17Asst.Prof.Dr. Umaporn Supasitthimethee\nListening to Events\n• The handler value can be one of the following:\n• Inline handlers: Inline JavaScript to be executed when the event is\ntriggered (similar to the native onclick attribute).\n• Method handlers: A property name or path that points to a method\ndefined on the component."
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 18,
+    "text": "18Asst.Prof.Dr. Umaporn Supasitthimethee\nInline Handlers\n• Inline handlers are typically used in simple cases, for example:\n<button @click=\"count++\">Add 1</button>\n<p>Count is: {{ count }}</p>"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 19,
+    "text": "19Asst.Prof.Dr. Umaporn Supasitthimethee\nCalling Methods in Inline Handlers\n• Instead of binding directly to a method name, we can also call methods\nin an inline handler. This allows us to pass the method custom arguments\ninstead of the native event:\nfunction say(message) {\nalert(message)\n}\n<button @click=\"say('hello')\">Say hello</button>\n<button @click=\"say('bye')\">Say bye</button>"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 20,
+    "text": "20Asst.Prof.Dr. Umaporn Supasitthimethee\nMethod Handlers\n• The logic for many event handlers will be more complex though, and\nlikely isn't feasible with inline handlers. That's why v-on can also\naccept the name or path of a component method you'd like to call."
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 21,
+    "text": "21Asst.Prof.Dr. Umaporn Supasitthimethee\nMethod Handlers\nconst name = ref('Vue.js')\nfunction greet(event) {\nalert(`Hello ${name.value}!`)\n// `event` is the native DOM event\nif (event) {\nconsole.log(event.target.tagName) //BUTTON\nconsole.log(event.target.name) //greetBtn\nconsole.log(event.target.id) //greetId\n}\n}\n<!-- `greet` is the name of the method defined above -->\n<button @click=\"greet\" name=\"greetBtn\" id= \"greetId\" >Greet</button>"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 22,
+    "text": "22Asst.Prof.Dr. Umaporn Supasitthimethee\nAccessing Event Argument in Inline Handlers\n• Sometimes we also need to access the original DOM event in an inline handler.\nYou can pass it into a method using the special $event variable, or use an inline\narrow function:\n<!-- using $event special variable -->\n<button @click=\"warn('Form cannot be submitted yet.', $event)\"> Submit\n</button>\n<!-- using inline arrow function -->\n<button @click=\"(event) => warn('Form cannot be submitted yet.', event)\">\nSubmit </button>\nfunction warn(message, event) {\n// now we have access to the native event\nif (event) {\nalert(event.target)\n}\nalert(message)\n}"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 23,
+    "text": "23Asst.Prof.Dr. Umaporn Supasitthimethee\nMethod vs. Inline Detection\n• The template compiler detects method handlers by checking whether\nthe v-on value string is a valid JavaScript identifier or property access\npath.\n• For example, foo, foo.bar and foo['bar'] are treated as method\nhandlers, while foo() and count++ are treated as inline handlers."
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 24,
+    "text": "24Asst.Prof.Dr. Umaporn Supasitthimethee\nEvent Modifiers\n• It is a very common need to call event.preventDefault() inside event\nhandlers.\n• Although we can do this easily inside methods, it would be better if the\nmethods can be purely about data logic rather than having to deal with DOM\nevent details.\n<!-- the click event will no longer to visit the page -->\n<a @click.prevent=\"https://github.com/\">GitHub</a>\n<!-- the submit event will no longer reload the page -->\n<form @submit.prevent=\"onSubmit\"></form>"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 25,
+    "text": "25Asst.Prof.Dr. Umaporn Supasitthimethee\nKey Modifiers\n• When listening for keyboard events, we often need to check for specific keys.\nVue allows adding key modifiers for v-on or @ when listening for key events:\n• You can directly use any valid key names exposed via KeyboardEvent.key as\nmodifiers by converting them to kebab-case.\n<!-- only call `submit` when the `key` is `Enter` -->\n<input @keyup.enter=\"submit\" />\n<input @keyup.page-down=\"onPageDown\" />"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 26,
+    "text": "26Asst.Prof.Dr. Umaporn Supasitthimethee\nComputed Properties"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 27,
+    "text": "27Asst.Prof.Dr. Umaporn Supasitthimethee\ncomputed()Function\n• Sometimes we need state that depends on other state - in Vue this is\nhandled with component computed properties.\n• When you want to include this calculation in your template more than\nonce or the template is no longer simple and declarative, you should use\na computed property on your reactive data.\n• A computed property will only re-evaluate when some of its reactive\ndependencies have changed.\n• This means as long as your reactive data has not changed, computed\nproperty will immediately return the previously computed result without\nhaving to run the function again."
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 28,
+    "text": "28Asst.Prof.Dr. Umaporn Supasitthimethee\ncomputed() Function\n<script setup>\nimport { ref, computed } from 'vue'\nconst msg = ref('')\nconst isEmpty = computed(() => {\nreturn msg.value.length === 0 ? true : false\n})\n</script>\n<template>\n<input type=\"text\" v-model.trim=\"msg\"/>\n<p :class=\"isEmpty ? 'text-danger' : 'text-success'\">\n{{ msg }}\n</p>\n<p v-if=\"isEmpty\" class=\"text-warning bg-dark\">please input your data!</p>\n</template>"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 29,
+    "text": "29Asst.Prof.Dr. Umaporn Supasitthimethee\nWatchers"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 30,
+    "text": "30Asst.Prof.Dr. Umaporn Supasitthimethee\nwatch()\n• computed properties allow us to declaratively compute derived values.\n• However, there are cases where we need to perform \"side effects\" in reaction\nto state changes. For example, mutating the DOM, or changing another piece\nof state based on the result of an async operation.\n• watch's first argument can be different types of reactive \"sources\": it can be a\nref (including computed refs), a reactive object, or an array of multiple\nsources:\nhttps://vuejs.org/guide/essentials/watchers.html#watchers\n//watching a single source\nwatch(\nsource,\n(newValue, oldValue) => {\n// executed when `source` changes\n}\n)"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 31,
+    "text": "<script setup>\nimport { ref, watch } from 'vue'\nconst fullName = ref('')\nconst firstName = ref('Somchai')\nconst lastName = ref('Deejai')\nconst trackingCount = ref(0)\n//watching a Single Source, //watch(firstName, (newValue, oldValue) => {})\n//watching Multiple Sources using array\nwatch([firstName, lastName], (newValue, oldValue) => {\nfullName.value = `${lastName.value} ${firstName.value}`\ntrackingCount.value++\n})\n</script>\n<template>\n<div>\n<p>FirstName: <input type=\"text\" v-model=\"firstName\" /></p>\n<p>LastName: <input type=\"text\" v-model=\"lastName\" /></p>\n<p>FullName: {{ fullName }}</p>\n<p>Tracking Count: {{ trackingCount }}</p>\n</div>\n</template>\nExample"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 32,
+    "text": "32Asst.Prof.Dr. Umaporn Supasitthimethee\nEager Watchers\n• watch is lazy by default: the callback won't be called until the watched\nsource has changed. But in some cases we may want the same callback\nlogic to be run eagerly - for example, we may want to fetch some\ninitial data, and then re-fetch the data whenever relevant state changes.\n• We can force a watcher's callback to be executed immediately by\npassing the immediate: true option:\nwatch(\nsource,\n() => {\n// executed again when `source` changes\n},\n{ immediate: true } // executed initially\n)"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 33,
+    "text": "watch()\n<script>\nconst searchTodoId = ref(1)\nconst todoResult = ref('')\nwatch(\nsearchTodoId,\nasync () => {\ntry {\nconst res = await fetch(\n`http://localhost:3000/todo/${searchTodoId.value}`\n)\ntodoResult.value = await res.json()\nconsole.log(todoResult.value)\n} catch (e) {\nconsole.log(e)\n}\n},\n{\nimmediate: true\n}\n)\n</script>\n<template>\n<div>\nYour search todo id: <input type=\"number“ v-model=\"searchTodoId\" />\n<div>\n<p>Your search result:</p>\n<p>{{ todoResult }}</p>\n</div>\n</div>\n</template>\nwith immediate: true option\nwithout immediate: true option"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 34,
+    "text": "34Asst.Prof.Dr. Umaporn Supasitthimethee\nwatchEffect()\n• watchEffect() allows us to track the callback's reactive\ndependencies (similar to computed properties) automatically.\n• Whenever reactive dependencies changes, the callback will be run\nagain. The callback will run immediately, there's no need to\nspecify immediate: true.\n• In addition, if you need to watch several properties in a nested data\nstructure, watchEffect() may prove more efficient than a deep\nwatcher, as it will only track the properties that are used in the\ncallback, rather than recursively tracking all of them.\nhttps://vuejs.org/guide/essentials/watchers.html#watcheffect"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 35,
+    "text": "<script setup>\nimport { ref, watchEffect } from 'vue'\nconst fullName = ref('')\nconst firstName = ref('Somchai')\nconst lastName = ref('Deejai')\nconst trackingCount = ref(0)\nwatchEffect(() => {\nfullName.value = `${lastName.value} ${firstName.value}`\ntrackingCount.value++\n})\n</script>\n<template>\n<div>\n<p>FirstName: <input type=\"text\" v-model=\"firstName\" /></p>\n<p>LastName: <input type=\"text\" v-model=\"lastName\" /></p>\n<p>FullName: {{ fullName }}</p>\n<p>Tracking Count: {{ trackingCount }}</p>\n</div>\n</template>\nThe watcher previously can be rewritten as:"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 36,
+    "text": "watchEffect()\nconst searchTodoId = ref(1)\nconst todoResult = ref('')\nwatchEffect(\nasync () => {\ntry {\nconst res = await fetch(\n`http://localhost:3000/todo/${searchTodoId.value}`\n)\ntodoResult.value = await res.json()\nconsole.log(todoResult.value)\n} catch (e) {\nconsole.log(e)\n}\n}\nThe watcher previously can be rewritten as:"
+  },
+  {
+    "deck": "chapter3-reactiveformbinding",
+    "file": "Chapter3-ReactiveFormBinding.pdf",
+    "page": 37,
+    "text": "37Asst.Prof.Dr. Umaporn Supasitthimethee\nwatch vs watchEffect\n• watch and watchEffect both allow us to reactively perform side effects.\nTheir main difference is the way they track their reactive dependencies:\n• watch only tracks the explicitly watched source. It won't track anything\naccessed inside the callback. In addition, the callback only triggers when the\nsource has actually changed. watch separates dependency tracking from the\nside effect, giving us more precise control over when the callback should\nfire.\n• watchEffect combines dependency tracking and side effect into one phase.\nIt automatically tracks every reactive property accessed during its\nsynchronous execution. This is more convenient and typically results in\nterser code but makes its reactive dependencies less explicit."
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 1,
+    "text": "INT 319 IT Professional Practice\nDevelopment Corporate Strategy and Plan\nII (workshop)\nEkapong Jungcharoensukying\nSchool of Information Technology\nKing Mongkut’s University of Technology Thonburi\nMobile : 081-438-9357\nE-mail Address : ekapong@sit.kmutt.ac.th\nMS Teams : ekapong@ad.sit.kmutt.ac.th"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 2,
+    "text": "2\nBusiness Guideline for Strategy Formulation :\n1. Nature of Business\n2. Key Success Factor\n3. Vision & Mission - Developing a vision and mission\n4. Corporate Objectives - Establishing long-term & short-term objectives\n5. SWOT Analysis - Identifying external opportunities & threats, Determining\ninternal strengths & weaknesses\n6. Corporate Strategy - Generating alternative strategies\n7. IT Systems and Tools for Organization\nDevelopment Corporate Strategy and Plan II (workshop)"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 3,
+    "text": "3\nกลุ่มธุรกิจ\nDevelopment Corporate Strategy and Plan II (workshop)\nFast-Food & Restaurant Beverage\nTaco Bell Café Amazon\nDairy Queen Starbucks\nDomino’s Pizza KOI Thé"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 4,
+    "text": "Vision\nMission\nObjectives\nStrategies\nPolicy\nPhilosophy /Values\nSWOT What we would like to be in\nthe future next…yr.\nThe organization’s\ncontinuing purpose or\nreason for being.\nThe desired end results of\nany activity.\nA course of action to achieve\na specific objective\nA predetermined guide\nestablished to provide\ndirection in decision making.\nPlan/Project\nAction plans or activities to achieve vision. KPI\nKey Performance Indicator\nKey performance Indicators\nSWOT Analysis\nAnalysis\nA strategic\nplanning method\nused to evaluate\nthe Strengths,\nWeaknesses,\nOpportunities, and\nThreats involved\nin a project or in a\nbusiness venture.\nPLANNINGCharter\nVision/Mission\nObjective/Strategy/Policy\nDevelopment Corporate Strategy and Plan II (workshop)"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 5,
+    "text": "Company Vision Statement Type of Focus\nGoogle (Alphabet) To provide access to the world's information in\none click.\nOrganizational/Access. Focuses on the utility and reach\nof the service.\nTesla To accelerate the world's transition to\nsustainable energy.\nSocietal/Transformative. Focuses on changing an\nentire global industry for a higher purpose.\nIKEA To create a better everyday life for the many\npeople.\nCustomer/Lifestyle. Focuses on improving the daily\nlives of the mass market.\nMicrosoft To empower every person and every\norganization on the planet to achieve more.\nEmpowerment/Global. Focuses on enabling human\npotential through technology.\nNetflix Becoming the best global entertainment\ndistribution service.\nMarket Dominance/Distribution. Focuses on being the\nundisputed leader in their specific field.\nAmazon\nTo be Earth’s most customer-centric company,\nwhere customers can find and discover anything\nthey might want to buy online.\nCustomer Obsession/Scope. Focuses on the customer\nexperience and the breadth of their offerings.\nLinkedIn To create economic opportunity for every\nmember of the global workforce.\nEconomic/Impact. Focuses on a massive, measurable\nglobal economic goal.\nPatagonia We’re in business to save our home planet. Environmental/Activist. Focuses on a mission-driven,\nexternal cause that supersedes profit."
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 6,
+    "text": "Workshop 2 : จากวิสัยทัศน์องค์กรที่ได้รับ จงแยกวิสัยทัศน์ออกเป็นองค์ประกอบทั้ง 3 ส่วน เวลา 30 นาที\nValue\nproposition\nCore\nPurpose &\nValues\nVisionary\nGoals\n• เหตุผลอันควรอยู่ขององค์กร\n• บทบาทหน้าที่หลักขององค์กร\n• ค่านิยมที่ประชาคมยึดมั่น\n• คุณค่าที่โดดเด่นที่ส่งมอบให้ลูกค้า\n• คุณค่าที่สอดคล้องกับความสามารถ\n• ทิศทาง ตำแหน่ง และ\n• เป้าหมายปลายทางระยะยาว\nDevelopment Corporate Strategy and Plan II (workshop)"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 7,
+    "text": "Workshop 3 : Objectives and Goals 45 นาที\nระดมความเห็นถึงเป้าประสงค์ (Objectives) ขององค์กรที่สอดคล้องกับวิสัยทัศน์ และเป้าหมายย่อย (Goals) ที่สอดคล้องกับ\nแต่ละเป้าประสงค์\nObjectives Goals KPI ปีที่ 1 KPI ปีที่ 2 KPI ปีที่ 3\nDevelopment Corporate Strategy and Plan II (workshop)"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 8,
+    "text": "Model ที่ใช้ในการวิเคราะห์ Strengths/Weaknesses ขององค์กร - McKinsey’s 7 Ss\nระบบ\nคน\nShared\nValues\nอุดมการณ์ร่วม\nStrategy\nกลยุทธ์\nStaff\nบุคลากร\nStructure\nโครงสร้าง\nSystems\nระบบ\nStyle\nพฤติกรรมของคนและ\nกลุ่มในองค์กร\nSkills\nทักษะ\nShift the\nParadigm\nปรับ\nกระบวนทัศน์\nSpecific\nTools\nเครื่องมือ\nWeaknesses\nจุดอ่อน\nStrengths\nจุดแข็ง\nDevelopment Corporate Strategy and Plan II (SWOT Analysis)"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 9,
+    "text": "Structure Culture/\nParadigm/\nHRD\nMonitoring & Evaluation System\n• Key Performance Indicator (KPI)\nCharter\nVision/Mission\nObjective/Strategy/Policy\nTools\n• Information\n• Intelligence\n• Knowledge\nProcess\n& Systems\nShared\nVision/Value\nCharter\nVision/Mission\nObjective/Strategy/Policy\nContinuous Improvement\nDevelopment Corporate Strategy and Plan II (SWOT Analysis)\nimpact of economy\n• COVID-19 outbreak\n• U.S.-China trade war\nimpact of demographic\n• New Generations\n• Aging Society\nimpact of disruptive\ntechnology\n• Internet of Things (IoT)\n• Big Data Analytics\nimpacts of sociocultural\n• Multicultural\n• Social and culture change\nModel ที่ใช้ในการวิเคราะห์\nStrengths/Weaknesses\nOpportunities/Threats\nStrengths\nWeaknesses\nOpportunities Threats"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 10,
+    "text": "10\nWorkshop 4 : SWOT Analysis – ระดมความคิดภายในกลุ่ม ในแต่ละด้านของ SWOT\n4.1 Strengths จุดแข็ง จะแสดงถึงความโดดเด่นขององค์กรที่แตกต่างจากองค์กรอื่น\nDevelopment Corporate Strategy and Plan II (SWOT Analysis)"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 11,
+    "text": "11\n4.2 Weaknesses จุดอ่อน จะแสดงถึงข้อบกพร่องขององค์กรที่จะทำให้ไม่บรรลุเป้าหมาย\nWorkshop 4 : SWOT Analysis – ระดมความคิดภายในกลุ่ม ในแต่ละด้านของ SWOT\nDevelopment Corporate Strategy and Plan II (SWOT Analysis)"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 12,
+    "text": "12\nCustomer\nCompetitor\nSupplier\nStake-holder\nAlliance\nEconomics\nSocial\nTechnology\nPolitics\nInternational\nEnvironmental\nimpact of economy\n• COVID-19 outbreak\n• U.S.-China trade war\nimpact of disruptive\ntechnology\n• Internet of Things (IoT)\n• Big Data Analytics\nimpact of demographic\n• New Generations\n• Aging Society\nimpact of Technology\n• Emerging Technology\n• Technology Disruption\nimpact of Politics\n• Legal considerations in\nbusiness\n• Personal Data Protection\nAct (PDPA)\nปัจจัยแวดล้อมภายนอก ที่ใช้ในการวิเคราะห์ Opportunities/Threats ขององค์กร\nMacro-environment Micro-environment\nDevelopment Corporate Strategy and Plan II (SWOT Analysis)"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 13,
+    "text": "13\n4.3 Opportunities โอกาส จะวิเคราะห์จากปัจจัยนอกองค์กรที่ส่งผลดีต่อการทำงาน\nWorkshop 4 : SWOT Analysis – ระดมความคิดภายในกลุ่ม ในแต่ละด้านของ SWOT\nDevelopment Corporate Strategy and Plan II (SWOT Analysis)"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 14,
+    "text": "14\n4.4 Threats ภัยคุกคาม จะวิเคราะห์จากปัจจัยนอกองค์กรที่ส่งผลลบต่อการทำงาน\nWorkshop 4 : SWOT Analysis – ระดมความคิดภายในกลุ่ม ในแต่ละด้านของ SWOT\nDevelopment Corporate Strategy and Plan II (SWOT Analysis)"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 15,
+    "text": "Strengths\nMAX\nOpportunities\nMAX\nThreats MAX\nMIN\nSWOT Analysis Chart\nกลยุทธ์เชิงรุก\nAggressive/Integration กลยุทธ์เชิงรับ\nTurnaround\nกลยุทธ์เชิงป้องกัน\nDefensive/\nDiversify\n15\nโครงการ 2\nโครงการ 1\nโครงการ 3\nโครงการ 4\nโครงการ 6\nโครงการ 5\nกลยุทธ์\n1\nกลยุทธ์\n2\nกลยุทธ์\n5\nกลยุทธ์\n6\nกลยุทธ์\n3\nกลยุทธ์\n4\n3. กำหนดกลยุทธ์ที่สอดคล้องกับสภาพแวดล้อม และช่วยให้\nบรรลุเป้าหมาย ลงในแต่ละ Quadrant\n4. กำหนดโครงการที่สอดคล้องกับกลยุทธ์ในแต่ละด้าน\nWeaknesses\nMAX\n1. จัดลำดับความสำคัญของ SWOT แล้วเรียงขึ้นแกน\n2. กำหนดเป้าหมายเชิงยุทธศาสตร์ ลงในแต่ละ Quadrant\nตามประเด็นที่สนใจ\nWorkshop#5\nการกำหนดกลยุทธ์"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 16,
+    "text": ""
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 17,
+    "text": "17\nStrengths จุดแข็ง Example\n1. เป็นองค์กร ระดับโลก\n4. มีความเข้มแข็ง ทางด้านการเงิน\n5. มีชื่อเสียง มีจุดเด่นด้านคุณภาพ\n3. เป็นผู้นำด้านการผลิต ( Lean, JIT)\n2. มีตลาดหลักใน US, China, EMEA\nตัวอย่างที่นำเสนอ สร้างขึ้นเพื่อประกอบการสอนวิชา INT 319 IT Professional Practice เท่านั้น\nDevelopment Corporate Strategy and Plan II\nWeaknesses จุดอ่อน\n1. กำลังการผลิตในอเมริกาและญี่ปุ่น เสียเปรียบคู่แข่ง\n3. ปริมาณและคุณภาพบุคลากรไม่สอดคล้องกับแผนการผลิต\nรถยนต์\n2. ข้อร้องเรียนและปัญหาจากการผลิตจำนวนมาก คุณภาพไม่\nเหมาะสมกับราคา"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 18,
+    "text": "18\nExample\nตัวอย่างที่นำเสนอ สร้างขึ้นเพื่อประกอบการสอนวิชา INT 319 IT Professional Practice เท่านั้น\nDevelopment Corporate Strategy and Plan II\n1. กระแสพลังงานทดแทนน้ำมันมีสูงขึ้น\n4. ความต้องการของสังคมที่เน้นคุณภาพที่เหมาะสมกับราคา\n5. การขยายตัวของตลาดในจีน อินเดีย และรัสเซีย\n3. กระแสโลกที่เน้นการรักษาและเป็นมิตรกับสิ่งแวดล้อม\n2. ตลาดของคนหนุ่มสาวเติบโตเพิ่มขึ้น\nOpportunities โอกาส Threats ภัยคุกคาม\n1. จำนวนคู่แข่งมากขึ้น\n4. การเปลี่ยนแปลง ความต้องการใช้รถยนต์\n5. ราคาน้ำมันสูงขี้น\n3. ความผันผวนของภาวะเศรษฐกิจ\n2. ตลาดหลักในประเทศต่างๆ ชะลอตัว"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 19,
+    "text": "Strengths\nMAX\nMIN\nกลยุทธ์เชิงรุก (Aggressive) กระแสพลังงาน\nทดแทนน้ำมันมี\nสูงขึ้น\nOpportunities\nMAX\nตลาดของคนหนุ่ม\nสาวเติบโตเพิ่มขึ้น\nกระแสโลกที่เน้น\nการรักษา\nสิ่งแวดล้อม\nความต้องการของ\nสังคมที่เน้นคุณภาพ\nที่เหมาะกับราคา\nการขยายตัวของ\nตลาดในจีน\nอินเดีย รัสเซีย\nพัฒนาสินค้า/บริการ\nตลาด/ช่องทางการจำหน่าย\nเป็นองค์กร\nระดับโลก\nมีความเข้มแข็ง\nทางด้านการเงิน\nมีชื่อเสียง\nมีจุดเด่นด้าน\nคุณภาพ\nเป็นผู้นำด้าน\nการผลิต\n( Lean, JIT)\nมีตลาดหลักใน\nUS, China,\nEMEA\nโตโยต้าลีสซิ่ง\nจัดตั้ง Toyota\nTechnical Center\nในทุกภูมิภาค\n--- กลยุทธ์\n--- เป้าหมาย\n1.1 คุณภาพมาตรฐาน\nตรงความต้องการลูกค้า\n1.3 การเติบโตของ\nตลาด\nสินค้าและบริการ\n1.2 R&D\nเพื่อเป็นผู้นำ\nครองส่วนแบ่งตลาดอันดับหนึ่ง\nยอดขายเทียบกับบริษัทในเครือ\nOpportunities\nMAX"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 20,
+    "text": "Weaknesses\nMAX\nToyota\nProduction\nSystem\nปรับปรุง\nกระบวนการ\nอย่างต่อเนื่อง\nJust-In-TimeLean Thinking\nRespect\nTeamwork\nส่งเสริมผู้นำ\nซึมซับปรัชญา\nเชื่อมโยงบุคลากรที่\nเกษียณสู่การสร้าง\nSRM & PRM\nระบบ Online\nKaizen\nMIN\nกระแส\nพลังงาน\nทดแทนน้ำมัน\nมีสูงขึ้น\nOpportunities\nMAX\nตลาดของคน\nหนุ่มสาวเติบโต\nเพิ่มขึ้น\nกระแสโลกที่เน้น\nการรักษา\nสิ่งแวดล้อม\nความต้องการของ\nสังคมที่เน้น\nคุณภาพที่เหมาะ\nกับราคา\nการขยายตัว\nของตลาดในจีน\nอินเดีย รัสเซีย\nพัฒนาบุคลากร\nกลยุทธ์เชิงรับ\n(Turnaround)\nJidoka\nIdea\nSuggestion\nReduce\nMUDA-MURI-\nMURA\nGenchi/Genbutsu\n(Go and See)\nStrengths\nMAX เป็นองค์กร\nระดับโลก มีความเข้มแข็ง\nทางด้านการเงิน\nมีชื่อเสียง\nมีจุดเด่นด้าน\nคุณภาพ\nเป็นผู้นำด้าน\nการผลิต\n( Lean, JIT)\nมีตลาดหลักใน\nUS, China,\nEMEA\n2.1เพื่อลดต้นทุน\nการผลิต\n2.2 Fundamental DNA\n2.3 พันธมิตรที่มั่นคง\n--- กลยุทธ์\n--- เป้าหมาย\nปริมาณและคุณภาพ\nบุคลากรไม่สอดคล้อง\nกับแผนการผลิตรถยนต์\nข้อร้องเรียนและปัญหาจาก\nการผลิตจำนวนมาก\nคุณภาพไม่เหมาะสมกับราคา\nกาลังการผลิตใน\nอเมริกาและญี่ปุ่น\nเสียเปรียบคู่แข่ง"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 21,
+    "text": "Threats\nMAX\nสร้างกลไกตลาด\nและสังคม\nเพิ่มศักยภาพทีมตลาด\nและเน้นกลุ่มลูกค้าใหม่\nจำนวนคู่แข่งมากขึ้น\nการเปลี่ยนแปลงของ\nอัตราแลกเปลี่ยนและ\nต้นทุน\nความผันผวนของ\nภาวะเศรษฐกิจ\nการเปลี่ยนแปลง\nประชากรศาสตร์\nการเปลี่ยนแปลง\nความต้องการใช้รถยนต์\nราคาน้ำมันสูงขี้น\nตลาดหลักในประเทศ\nต่างๆชะลอตัว\nกลยุทธ์เชิง ป้องกัน\n(Defensive)\nกระแสพลังงาน\nทดแทนน้ำมันมี\nสูงขึ้น\nOpportunities\nMAX\nตลาดของคนหนุ่ม\nสาวเติบโตเพิ่มขึ้น\nกระแสโลกที่เน้น\nการรักษา\nสิ่งแวดล้อม\nความต้องการของ\nสังคมที่เน้นคุณภาพ\nที่เหมาะกับราคา\nการขยายตัวของ\nตลาดในจีน\nอินเดีย รัสเซีย\nMarket\nPenetration\nMarket\nDevelopment\nPromotion,\nPR &\nAdvertising\nCRM\nCSR\nเป็นองค์กร\nระดับโลก มีความเข้มแข็ง\nทางด้านการเงิน\nมีชื่อเสียง\nมีจุดเด่นด้าน\nคุณภาพ\nเป็นผู้นำด้าน\nการผลิต\n( Lean, JIT)\nมีตลาดหลักใน\nUS, China,\nEMEA\n3.1 รักษาส่วนแบ่ง\nการตลาดเดิม\nอย่างมั่นคง\n3.2 ขยายตลาด\nในประเทศต่างๆ\nความรับผิดชอบต่อสังคม\n--- กลยุทธ์\n--- เป้าหมาย\nStrengths\nMAX"
+  },
+  {
+    "deck": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1",
+    "file": "INT319-W07-Development of Corporate Strategy and Plan II (workshop) (G1).pdf",
+    "page": 22,
+    "text": "22\nWorkshop 5 : Corporate Strategy\nกลยุทธ์ เป็นวิถีทาง และวิธีการที่จะนำไปสู่ความสำเร็จตามเป้าประสงค์ภายใต้สภาพแวดล้อมที่เราประเมินและวิเคราะห์\nStrategy\n1.\n2.\n3.\nStrengths\n1.\n2.\nOpportunities\n1.\n2.\nWeaknesses\n1.\n2.\nThreats\n1.\n2.\nDevelopment Corporate Strategy and Plan II (Corporate Strategy)\nObjectives Goals KPI ปีที่ 1 KPI ปีที่ 2 KPI ปีที่ 3\nObjectives #n"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 1,
+    "text": "INT 319 IT Professional Practice\nEkapong Jungcharoensukying\nSchool of Information Technology\nKing Mongkut’s University of Technology Thonburi\nMobile : 081-438-9357\nE-mail Address : ekapong@sit.kmutt.ac.th\nMS Teams : ekapong@ad.sit.kmutt.ac.th\nBusiness Functions - Marketing\n*Slides designed by Aj.Thanitsorn Chirapornchai – KMUTT’s VP for Planning and Information"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 2,
+    "text": "2\nBusiness Functions :\n• The Major Functions of a Business\n• Marketing Concepts\n• Marketing Strategies\n• Product Strategies\n• Pricing Strategies\n• Place Strategies\n• Promotion Strategies\n• Business Model Canvas\nBusiness Functions"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 3,
+    "text": "3\nManufacturing\nand Production\nSales and\nMarketing\nFinance and\nAccounting Human Resources\nICT\nThe Major Functions of a Business\nBusiness Functions"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 4,
+    "text": "Suppliers Publics\nCompetitors\nMarketing\nIntermediaries\nProduct\nPlace\nPromotion\nO\nr\ng\na\nn\ni\nz\na\nt\ni\no\nn\nM\na\nr\nk\ne\nt\ni\nn\ng\nM\na\nn\na\ng\ne\nm\ne\nn\nt\nS\ny\nst\ne\nms\nStrategies\nPolitical/\nlegal\nenvironment\nSocial/\ncultural\nenvironment\nStrengths Weaknesses\nOpportunities Threats\nPrice\nV i s i o n - M i s s i o\nn\n-\nO\nb\nj\ne\nc\nt i\nv\ne\ns\n-\nS\nt\nr\na\nt\ne\ng\ni\ne\ns\n-\nP\no\nl\ni\nc\ni\ne\ns\nDemographic/\neconomic\nenvironment\nTechnological/\nphysical\nenvironment\nBusiness Functions – Marketing concepts"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 5,
+    "text": "O\nr\ng\na\nn\ni\nz\na\nt\ni\no\nn\nPublics\nPositioning\nProducts\nServices\nInformation\nExperiences\netc.\nValue\nand\nSatisfaction\nV\ni\ns\ni\no\nn\n-\nM\ni\ns\ns\ni\no\nn\n-\nO\nb\nj\ne\nc\nt\ni\nv\ne\ns\n-\nS\nt\nr\na\nt\ne\ng\ni\ne\ns-Policie\ns\nCRM\nQ\nQuality\nF\nFinancing\nG\nGovernance\nOfferingsandBrands\nOfferings\nand\nBrands Segmentation\nSegmentation\nTarget\nMarkets\nNeeds,\nWants,\nand\nDemands\nPolitical/\nlegal\nenvironment\nSocial/\ncultural\nenvironment\nDemographic/\neconomic\nenvironment\nTechnological/\nphysical\nenvironment\nBusiness Functions – Marketing concepts"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 6,
+    "text": "Marketing\nIntermediaries\nO\nr\ng\na\nn\ni\nz\na\nt\ni\no\nn\nSuppliers\nSRM/\nPRM CRM\nSCM\nMarketing\nChannels\nCompetition\nCompetitors\nAlliance\nPolitical/\nlegal\nenvironment\nSocial/\ncultural\nenvironment\nDemographic/\neconomic\nenvironment\nTechnological/\nphysical\nenvironment\nBusiness Functions – Marketing concepts"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 7,
+    "text": "Base for Segmenting Consumer Markets\nhttps://theinvestorsbook.com/segmentation.html\nBusiness Functions – Marketing concepts"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 8,
+    "text": "Examples of Segment\n• Gen Z\n• 35% of Gen Z are household\nbuyers\n• Pet-sumer\n• Silver gen\n• Wellness economy\n• Different Gen, Different Needs\n• High Value Users (HVUs)\n• Value Seeker\n• Conscious Spending\n• Zero Consumer\n• Zero Brand Loyalty\n• Solo economy\n• Often also a pet-sumer\n• Sophisticated Simplicity\n• Quiet Luxury\n10/8/2025 Source:\nhttps://www.youtube.com/watch?v=0JlW2BFP3j4&list=PLFdrg7fLj49KSJhj7GkcDNuLRBgxRIX3r&index=3"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 9,
+    "text": "Segment Sizing Analysis\n1. Estimate Market Potential (The Revenue Ceiling)\n• Total Addressable Market (TAM) = Number of Potential Customers in Segment\n× Average Annual Purchase Value per Customer\n• Segment Penetration Rate\n• Revenue Projection\n2. Analyze Segment Profitability (The Bottom Line)\n• Customer Acquisition Cost (CAC)\n• Customer Lifetime Value (CLV)\n• Cost-to-Serve\n10/9/2025"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 10,
+    "text": "Segment Sizing Analysis (2)\n3. Assess Growth and Future Potential (Long-Term Value)\n• Growth Rate\n• Stability and Trends\n• Competitive Intensity\n10/8/2025"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 11,
+    "text": "https://www.matrixbricks.com/product-strategy/\nProduct\nStrategies\nProducts\nStrategies\nNew\nProducts\nPackage\nDesign\nBrand\nNames\nWarranties\nand\nServices\nCustomer\nServices\nQuality\nProduct\nand/or\nServices\nResearch\nand\nDevelopment\nProduct\nLife Cycle\nAnsoff Matrix\nBusiness Functions – Marketing Strategies"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 12,
+    "text": "Business Functions – Marketing Strategies\nPrice\nStrategies\nPricing\nStrategies\nPrice Discounts and Allowances\n• Discount-EDLP (Everyday low price)\n• Quantity Discount\n• Functional Discount (for resellers)\n• Seasonal Discount\n• Promotional Allowance\nDifferentiated Pricing\n• Customer-segment pricing\n• Product-form pricing\n• Channel pricing\n• Location pricing\n• Time pricing etc.\nGeographical Pricing\n• Cost-Based Factors (Logistics)\n• Market-Based Factors (Demand)\n• Free On Board (FOB) Pricing\n• Freight-Absorption Pricing\n• Uniform Delivered Pricing\n• Zone Pricing\nPromotional Pricing\n• Special event pricing\n• Special customer pricing\n• Cash rebates (price integrity, redemption\nfalloff)\n• Low-interest financing (cheaper loans)\n• Longer payment terms etc.\nMarketing Management 15th Global Edition, Philip Kotler and Kevin Lane Keller"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 13,
+    "text": "Place\nStrategies\nBusiness Functions – Marketing Strategies"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 14,
+    "text": "Business Functions – Marketing Strategies\nhttps://saylordotorg.github.io/text_small-business-management-in-the-21st-century/s11-08-marketing-strategy-and-promoti.html\nPromotion\nStrategies"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 15,
+    "text": "8. Key Partners 7. Key Activities\n6. Key Resource\n2. Value Proposition 4. Customer Relationships\n3. Channel\n1. Customer Segments\n9. Cost Structure 5. Revenue Streams\nจุดขายของสินค้า/บริการ การ\nเติมเต็มความต้องการ เพิ่มความ\nพึงพอใจ เพื่อการวางแผนว่า\nสินค้าจะอยู่ใน Position ไหน\nทางการตลาด\nต้องทราบว่ากลุ่มลูกค้ามี\nพฤติกรรมแบบไหน ต้องรู้ว่า\nเราทำสินค้านี้เพื่อมาขายให้\nใคร จะใช้กลยุทธ์ใดในการ\nเข้าถึงลูกค้า\nต้องเลือกวิธีการสื่อสาร หรือ\nนำสินค้าไปถึงลูกค้าให้ถูก\nกลุ่มเป้าหมาย และสะดวก\nต้องวางแผนในการสร้าง\nความสัมพันธ์กับลูกค้า และ\nวิธีการรักษาลูกค้าเดิม เพื่อให้\nลูกค้าเกิดความจงรักภักดีกับ\nแบรนด์\nลักษณะของรายได้จากธุรกิจเป็นอย่างไร รับเป็นครั้งจากการขายสินค้า รับ\nต่อเนื่องสม่ำเสมอจากบริการ หรือการเพิ่มรายได้จากบริการเสริม เพื่อให้\nธุรกิจได้กำไรมากขึ้น\nทรัพยากรที่จำเป็นต่อธุรกิจของ\nเรา เช่นวัตถุดิบ เครื่องมือ\nเครื่องจักร และคน ที่จะสามารถ\nผลิตสินค้าหรือบริการ ให้ตรงกับ\nValue Proposition ที่ต้องส่งมอบ\nให้ลูกค้าอย่างมีประสิทธิภาพ\nกระบวนการผลิต การตลาด\nรวมถึงการให้บริการ ที่\nเกี่ยวข้อง ตั้งแต่การออกแบบ\nการผลิต และการส่งมอบ\nสินค้าถึงลูกค้า\nพันธมิตรทางธุรกิจ ทั้งผู้ส่ง\nวัตถุดิบ คู่ค้า และเครือข่าย\nต่างๆซึ่งเราต้องพึ่งพาในการ\nจัดจำหน่าย หรือช่วย\nประชาสัมพันธ์ เพื่อให้\nสามารถผลิตได้อย่างต่อเนื่อง\nและสร้างรายได้จากการขายที่\nเป็นไปตามเป้าหมาย\nค่าใช้จ่ายต่างๆ ทั้งการจัดหาทรัพยากร การดำเนินกิจกรรม การทำงาน\nร่วมกับพันธมิตร รวมทั้งต้นทุนของสินค้า ทั้งคงที่และผันแปรของกิจการ\nเพื่อให้เราสามารถตั้งราคาและขายสินค้าได้กำไร และยังช่วยให้เราหาวิธีการ\nต่างๆในการลดต้นทุนอีกด้วย\nBusiness Functions – Business Model Canvas"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 16,
+    "text": "จากสไลด์ที่ 7 Base for Segmenting Consumer Markets\nท่านควรแบ่ง segment ของธุรกิจท่านอย่างไร จึงจะเหมาะสม และเลือก Target Group ใด\nBusiness Functions – Workshop"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 17,
+    "text": "จากสไลด์ที่ 8-11 ท่านเลือกใช้กลยุทธ์ 4 P ในด้านใดบ้างเพื่อให้บรรลุเป้าหมาย\nProduct\nPlace\nPromotion\nPrice\nBusiness Functions – Workshop"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 18,
+    "text": "จากสไลด์ที่ 12 Business Model Canvas\nโปรดตอบคำถาม ใน 4 ช่องแรก\n1. Customer Segments\n2. Value Propositions\n3. Channel\n4. Customer Relationships\nBusiness Functions – Workshop\n2. Value Proposition 4. Customer Relationships\n3. Channel\n1. Customer Segments\nจุดขายของสินค้า/บริการ การเติมเต็ม\nความต้องการ เพิ่มความพึงพอใจ\nเพื่อการวางแผนว่าสินค้าจะอยู่ใน\nPosition ไหนทางการตลาด\nต้องทราบว่ากลุ่มลูกค้ามีพฤติกรรม\nแบบไหน ต้องรู้ว่าเราทำสินค้านี้\nเพื่อมาขายให้ใคร จะใช้กลยุทธ์ใด\nในการเข้าถึงลูกค้า\nต้องเลือกวิธีการสื่อสาร หรือนำ\nสินค้าไปถึงลูกค้าให้ถูก\nกลุ่มเป้าหมาย และสะดวก\nต้องวางแผนในการสร้าง\nความสัมพันธ์กับลูกค้า และวิธีการ\nรักษาลูกค้าเดิม เพื่อให้ลูกค้าเกิด\nความจงรักภักดีกับแบรนด์"
+  },
+  {
+    "deck": "int319-w08-business-function-marketing",
+    "file": "INT319-W08-Business Function Marketing.pdf",
+    "page": 19,
+    "text": "Business Functions – Workshop\nBusiness Model Canvas คำตอบที่สอดคล้องกับธุรกิจที่ได้รับมอบหมาย\n1.Customer Segments\n2.Value Propositions\n3.Channel\n4.Customer Relationships"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 1,
+    "text": "INT 319 IT Professional Practice\nEkapong Jungcharoensukying\nSchool of Information Technology\nKing Mongkut’s University of Technology Thonburi\nMobile : 081-438-9357\nE-mail Address : ekapong@sit.kmutt.ac.th\nMS Teams : ekapong@ad.sit.kmutt.ac.th\nBusiness Functions - Manufacturing\n*Slides designed by Aj.Thanitsorn Chirapornchai – KMUTT’s VP for Planning and Information"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 2,
+    "text": "2\nBusiness Functions :\n• The Value Chain\n• Production process\n• Business Model Canvas\nBusiness Functions"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 3,
+    "text": "3\nThe Value Chain\nA value chain is a business model that describes the full range of activities needed to create a product or service.\nBusiness Functions"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 4,
+    "text": "4\nThe Value Chain\nBusiness Functions\nSuppliersCustomers\nSupport activities"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 5,
+    "text": "Examples of Information in Manufacturing\n• Supplier\n• Lead Time – Duration from order to receive\n• Raw Material information – Name, Shelf life, Size, Weight\n• Inbound delivery – What, When, How many, Where is it now?\n• Goods Receiving – What and how many did we order?, How many missing?\n• Inventory – What, Where?, How many?, Shelf life\n• Production\n• Production Process – How many workers are needed? Who? What day?, time?\n• Bill of Materials (BOM)\n• Finished Product – Lot number, Serial number, Date of Manufacture (DOM),\nExpiration date\n• Outbound delivery – Where to? What, How many? When?"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 6,
+    "text": "6\nManufacturing Systems\nQuality\nInventory Cost\nProduction\nManufacturing\nBusiness Functions"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 7,
+    "text": "7\nManufacturing SystemsProduction\n◼ Production Management\n• Planning\n• Organizing\n• Staffing\n• Directing\n• Controlling\n◼Production Process\nManagement Function\nBusiness Functions\nResource (4M) Finished Goods"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 8,
+    "text": "Capacity\nplanning\n8\nManufacturing Systems\n◼ Production process (Preparation phase)\n◼ Production process (Operation phase)\n• Product forecasting\n• Aggregate planning\n• Job scheduling\n• Production control\n• Project planning and scheduling\n• Personnel planning\nProduct\nplanning\nProcess planning\nPlant layout\nplanning\nPlant location\nplanning\nBusiness Functions\nProduction\nprocess"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 9,
+    "text": "9\nManufacturing Systems\nProduct\nplanning\nProcess planning\n◼ Product planning\n• Product design (market, economic, technical and strategic analyses)\n• Form design (shape, color, size, and style.)\n• Production design (simplification, standardization)\n◼Process planning\n• Product analysis (Assembly chart, Process flowchart)\n• Make-or-buy (cost, capacity, quality, speed, reliability, expertise)\n• Process and equipment selection(project, batch, mass…)\n• Process plans (set of documents)\n◼ Production process (Preparation phase)\nBusiness Functions\nProduction\nProcess\nPreparation phase"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 10,
+    "text": "10\n◼ Plant layout planning\n• Product layouts or Assembly lines(efficient)\n• Process layouts or Functional layouts (flexible)\n• Fixed-position layout\nFactor :\n• Maximum use of space, flexibility, coordination, visibility,\naccessibility, safety, and comfort.\n• Minimum distance and handling.\n• Unidirectional flow\nPlant layout\nplanning\nBusiness Functions\nManufacturing Systems\n◼ Production process (Preparation phase)\nProduction\nProcess\nPreparation phase"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 11,
+    "text": "11\n◼ Plant location planning\n• Types of facilities : heavy manufacturing, light industry, distribution\ncenters, and retail.\nFactors :\nLabor, transportation and logistics, customers and markets, and\ncommunity environment (utilities, taxes & legal, quality of life).\n◼ Capacity planning\nFactors : machines, workers, shifts, utilization, and efficiency.\nCapacity\nplanning\nPlant location\nplanning\nManufacturing Systems\nBusiness Functions\n◼ Production process (Preparation phase)\nProduction\nProcess\nPreparation phase"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 12,
+    "text": "12\n◼ Production Process (Operation phase)\n◼ Aggregate planning\n• Input : capacity constraints, financial constraints, demand\nforecasts, objectives, strategies and policies.\n• Output : size of workforce, production/month, inventory\nlevels, units or bahts subcontracted, back ordered.\n◼ Product forecasting\n• Time frame(short, medium and long-range)\n• Demand behavior(trend, cycle, seasonal pattern)\n• Forecasting methods(moving average, etc.)\nBusiness Functions\nManufacturing SystemsProduction\nProcess\nOperation phase"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 13,
+    "text": "13\n◼ Job scheduling\n• Loading\n• Sequencing\n• Monitoring\n◼ Production control\n• Quality Management\n• Identifying problems and causes\n• Statistical quality control\n◼ Project planning and scheduling\n◼ Personnel planning\nManufacturing Systems\nBusiness Functions\n◼ Production Process (Operation phase)\nProduction\nProcess\nOperation phase"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 14,
+    "text": "14\nReceiving inspection\nReceiving area\nRaw-materials storeroom\nShop floor area\nShipping area\nFinished-goods storeroom\n1\n2\n3\n6\n4 5\n11\n78\n9\n12\n10\nTerminaln\nBusiness Functions\nManufacturing Systems"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 15,
+    "text": "8. Key Partners 7. Key Activities\n6. Key Resource\n2. Value Proposition 4. Customer Relationships\n3. Channel\n1. Customer Segments\n9. Cost Structure 5. Revenue Streams\nจุดขายของสินค้า/บริการ การ\nเติมเต็มความต้องการ เพิ่มความ\nพึงพอใจ เพื่อการวางแผนว่า\nสินค้าจะอยู่ใน Position ไหน\nทางการตลาด\nต้องทราบว่ากลุ่มลูกค้ามี\nพฤติกรรมแบบไหน ต้องรู้ว่า\nเราทำสินค้านี้เพื่อมาขายให้\nใคร จะใช้กลยุทธ์ใดในการ\nเข้าถึงลูกค้า\nต้องเลือกวิธีการสื่อสาร หรือ\nนำสินค้าไปถึงลูกค้าให้ถูก\nกลุ่มเป้าหมาย และสะดวก\nต้องวางแผนในการสร้าง\nความสัมพันธ์กับลูกค้า และ\nวิธีการรักษาลูกค้าเดิม เพื่อให้\nลูกค้าเกิดความจงรักภักดีกับ\nแบรนด์\nลักษณะของรายได้จากธุรกิจเป็นอย่างไร รับเป็นครั้งจากการขายสินค้า รับ\nต่อเนื่องสม่ำเสมอจากบริการ หรือการเพิ่มรายได้จากบริการเสริม เพื่อให้\nธุรกิจได้กำไรมากขึ้น\nทรัพยากรที่จำเป็นต่อธุรกิจของ\nเรา เช่นวัตถุดิบ เครื่องมือ\nเครื่องจักร และคน ที่จะสามารถ\nผลิตสินค้าหรือบริการ ให้ตรงกับ\nValue Proposition ที่ต้องส่งมอบ\nให้ลูกค้าอย่างมีประสิทธิภาพ\nกระบวนการผลิต การตลาด\nรวมถึงการให้บริการ ที่\nเกี่ยวข้อง ตั้งแต่การออกแบบ\nการผลิต และการส่งมอบ\nสินค้าถึงลูกค้า\nพันธมิตรทางธุรกิจ ทั้งผู้ส่ง\nวัตถุดิบ คู่ค้า และเครือข่าย\nต่างๆซึ่งเราต้องพึ่งพาในการ\nจัดจำหน่าย หรือช่วย\nประชาสัมพันธ์ เพื่อให้\nสามารถผลิตได้อย่างต่อเนื่อง\nและสร้างรายได้จากการขายที่\nเป็นไปตามเป้าหมาย\nค่าใช้จ่ายต่างๆ ทั้งการจัดหาทรัพยากร การดำเนินกิจกรรม การทำงาน\nร่วมกับพันธมิตร รวมทั้งต้นทุนของสินค้า ทั้งคงที่และผันแปรของกิจการ\nเพื่อให้เราสามารถตั้งราคาและขายสินค้าได้กำไร และยังช่วยให้เราหาวิธีการ\nต่างๆในการลดต้นทุนอีกด้วย\nBusiness Functions – Business Model Canvas"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 16,
+    "text": "จากสไลด์ที่ 14 Business Model Canvas\nโปรดตอบคำถาม ในช่อง 6-8\n6. Key Resource\n7. Key Activities\n8. Key Partner\nBusiness Functions – Workshop"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 17,
+    "text": "Business Functions – Workshop\nBusiness Model Canvas คำตอบที่สอดคล้องกับธุรกิจที่ได้รับมอบหมาย\n6. Key Resource\n7. Key Activities\n8. Key Partner"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 18,
+    "text": "18\nBusiness Functions - Manufacturing Systems Workshop (homework)\nจากสื่อที่ท่านได้เห็น จงวิเคราะห์ว่า เนื้อหาส่วนใดเกี่ยวข้องกับ Production Process ใน moduleใด (11 Modules)\nที่มา : บริษัท โตโยต้า มอเตอร์ ประเทศไทย จำกัด โรงงานประกอบรถยนต์"
+  },
+  {
+    "deck": "int319-w09-business-function-manufacturing",
+    "file": "INT319-W09-Business Function Manufacturing.pdf",
+    "page": 19,
+    "text": "19\nBusiness Functions - Manufacturing Systems Workshop (homework)\nที่มา : บริษัท โตโยต้า มอเตอร์ ประเทศไทย จำกัด โรงงานประกอบรถยนต์\nProduction Process Modules ระบบ/เรื่องราวใด ในโรงงานอุตสาหกรรมจากสื่อที่เห็น\nProduct planning\nProcess planning\nPlant layout planning\nPlant location planning\nCapacity planning\nProduct forecasting\nAggregate planning\nJob scheduling\nProduction control\nProject planning and scheduling\nPersonnel planning"
+  }
+]
