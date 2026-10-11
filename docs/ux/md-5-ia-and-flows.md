@@ -745,7 +745,7 @@ Acceptance criterion "Flows reviewed by the whole team" needs a meeting. Suggest
 1. Walk the host flow (section 4) with one person playing the host. 10 min.
 2. Walk the student flow (section 5) on a phone-sized sketch. 10 min.
 3. Go through each edge case (section 6). For each, ask: what does the student see, what does the host see? 10 min.
-4. Confirm the decisions in section 8. 5 min.
+4. Review the decisions in section 8. Q1–Q13 are final; Q14–Q23 stay provisional until user feedback. 5 min.
 5. List gaps and owners. 5 min.
 
 ### 9.2 Checklist
@@ -756,7 +756,7 @@ Acceptance criterion "Flows reviewed by the whole team" needs a meeting. Suggest
 - [ ] Host can run every activity from the presenter control without switching screens
 - [ ] Each edge case has a student view, a host view, and a data rule
 - [ ] Activity states match what the MD-2 message schema can express
-- [ ] Decisions in section 8 confirmed
+- [ ] Decisions in section 8 reviewed (Q14–Q23 stay provisional until user feedback)
 
 ### 9.3 Sign-off
 
