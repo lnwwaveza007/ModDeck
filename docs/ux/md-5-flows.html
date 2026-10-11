@@ -20,7 +20,7 @@
         --line: #d9dde6;
         --accent: #2b4fd8; /* projector blue */
         --accent-soft: #e4e9fd;
-        --lamp: #c77700; /* projector lamp amber, used for "needs confirm" */
+        --lamp: #c77700; /* projector lamp amber, used for "provisional" */
         --lamp-soft: #fbefd9;
         --ok: #1f7a4d;
         --ok-soft: #dff2e7;
@@ -629,8 +629,8 @@
         </div>
         <div class="legend">
           <span class="pill team">Team decided</span> answered by the team on 9 Oct 2026
-          <span class="pill review">Needs confirm</span> default chosen after the role-play review;
-          confirm in the team meeting
+          <span class="pill review">Provisional</span> default chosen after the role-play review;
+          build on it now, revise after user feedback
         </div>
       </section>
 
@@ -1358,7 +1358,7 @@
         const opts = [
           ["all", "All"],
           ["team", "Team decided"],
-          ["review", "Needs confirm"],
+          ["review", "Provisional"],
         ];
         $("#dec-filters").innerHTML = opts
           .map(
@@ -1383,7 +1383,7 @@
           ? rows
               .map(
                 ([id, qq, d, st]) =>
-                  `<tr><td class="q">${id}</td><td>${esc(qq)}</td><td>${esc(d)}</td><td><span class="pill ${st}">${st === "team" ? "Team decided" : "Needs confirm"}</span></td></tr>`,
+                  `<tr><td class="q">${id}</td><td>${esc(qq)}</td><td>${esc(d)}</td><td><span class="pill ${st}">${st === "team" ? "Team decided" : "Provisional"}</span></td></tr>`,
               )
               .join("")
           : `<tr><td colspan="4" style="color:var(--muted)">No decision matches "${esc(q)}".</td></tr>`;
