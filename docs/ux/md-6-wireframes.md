@@ -59,7 +59,7 @@ Style: grey boxes, Inter, no colour. Dashed boxes are placeholders (images, keyb
 | H07  | Activity control card: all states (component sheet)        | 7.1               |
 | H08  | People drawer + co-host invite                              | 2.5, F12, F13     |
 | H09  | End session (hold 2 s, 60 s Undo) + host away               | Q16, 6.2          |
-| H10  | Mirror mode: presenter overlay (`Tab`)                      | 2.2, Q19          |
+| H10  | Mirror mode: presenter overlay (`O`)                      | 2.2, Q19          |
 | H11  | Co-host Q&A page `/host/:sessionId/qa`                      | 2.5               |
 | H12  | Session history `/sessions`                                 | 3.1               |
 | H13  | Session results + export `/sessions/:sessionId`             | 4.2, Q8           |
@@ -153,5 +153,7 @@ A UI check after the first pass found these problems. All are fixed in Figma.
 | S16      | Note no longer mentions a close × that is not drawn                          |
 | S21      | Removed the answer count (not in MD-5)                                       |
 | Archive  | Added a note: move replaced screens here                                     |
+| H05, H06, H10 | Overlay key shown as `O`, not `Tab` (decision 5)                        |
+| S07–S10, S12 | Added "+ React" above the tab bar (decision 6). S11 keeps it hidden because the keyboard is open |
 
 Kept on purpose: S18 and S20 both put system banners above the header. H03 says "Edit slide" because a content slide is selected; H02 and H04 say "Edit activity" because an activity slide is selected.
