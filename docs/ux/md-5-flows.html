@@ -1,0 +1,1440 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ModDeck R1 Flows</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap"
+    />
+    <style>
+      /* Layout: lecture-hall control desk. Header with session PIN, tab bar, then one panel per tab. Steps on the left, three device views on the right. */
+      :root {
+        --bg: #f3f4f7;
+        --surface: #ffffff;
+        --ink: #1b2233;
+        --muted: #5c6578;
+        --line: #d9dde6;
+        --accent: #2b4fd8; /* projector blue */
+        --accent-soft: #e4e9fd;
+        --lamp: #c77700; /* projector lamp amber, used for "provisional" */
+        --lamp-soft: #fbefd9;
+        --ok: #1f7a4d;
+        --ok-soft: #dff2e7;
+        --warn: #b3261e;
+        --warn-soft: #fbe3e1;
+        --display: "Bricolage Grotesque", "IBM Plex Sans Thai", system-ui, sans-serif;
+        --body: "IBM Plex Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #11151f;
+          --surface: #1a2030;
+          --ink: #e6e9f2;
+          --muted: #9aa3b8;
+          --line: #2c3448;
+          --accent: #8aa2ff;
+          --accent-soft: #232c4d;
+          --lamp: #f0a640;
+          --lamp-soft: #3a2c14;
+          --ok: #5fd39a;
+          --ok-soft: #173327;
+          --warn: #ff8a80;
+          --warn-soft: #3d1f1d;
+          color-scheme: dark;
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg: #11151f;
+        --surface: #1a2030;
+        --ink: #e6e9f2;
+        --muted: #9aa3b8;
+        --line: #2c3448;
+        --accent: #8aa2ff;
+        --accent-soft: #232c4d;
+        --lamp: #f0a640;
+        --lamp-soft: #3a2c14;
+        --ok: #5fd39a;
+        --ok-soft: #173327;
+        --warn: #ff8a80;
+        --warn-soft: #3d1f1d;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.6 var(--body);
+      }
+      .wrap {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding-inline: 16px;
+        padding-block: 24px 48px;
+      }
+      h1,
+      h2,
+      h3 {
+        font-family: var(--display);
+        text-wrap: balance;
+        margin: 0;
+        line-height: 1.15;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        font-weight: 800;
+        letter-spacing: -0.01em;
+      }
+      h2 {
+        font-size: 1.35rem;
+        font-weight: 600;
+      }
+      h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+      }
+      p {
+        margin: 0;
+      }
+      code,
+      .mono {
+        font-family: var(--mono);
+        font-size: 0.88em;
+      }
+      .eyebrow {
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      header.top {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+      header.top .lead {
+        max-width: 60ch;
+        color: var(--muted);
+        margin-top: 8px;
+      }
+      .pin {
+        border: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: 10px;
+        padding: 10px 14px;
+        display: grid;
+        gap: 2px;
+      }
+      .pin .digits {
+        font-family: var(--mono);
+        font-size: 1.5rem;
+        letter-spacing: 0.12em;
+        color: var(--accent);
+        font-variant-numeric: tabular-nums;
+      }
+
+      nav.tabs {
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 24px;
+        position: sticky;
+        top: env(safe-area-inset-top, 0px);
+        background: var(--bg);
+        z-index: 5;
+      }
+      nav.tabs button {
+        font: 600 0.95rem var(--body);
+        color: var(--muted);
+        background: none;
+        border: 0;
+        border-bottom: 3px solid transparent;
+        padding: 10px 14px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      nav.tabs button[aria-selected="true"] {
+        color: var(--ink);
+        border-bottom-color: var(--accent);
+      }
+      nav.tabs button:focus-visible,
+      .step:focus-visible,
+      .chip:focus-visible,
+      .state:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      section.panel {
+        display: grid;
+        gap: 20px;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 18px;
+      }
+
+      /* Overview */
+      .rules {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 12px;
+      }
+      .rule {
+        display: grid;
+        gap: 4px;
+        padding: 14px 16px;
+        border-left: 3px solid var(--accent);
+        background: var(--surface);
+        border-radius: 0 8px 8px 0;
+      }
+      .rule b {
+        font-weight: 600;
+      }
+      .rule span {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+      .scope {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 16px;
+      }
+      .scope ul {
+        margin: 10px 0 0;
+        padding-left: 18px;
+        display: grid;
+        gap: 4px;
+      }
+      .scope li small {
+        color: var(--muted);
+        font-family: var(--mono);
+        margin-right: 4px;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 0.85rem;
+        color: var(--muted);
+        align-items: center;
+      }
+
+      /* Pills */
+      .pill {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 999px;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+      }
+      .pill.team {
+        background: var(--ok-soft);
+        color: var(--ok);
+      }
+      .pill.review {
+        background: var(--lamp-soft);
+        color: var(--lamp);
+      }
+      .pill.later {
+        background: var(--line);
+        color: var(--muted);
+      }
+
+      /* Flow tabs */
+      .flow {
+        display: grid;
+        grid-template-columns: minmax(220px, 280px) 1fr;
+        gap: 20px;
+        align-items: start;
+      }
+      .steps {
+        display: grid;
+        gap: 6px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        counter-reset: s;
+      }
+      .step {
+        width: 100%;
+        text-align: left;
+        display: grid;
+        grid-template-columns: 28px 1fr;
+        gap: 10px;
+        align-items: center;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: 8px;
+        cursor: pointer;
+        font: inherit;
+        color: inherit;
+      }
+      .step .n {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font: 600 0.8rem var(--mono);
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+      .step[aria-current="true"] {
+        border-color: var(--accent);
+        box-shadow: inset 3px 0 0 var(--accent);
+      }
+      .step[aria-current="true"] .n {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .detail {
+        display: grid;
+        gap: 16px;
+        min-width: 0;
+      }
+      .devices {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .device {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+        padding: 14px;
+        display: grid;
+        gap: 8px;
+        align-content: start;
+      }
+      .device .who {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .device .who svg {
+        width: 18px;
+        height: 18px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.6;
+      }
+      .device p {
+        font-size: 0.93rem;
+      }
+      .device.empty p {
+        color: var(--muted);
+        font-style: italic;
+      }
+      .ruleslist {
+        margin: 0;
+        padding-left: 18px;
+        display: grid;
+        gap: 6px;
+      }
+      .nav-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .btn {
+        font: 600 0.9rem var(--body);
+        padding: 8px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--ink);
+        cursor: pointer;
+      }
+      .btn:hover:not(:disabled) {
+        border-color: var(--accent);
+      }
+      .btn:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      .btn:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      /* Edge cases */
+      .filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .chip {
+        font: 500 0.85rem var(--body);
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--ink);
+        cursor: pointer;
+      }
+      .chip[aria-pressed="true"] {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--surface);
+      }
+      .edges {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 12px;
+      }
+      .edge {
+        display: grid;
+        gap: 10px;
+        align-content: start;
+      }
+      .edge dl {
+        margin: 0;
+        display: grid;
+        grid-template-columns: 74px 1fr;
+        gap: 6px 10px;
+        font-size: 0.9rem;
+      }
+      .edge dt {
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding-top: 2px;
+      }
+      .edge dd {
+        margin: 0;
+        min-width: 0;
+      }
+      .edge .tag {
+        font-size: 0.72rem;
+        color: var(--muted);
+        font-family: var(--mono);
+      }
+
+      /* States */
+      .machine {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .state {
+        font: 600 0.95rem var(--body);
+        padding: 10px 16px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--ink);
+        cursor: pointer;
+      }
+      .state[aria-pressed="true"] {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+      .arrow {
+        color: var(--muted);
+        font-family: var(--mono);
+      }
+      .statebox {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+      }
+      .statebox div {
+        display: grid;
+        gap: 4px;
+      }
+      .statebox b {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+      }
+      .mini {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 16px;
+      }
+      .mini ol,
+      .mini ul {
+        margin: 8px 0 0;
+        padding-left: 18px;
+        display: grid;
+        gap: 4px;
+        font-size: 0.93rem;
+      }
+
+      /* Decisions */
+      .table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 620px;
+        font-size: 0.92rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      th {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      td.q {
+        font-family: var(--mono);
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .search {
+        font: inherit;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--ink);
+        min-width: 0;
+        width: 100%;
+        max-width: 320px;
+      }
+      .search:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      footer {
+        margin-top: 32px;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      @media (max-width: 760px) {
+        .flow {
+          grid-template-columns: 1fr;
+        }
+        .steps {
+          grid-auto-flow: column;
+          grid-auto-columns: minmax(150px, 1fr);
+          overflow-x: auto;
+          padding-bottom: 4px;
+        }
+        .devices {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .detail {
+          animation: fade 160ms ease-out;
+        }
+        @keyframes fade {
+          from {
+            opacity: 0.4;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <div>
+          <p class="eyebrow">MD-5 · Release 1 · Information architecture and user flows</p>
+          <h1>ModDeck R1 Flows</h1>
+          <p class="lead">
+            How the host runs a class and how students join and take part. Pick a tab, then click a
+            step to see what the host laptop, the projector, and the student phone show at that
+            moment.
+          </p>
+        </div>
+        <div class="pin" aria-label="Example session PIN">
+          <span class="eyebrow">Example PIN</span>
+          <span class="digits">482 913</span>
+        </div>
+      </header>
+
+      <nav class="tabs" role="tablist" aria-label="Sections">
+        <button role="tab" id="tab-overview" data-tab="overview">Overview</button>
+        <button role="tab" id="tab-host" data-tab="host">Host flow</button>
+        <button role="tab" id="tab-student" data-tab="student">Student flow</button>
+        <button role="tab" id="tab-edges" data-tab="edges">Edge cases</button>
+        <button role="tab" id="tab-states" data-tab="states">States</button>
+        <button role="tab" id="tab-decisions" data-tab="decisions">Decisions</button>
+      </nav>
+
+      <section class="panel" id="overview" role="tabpanel" aria-labelledby="tab-overview">
+        <div>
+          <h2>Ten rules to remember</h2>
+        </div>
+        <div class="rules" id="rules"></div>
+        <div class="scope">
+          <div class="card">
+            <h3>In Release 1</h3>
+            <ul id="scope-in"></ul>
+          </div>
+          <div class="card">
+            <h3>Not in Release 1</h3>
+            <ul id="scope-out"></ul>
+          </div>
+        </div>
+        <div class="legend">
+          <span class="pill team">Team decided</span> answered by the team on 9 Oct 2026
+          <span class="pill review">Provisional</span> default chosen after the role-play review;
+          build on it now, revise after user feedback
+        </div>
+      </section>
+
+      <section class="panel" id="host" role="tabpanel" aria-labelledby="tab-host" hidden></section>
+      <section
+        class="panel"
+        id="student"
+        role="tabpanel"
+        aria-labelledby="tab-student"
+        hidden
+      ></section>
+
+      <section class="panel" id="edges" role="tabpanel" aria-labelledby="tab-edges" hidden>
+        <div class="toolbar">
+          <h2>Edge cases</h2>
+          <div class="filters" id="edge-filters"></div>
+        </div>
+        <div class="edges" id="edge-list"></div>
+      </section>
+
+      <section class="panel" id="states" role="tabpanel" aria-labelledby="tab-states" hidden>
+        <div class="card" style="display: grid; gap: 14px">
+          <div>
+            <h2>Activity states</h2>
+            <p style="color: var(--muted); margin-top: 4px">
+              Live Poll and Word Cloud. State is per session: every new session starts all
+              activities in Draft. Click a state.
+            </p>
+          </div>
+          <div class="machine" id="machine"></div>
+          <div class="statebox" id="statebox"></div>
+        </div>
+        <div class="mini">
+          <div class="card">
+            <h3>Session</h3>
+            <ol>
+              <li><b>Live</b>: host presses Start session, PIN assigned.</li>
+              <li>
+                <b>Host away</b>: host connection lost. Students keep answering. Co-host can take
+                over after 2 min.
+              </li>
+              <li><b>Ended</b>: host held End for 2 s, or nobody controlled it for 30 min.</li>
+              <li><b>Undo</b>: within 60 s of ending, the owner can reopen with the same PIN.</li>
+              <li>PIN kept 24 h after the end, then free.</li>
+            </ol>
+          </div>
+          <div class="card">
+            <h3>Q&amp;A board</h3>
+            <ul>
+              <li><b>Open</b>: students ask and upvote.</li>
+              <li><b>Paused</b>: list visible, no new questions.</li>
+              <li><b>Off</b>: tab shows "Q&amp;A is off".</li>
+              <li><b>Archived</b>: session ended, read-only.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>One question</h3>
+            <ul>
+              <li><b>Visible</b> → <b>Highlighted</b> (on projector, one at a time)</li>
+              <li><b>Answered</b>: tag shown, still upvotable</li>
+              <li><b>Hidden</b>: host hid it, author still sees it</li>
+              <li><b>Merged</b>: duplicate, upvotes move to the original</li>
+              <li><b>Deleted</b>: author removed it</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="decisions" role="tabpanel" aria-labelledby="tab-decisions" hidden>
+        <div class="toolbar">
+          <h2>Decisions</h2>
+          <label for="dsearch" class="eyebrow" style="position: absolute; left: -9999px"
+            >Search decisions</label
+          >
+          <input
+            id="dsearch"
+            class="search"
+            type="search"
+            placeholder="Search, e.g. anonymous, PIN, export"
+          />
+        </div>
+        <div class="filters" id="dec-filters"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Question</th>
+                <th>Decision</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="dec-body"></tbody>
+          </table>
+        </div>
+        <p class="legend">
+          <span class="pill review">Provisional</span> Q14–Q23 are working defaults. Most likely to
+          change after user feedback: Q14 (reactions default), Q16 (hold 2 s plus Undo), Q19
+          (mirror-mode overlay), Q20 (no offline retry queue), Q22 (15 min seat release). Q15, Q17,
+          Q18, Q21, and Q23 are lower risk.
+        </p>
+        <h3>User feedback log</h3>
+        <p class="legend">
+          Fill in after each user review or usability test (MD-16). One row per comment. Keep the
+          final log in section 9.5 of the repo file.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Source</th>
+                <th>Decision</th>
+                <th>Comment</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="5" style="color: var(--muted)">No feedback yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <footer>
+        Source of truth: <code>docs/ux/md-5-ia-and-flows.md</code> in the ModDeck repo. This page is
+        a reading aid for the MD-5 team review; if the two disagree, the repo file wins.
+      </footer>
+    </div>
+
+    <script>
+      const ICON = {
+        laptop:
+          '<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="10" rx="1.5"/><path d="M2 19h20"/></svg>',
+        projector:
+          '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M12 16v4M8 20h8"/></svg>',
+        phone:
+          '<svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg>',
+      };
+
+      const RULES = [
+        [
+          "Phone shows activities only",
+          'Slides stay on the projector. On content slides the phone says "Look at the screen".',
+        ],
+        [
+          "Host runs everything from one screen",
+          "Presenter control on the laptop. One display? Keyboard shortcuts and the Tab overlay.",
+        ],
+        ["Activities start by hand", "Host presses Start. Auto-start is an optional setting."],
+        [
+          "Anonymous questions never show a name",
+          "Not to the host, not to classmates, not in the export.",
+        ],
+        [
+          "Poll answers are linked to the student ID",
+          "Only for KMUTT login users, for participation scores. The join screen says so.",
+        ],
+        [
+          'A vote counts when the phone says "Answer sent"',
+          "Offline buttons are disabled. Typed text is kept.",
+        ],
+        ["Started activities: wording fixes only", "No deleting activities during a live session."],
+        ["End session is hard to do by accident", "Hold for 2 s, then 60 s to undo."],
+        ["300 people per session", "Offline people keep their seat for 15 min."],
+        ["Thai and English", "Both UI languages in R1. Thai text counts by visible character."],
+      ];
+
+      const SCOPE_IN = [
+        ["F1", "Host login with KMUTT SSO"],
+        ["F2", "Join by QR or 6-digit PIN, KMUTT login or guest"],
+        ["F3", "Real time, 300 people per session"],
+        ["F4", "Live Poll"],
+        ["F5", "Word Cloud"],
+        ["F6", "Q&A with upvote and anonymous"],
+        ["F7", "Code and math on every screen"],
+        ["F8", "Slide editor: text, code, math, image"],
+        ["F9", "PDF import as image slides"],
+        ["F10", "Session history and CSV export"],
+        ["F11", "Live reactions (off by default)"],
+        ["F12", "Co-host (TA) for Q&A and take-over"],
+        ["F13", "Rename or remove participants"],
+        ["F14", "Thai and English UI"],
+      ];
+      const SCOPE_OUT = [
+        ["R2", "Live Quiz, timer, leaderboard"],
+        ["R2", "Team mode, streaks"],
+        ["R2", "Analysis dashboard, heatmap"],
+        ["R2", "AI Q&A clustering"],
+        ["R3", "AI slide lookup"],
+        ["R3", "AI Word Cloud synonyms"],
+        ["R3", "AI Suggestion planner"],
+        ["Later", "PowerPoint and Canva add-ins"],
+      ];
+
+      const HOST = [
+        {
+          t: "Log in",
+          host: 'KMUTT SSO login, then My decks. A failed login shows "Try again".',
+          proj: null,
+          phone: null,
+          rules: [
+            "Any KMUTT account can host, staff or student.",
+            "SSO is a placeholder until ETS replies (MD-7).",
+          ],
+        },
+        {
+          t: "Create a deck",
+          host: "My decks → New deck. Only a name is needed. The deck opens with one blank title slide.",
+          proj: null,
+          phone: null,
+          rules: ["A deck is reusable. Each run of it is a new session."],
+        },
+        {
+          t: "Add slides",
+          host: "Add text, code, math or image slides. Or import a PDF: each page becomes one image slide. Import runs in the background with progress per page.",
+          proj: null,
+          phone: null,
+          rules: [
+            "PDF: max 50 MB, 150 pages.",
+            "The host can keep editing while the PDF imports.",
+            "Failed pages show a retry button.",
+          ],
+        },
+        {
+          t: "Add an activity",
+          host: "Live Poll: question, 2–10 options, single or multiple choice. Word Cloud: prompt, 1–3 entries per person, 25 characters each.",
+          proj: null,
+          phone: null,
+          rules: [
+            "Code and math work in poll questions and options.",
+            'A poll with no question or fewer than 2 options is "incomplete" and blocks Start session.',
+          ],
+        },
+        {
+          t: "Start the session",
+          host: "Start session. Presenter control opens. Host opens the audience screen and drags it to the projector.",
+          proj: "Lobby slide with the PIN, QR code and join link. Join count goes up.",
+          phone: "Students join by QR or PIN.",
+          rules: [
+            "Pre-flight check: PDF import finished, all activities complete.",
+            "Settings are copied from the deck: Require KMUTT login, Q&A, anonymous, auto-start, reactions.",
+          ],
+        },
+        {
+          t: "Present slides",
+          host: "Arrow keys or buttons. Slide jump list. Next slide preview. One display: Tab opens the overlay, ? shows shortcuts.",
+          proj: "The slide. Small PIN bar in the corner (host can hide it).",
+          phone: '"Look at the screen", slide number, Tap to refresh.',
+          rules: [
+            "Shortcuts: → ← slides, Space start or close, S results, Q Q&A, R reactions, B blank, G jump.",
+          ],
+        },
+        {
+          t: "Run an activity",
+          host: 'Press Start (state Live). Watch "N answered of M online". Press Close, then Show results.',
+          proj: 'Question and response count. Chart appears on Show results (or live, if "show results live" is on).',
+          phone:
+            'Answer form while live. "Voting closed" after close. Same chart when results are shown.',
+          rules: [
+            "Show results also closes voting.",
+            'Reopen keeps answers and flags new ones "after reopen".',
+            "Started activity: wording fixes only.",
+          ],
+        },
+        {
+          t: "Q&A and reactions",
+          host: "Q&A panel: mark answered, hide, show on screen, mark duplicate, remove sender. Reactions on or off with R. Co-host can moderate Q&A from another laptop.",
+          proj: "One highlighted question at a time. Reactions float in the bottom-right corner when on.",
+          phone: "Q&A tab: ask, upvote, see Answered tags. Reaction button when on.",
+          rules: [
+            "Anonymous authors are never shown, even to moderators.",
+            "Remove sender works without seeing the name.",
+            "Reactions are off by default.",
+          ],
+        },
+        {
+          t: "End the session",
+          host: 'Hold End session for 2 s. "Session ended. Undo" shows for 60 s.',
+          proj: '"Session ended" card.',
+          phone: '"Session ended. Thanks for joining."',
+          rules: [
+            "All live activities close. Nothing is deleted.",
+            "PIN kept 24 h, then free.",
+            "No host for 30 min also ends the session.",
+          ],
+        },
+        {
+          t: "Results and export",
+          host: "Session results: each activity's chart, Q&A list, participants. Export as a ZIP with responses.csv and questions.csv.",
+          proj: null,
+          phone: null,
+          rules: [
+            "Export works during a live session too.",
+            "CSV is UTF-8 with BOM so Excel shows Thai.",
+            'Columns include login type (SSO or guest), student ID, activity title, "after reopen".',
+          ],
+        },
+      ];
+
+      const STUDENT = [
+        {
+          t: "Scan QR or type PIN",
+          host: "Join count goes up.",
+          proj: "PIN 482 913 and QR on the lobby slide.",
+          phone: "QR opens the join page directly. Or type 6 digits: number keypad, auto-submit.",
+          rules: [
+            'Wrong PIN: "No session found with this PIN".',
+            "5 wrong PINs a minute from one phone: wait 60 s.",
+          ],
+        },
+        {
+          t: "Choose identity",
+          host: null,
+          proj: null,
+          phone:
+            '"Log in with KMUTT" or "Join as guest" (nickname). A privacy line explains who sees what.',
+          rules: [
+            'Guest names must be unique. No silent "Ploy 2".',
+            "Staff-like names (admin, อาจารย์, TA) are refused.",
+            "If KMUTT login fails, the guest option is offered.",
+          ],
+        },
+        {
+          t: "Wait for an activity",
+          host: null,
+          proj: "Content slide.",
+          phone: '"Look at the screen", slide 5 of 20, connection dot, Tap to refresh.',
+          rules: [
+            "The phone never shows slide content.",
+            "Screen wake asks the server for the current state.",
+          ],
+        },
+        {
+          t: "Answer a Live Poll",
+          host: "Answer count rises.",
+          proj: "Question and response count.",
+          phone:
+            'Big option buttons, A B C D. Submit. "Answer sent". Can change until the poll closes.',
+          rules: ["The last answer counts.", "Phones do not show the chart while voting is open."],
+        },
+        {
+          t: "Send to the Word Cloud",
+          host: "Entry count rises.",
+          proj: "Prompt and entry count.",
+          phone: "Text field with counter. Send. Sent entries listed. Disabled at the limit.",
+          rules: [
+            "25 visible characters. Thai counts by visible character.",
+            "Double tap sends once.",
+          ],
+        },
+        {
+          t: "See results",
+          host: "Host pressed Show results.",
+          proj: "Chart or word cloud.",
+          phone: "Same chart. Own answer marked.",
+          rules: ["Late joiners see results but cannot answer a closed poll."],
+        },
+        {
+          t: "Ask in Q&A",
+          host: "New question appears in the Q&A panel.",
+          proj: null,
+          phone:
+            'Q&A tab. Anonymous toggle first (on). "You will appear as: Anonymous". Code and math allowed with preview.',
+          rules: [
+            "280 characters, 1 question per 20 s.",
+            "Upvote once per question, not your own.",
+            "Typed text survives a dropped connection.",
+          ],
+        },
+        {
+          t: "Send a reaction",
+          host: "Host turned reactions on.",
+          proj: "Emoji floats up in the bottom-right corner.",
+          phone: "Reaction button → 👍 ❤️ 😂 😮 👏. Button dims for 1 s after a tap.",
+          rules: ["No name attached. Only counts are saved."],
+        },
+        {
+          t: "Session ends",
+          host: "Host held End session.",
+          proj: '"Session ended" card.',
+          phone: '"Session ended. Thanks for joining." Join another session.',
+          rules: ['Opening the PIN later shows "This session has ended" for 24 h.'],
+        },
+      ];
+
+      const EDGES = [
+        {
+          g: "Join",
+          t: "Invalid PIN",
+          trig: "No live session has this PIN.",
+          s: '"No session found with this PIN. Check the number on the screen." Digits stay in the field.',
+          h: "Nothing.",
+          r: "5 wrong tries a minute per phone, then wait 60 s. Per phone, not per IP: the whole hall shares one network.",
+        },
+        {
+          g: "Join",
+          t: "Session full",
+          trig: "300 people already in, and this is a new person.",
+          s: '"This session is full (300 people)." Try again.',
+          h: "Warning at 280. Counter of people turned away.",
+          r: "Offline people keep their seat for 15 min, then it is freed.",
+        },
+        {
+          g: "Join",
+          t: "Late join",
+          trig: "Student joins after activities already ran.",
+          s: "Lands on whatever the host shows now. Past activities are not shown.",
+          h: "Join count goes up.",
+          r: "No answer rows for past activities.",
+        },
+        {
+          g: "Join",
+          t: "Old or mistyped PIN of an ended session",
+          trig: "PIN matches a session that ended within 24 h.",
+          s: '"This session has ended. Not your session? Check the PIN on the screen."',
+          h: "Nothing.",
+          r: 'After 24 h the PIN is free and shows "invalid PIN".',
+        },
+        {
+          g: "Join",
+          t: "KMUTT login fails",
+          trig: "SSO error or student cancels.",
+          s: 'Back to identity screen with the reason and "Join as guest".',
+          h: "Nothing.",
+          r: "Guest option hidden if the session requires KMUTT login.",
+        },
+        {
+          g: "Connection",
+          t: "Student loses connection",
+          trig: "Wi-Fi drop, phone locks, app in background.",
+          s: '"Reconnecting…" banner. Buttons disabled. Typed text kept. Auto rejoin, state restored.',
+          h: "Shown as offline after 30 s.",
+          r: 'No offline queue in R1. A vote counts only after "Answer sent".',
+        },
+        {
+          g: "Connection",
+          t: "Student reopens on another phone",
+          trig: "New device or cleared storage.",
+          s: "KMUTT login: same participant again. Guest: a new participant.",
+          h: "Guest shows as a new person.",
+          r: "Old guest answers stay on the old participant.",
+        },
+        {
+          g: "Connection",
+          t: "Host loses connection",
+          trig: "Laptop sleeps or Wi-Fi drops.",
+          s: '"Host is reconnecting" banner. Can still answer and ask.',
+          h: "Reopen the presenter link to resume. Co-host can take over after 2 min.",
+          r: "No control for 30 min ends the session.",
+        },
+        {
+          g: "Session",
+          t: "Host ends by accident",
+          trig: "Hold-to-end finished by mistake.",
+          s: '"Session ended" for up to 60 s, then back in if undone.',
+          h: '"Session ended. Undo" for 60 s.',
+          r: "Undo reopens with the same PIN and all data.",
+        },
+        {
+          g: "Session",
+          t: "Session ended while student is in it",
+          trig: "Host ends, or 30 min without host.",
+          s: '"Session ended. Thanks for joining."',
+          h: "Goes to Session results.",
+          r: "Live activities close. Nothing is deleted.",
+        },
+        {
+          g: "Session",
+          t: "Host wants to delete or change a started poll",
+          trig: "Edit in the deck during a live session.",
+          s: "Sees new wording if fixed.",
+          h: "Lock icon. Wording only. Delete disabled.",
+          r: "No add, remove or reorder of options after start.",
+        },
+        {
+          g: "Moderation",
+          t: "Abusive anonymous question",
+          trig: "Rude or harmful question.",
+          s: "The question disappears. The sender is removed.",
+          h: "Hide, or Remove sender. Name never shown.",
+          r: "Device token blocked for this session. Real-name lookup only through the department, outside the app.",
+        },
+        {
+          g: "Moderation",
+          t: "Rude or fake nickname",
+          trig: "Guest uses a rude name or poses as staff.",
+          s: '"The host changed your name to Guest 17", or removed.',
+          h: "Rename or remove from the participant list.",
+          r: "Blocklist and staff-like names refused at join.",
+        },
+        {
+          g: "Moderation",
+          t: "Duplicate questions",
+          trig: "Many students ask the same thing.",
+          s: "Duplicate folds under the original.",
+          h: "Mark as duplicate of… and pick the original.",
+          r: "Upvotes move to the original. AI clustering is R2.",
+        },
+        {
+          g: "Moderation",
+          t: "Reaction spam",
+          trig: "Many students tap fast.",
+          s: "Button dims for 1 s after each tap.",
+          h: "Turn reactions off with R.",
+          r: "Max 30 emojis on the projector at once.",
+        },
+      ];
+
+      const STATES = {
+        Draft: {
+          meaning: "Not started in this session.",
+          host: "Start",
+          proj: "Question only",
+          phone: "Waiting view",
+          answers: "Blocked",
+          edit: "Edit freely",
+        },
+        Live: {
+          meaning: "Accepting answers.",
+          host: "Close, Show results",
+          proj: 'Question and response count. Chart only with "show results live".',
+          phone: "Answer form (no chart)",
+          answers: "Accepted. Poll answers can change.",
+          edit: "Wording only",
+        },
+        Closed: {
+          meaning: "Voting stopped, results hidden.",
+          host: "Show results, Reopen",
+          proj: 'Final count, "Voting closed"',
+          phone: '"Voting closed", own answer',
+          answers: "Blocked",
+          edit: "Wording only",
+        },
+        "Results shown": {
+          meaning: "Voting stopped, results visible.",
+          host: "Hide results, Reopen",
+          proj: "Full chart or word cloud",
+          phone: "Same chart, own answer marked",
+          answers: "Blocked",
+          edit: "Wording only",
+        },
+      };
+
+      const DECISIONS = [
+        ["Q1", "Who can host?", "Any KMUTT SSO account.", "team"],
+        [
+          "Q2",
+          "Does an activity start when its slide is shown?",
+          "No. Optional auto-start setting per deck, can change per session.",
+          "team",
+        ],
+        [
+          "Q3",
+          "Edit or delete activities during a live session?",
+          "Edit in Draft. Wording only after start. No deleting.",
+          "team",
+        ],
+        ["Q4", "Anonymous Q&A default?", "On. Host never sees the name.", "team"],
+        ["Q5", "Slide content on phones?", "No. Phone shows activities only.", "team"],
+        ["Q6", "PDF limits?", "50 MB, 150 pages.", "team"],
+        ["Q7", "Code and math in Q&A?", "Yes, with preview.", "team"],
+        ["Q8", "Export format?", "ZIP: responses.csv and questions.csv, UTF-8 with BOM.", "team"],
+        ["Q9", "Cheering emojis in R1?", "Yes (F11).", "team"],
+        [
+          "Q10",
+          "Offline and host-away times?",
+          "Student offline after 30 s. Session ends after 30 min without control.",
+          "team",
+        ],
+        ["Q11", 'How long does an ended PIN say "ended"?', "24 h, then the PIN is free.", "team"],
+        ["Q12", "Seats for offline people?", "Replaced by Q22.", "team"],
+        ["Q13", "Upvote answered questions?", "Yes.", "team"],
+        ["Q14", "Reactions default?", "Off. Bottom-right corner, 60% opacity.", "review"],
+        [
+          "Q15",
+          "Typo fix after start? Reopen?",
+          "Wording only. Answers after reopen are flagged.",
+          "review",
+        ],
+        ["Q16", "Accidental End session?", "Hold 2 s, then 60 s Undo.", "review"],
+        [
+          "Q17",
+          "TA co-host? Require login per deck?",
+          "One co-host: Q&A and take-over only. Require login remembered per deck.",
+          "review",
+        ],
+        [
+          "Q18",
+          "Anonymity versus scores?",
+          "Anonymous questions never named. Poll answers exported with SSO student ID; join screen says so.",
+          "review",
+        ],
+        ["Q19", "Host with one display?", "Shortcuts plus Tab overlay.", "review"],
+        ["Q20", "Offline retry queue?", "Not in R1. MD-13 decides.", "review"],
+        [
+          "Q21",
+          "Find an anonymous author? Rename or remove?",
+          "No lookup in the app. Remove sender. Rename or remove any participant.",
+          "review",
+        ],
+        ["Q22", "Free seats of offline people?", "After 15 min offline.", "review"],
+        [
+          "Q23",
+          "Thai and English, nicknames, accessibility?",
+          "Both languages. Nickname blocklist, unique names. Contrast, 44 px targets, reduced motion.",
+          "review",
+        ],
+      ];
+
+      const $ = (s, el = document) => el.querySelector(s);
+      const esc = (s) =>
+        String(s).replace(
+          /[&<>"]/g,
+          (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
+        );
+      const store = {
+        get(k) {
+          try {
+            return localStorage.getItem(k);
+          } catch {
+            return null;
+          }
+        },
+        set(k, v) {
+          try {
+            localStorage.setItem(k, v);
+          } catch {}
+        },
+      };
+
+      // Overview
+      $("#rules").innerHTML = RULES.map(
+        ([b, s]) => `<div class="rule"><b>${esc(b)}</b><span>${esc(s)}</span></div>`,
+      ).join("");
+      $("#scope-in").innerHTML = SCOPE_IN.map(
+        ([k, v]) => `<li><small>${k}</small>${esc(v)}</li>`,
+      ).join("");
+      $("#scope-out").innerHTML = SCOPE_OUT.map(
+        ([k, v]) => `<li><small>${k}</small>${esc(v)}</li>`,
+      ).join("");
+
+      // Flows
+      function device(kind, label, text) {
+        const empty = !text;
+        return `<div class="device${empty ? " empty" : ""}"><div class="who">${ICON[kind]}${label}</div><p>${empty ? "No change" : esc(text)}</p></div>`;
+      }
+      function buildFlow(id, title, intro, steps) {
+        const root = $("#" + id);
+        root.innerHTML = `
+    <div><h2>${title}</h2><p style="color:var(--muted);margin-top:4px">${intro}</p></div>
+    <div class="flow">
+      <ol class="steps">${steps.map((s, i) => `<li><button class="step" data-i="${i}"><span class="n">${i + 1}</span><span>${esc(s.t)}</span></button></li>`).join("")}</ol>
+      <div class="detail" aria-live="polite"></div>
+    </div>`;
+        const detail = $(".detail", root);
+        const show = (i) => {
+          root
+            .querySelectorAll(".step")
+            .forEach((b) => b.setAttribute("aria-current", String(+b.dataset.i === i)));
+          const s = steps[i];
+          detail.innerHTML = `
+      <div><p class="eyebrow">Step ${i + 1} of ${steps.length}</p><h3 style="font-size:1.3rem;margin-top:2px">${esc(s.t)}</h3></div>
+      <div class="devices">${device("laptop", "Host laptop", s.host)}${device("projector", "Projector", s.proj)}${device("phone", "Student phone", s.phone)}</div>
+      <div class="card"><p class="eyebrow" style="margin-bottom:6px">Rules</p><ul class="ruleslist">${s.rules.map((r) => `<li>${esc(r)}</li>`).join("")}</ul></div>
+      <div class="nav-row"><button class="btn" data-go="${i - 1}" ${i === 0 ? "disabled" : ""}>← Previous</button><button class="btn" data-go="${i + 1}" ${i === steps.length - 1 ? "disabled" : ""}>Next →</button></div>`;
+          detail
+            .querySelectorAll("[data-go]")
+            .forEach((b) => b.addEventListener("click", () => show(+b.dataset.go)));
+        };
+        root
+          .querySelectorAll(".step")
+          .forEach((b) => b.addEventListener("click", () => show(+b.dataset.i)));
+        show(0);
+      }
+      buildFlow("host", "Host flow", "Create deck → add activity → present → view results.", HOST);
+      buildFlow(
+        "student",
+        "Student flow",
+        "Scan QR or enter PIN → KMUTT login or guest → answer activities → ask in Q&amp;A.",
+        STUDENT,
+      );
+
+      // Edge cases
+      const groups = ["All", ...new Set(EDGES.map((e) => e.g))];
+      let edgeFilter = "All";
+      function renderEdges() {
+        $("#edge-filters").innerHTML = groups
+          .map(
+            (g) =>
+              `<button class="chip" aria-pressed="${g === edgeFilter}" data-g="${g}">${g}</button>`,
+          )
+          .join("");
+        $("#edge-filters")
+          .querySelectorAll(".chip")
+          .forEach((c) =>
+            c.addEventListener("click", () => {
+              edgeFilter = c.dataset.g;
+              renderEdges();
+            }),
+          );
+        $("#edge-list").innerHTML = EDGES.filter((e) => edgeFilter === "All" || e.g === edgeFilter)
+          .map(
+            (e) => `
+    <article class="card edge">
+      <div><span class="tag">${esc(e.g)}</span><h3>${esc(e.t)}</h3></div>
+      <dl><dt>When</dt><dd>${esc(e.trig)}</dd><dt>Student</dt><dd>${esc(e.s)}</dd><dt>Host</dt><dd>${esc(e.h)}</dd><dt>Rule</dt><dd>${esc(e.r)}</dd></dl>
+    </article>`,
+          )
+          .join("");
+      }
+      renderEdges();
+
+      // States
+      let current = "Live";
+      function renderStates() {
+        const names = Object.keys(STATES);
+        $("#machine").innerHTML =
+          names
+            .map(
+              (n, i) =>
+                `<button class="state" aria-pressed="${n === current}" data-s="${n}">${n}</button>${i < names.length - 1 ? '<span class="arrow" aria-hidden="true">→</span>' : ""}`,
+            )
+            .join("") +
+          '<span class="arrow" style="margin-left:8px">Reopen goes back to Live, answers kept</span>';
+        $("#machine")
+          .querySelectorAll(".state")
+          .forEach((b) =>
+            b.addEventListener("click", () => {
+              current = b.dataset.s;
+              renderStates();
+            }),
+          );
+        const s = STATES[current];
+        $("#statebox").innerHTML = [
+          ["Meaning", s.meaning],
+          ["Host buttons", s.host],
+          ["Projector", s.proj],
+          ["Student phone", s.phone],
+          ["Answers", s.answers],
+          ["Editing in deck", s.edit],
+        ]
+          .map(([k, v]) => `<div><b>${k}</b><span>${esc(v)}</span></div>`)
+          .join("");
+      }
+      renderStates();
+
+      // Decisions
+      let decFilter = "all";
+      function renderDecisions() {
+        const q = $("#dsearch").value.trim().toLowerCase();
+        const opts = [
+          ["all", "All"],
+          ["team", "Team decided"],
+          ["review", "Provisional"],
+        ];
+        $("#dec-filters").innerHTML = opts
+          .map(
+            ([k, v]) =>
+              `<button class="chip" aria-pressed="${k === decFilter}" data-k="${k}">${v}</button>`,
+          )
+          .join("");
+        $("#dec-filters")
+          .querySelectorAll(".chip")
+          .forEach((c) =>
+            c.addEventListener("click", () => {
+              decFilter = c.dataset.k;
+              renderDecisions();
+            }),
+          );
+        const rows = DECISIONS.filter(
+          ([id, qq, d, st]) =>
+            (decFilter === "all" || st === decFilter) &&
+            (!q || (id + qq + d).toLowerCase().includes(q)),
+        );
+        $("#dec-body").innerHTML = rows.length
+          ? rows
+              .map(
+                ([id, qq, d, st]) =>
+                  `<tr><td class="q">${id}</td><td>${esc(qq)}</td><td>${esc(d)}</td><td><span class="pill ${st}">${st === "team" ? "Team decided" : "Provisional"}</span></td></tr>`,
+              )
+              .join("")
+          : `<tr><td colspan="4" style="color:var(--muted)">No decision matches "${esc(q)}".</td></tr>`;
+      }
+      $("#dsearch").addEventListener("input", renderDecisions);
+      renderDecisions();
+
+      // Tabs
+      const tabs = [...document.querySelectorAll("nav.tabs button")];
+      function openTab(name) {
+        if (!tabs.some((t) => t.dataset.tab === name)) name = "overview";
+        tabs.forEach((t) => t.setAttribute("aria-selected", String(t.dataset.tab === name)));
+        document.querySelectorAll("section.panel").forEach((p) => (p.hidden = p.id !== name));
+        store.set("moddeck-r1-tab", name);
+      }
+      tabs.forEach((t) =>
+        t.addEventListener("click", () => {
+          openTab(t.dataset.tab);
+          history.replaceState(null, "", "#" + t.dataset.tab);
+        }),
+      );
+      openTab(location.hash.slice(1) || store.get("moddeck-r1-tab") || "overview");
+    </script>
+  </body>
+</html>
