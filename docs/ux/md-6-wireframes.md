@@ -3,7 +3,7 @@
 - **Ticket:** MD-6 · Sprint 1 · Track: UX
 - **Blocked by:** MD-5 (done: `docs/ux/md-5-ia-and-flows.md`) · **Blocks:** MD-15
 - **Figma file:** <https://www.figma.com/design/93tXP1BwSWwUnEtX2JCjmF> ("ModDeck R1 Low-fi Wireframes (MD-6)")
-- **Status:** Wireframes drawn and fixed (section 6). Flow walkthrough done (section 3). Mirror mode needs a decision (section 4.1). Team review still needed (section 5).
+- **Status:** Wireframes drawn and fixed (section 6). Flow walkthrough done (section 3). Decisions recorded (section 4). Team review still needed (section 5).
 
 ## 1. File structure
 
@@ -93,44 +93,36 @@ Each MD-5 flow, step by step, with the screen that shows it.
 | Live Poll multiple-choice variant on phone | Note on S07 only. Draw in hi-fi (MD-15) |
 | Audience screen: Live Poll Closed (results hidden) | Note on P04 only |
 
-## 4. Points for the team to confirm
+## 4. Decisions (2026-10-12)
 
-These are on the wireframes but are not decided in MD-5, or differ from the ticket.
+These came up while drawing the wireframes. They were not decided in MD-5, or differ from the ticket. Decided by the product owner on 2026-10-12 and added to MD-5 section 8 (Q19, Q24–Q27).
 
-1. **Timer.** The MD-6 ticket asks for a timer in presenter control. MD-5 puts the countdown timer in R2 (out of scope). The wireframes show an elapsed **session clock** only (H05, H10). Confirm.
-2. **Hide one word in Word Cloud** (H06, H07). Not in MD-5. Useful for rude words before showing results. Keep or remove?
-3. **"Go to next activity" button** on the content-slide state of the activity card (H07). Not in MD-5.
-4. **Mirror mode (one display) has gaps.** This affects the acceptance criterion "run all activities without switching screens". See section 4.1.
-5. **React button on phones.** Shown on the waiting view (S06, S16, S20) but hidden on activity screens (S07–S12). MD-5 hides reactions only on the projector during a poll with code or math. Pick one rule.
+| # | Point | Decision |
+| - | ----- | -------- |
+| 1 | **Timer.** The ticket asks for a timer; MD-5 puts the countdown timer in R2 | Elapsed **session clock** only (H05, H10). Countdown stays in R2 (Q24) |
+| 2 | **Hide one word in Word Cloud** (H06, H07) | Keep (Q25) |
+| 3 | **"Go to next activity"** on the content-slide state of the activity card (H07) | Keep (Q26) |
+| 4 | **Mirror mode (one display)** | Keep the MD-5 design. Known limit accepted (section 4.1) |
+| 5 | **Overlay key** | `O` instead of `Tab`, so `Tab` stays free for keyboard focus (Q19) |
+| 6 | **"+ React" on phones** | Always visible while reactions are on, on waiting and activity screens. Hidden only while the keyboard is open (Q27) |
 
 ### 4.1 Mirror mode (one display)
 
-With a mirrored display, the projector shows everything on the laptop, so the audience also sees the `Tab` overlay (H10). The overlay shows status only. The host controls everything with keyboard shortcuts. Gaps:
+With a mirrored display the projector shows everything on the laptop. The audience also sees the overlay (H10) and the Q&A panel when the host opens it. The overlay shows status only; the host controls the session with keyboard shortcuts.
 
-- **Q&A moderation:** `Q` opens the Q&A panel on the projector, so the room sees every question, including rude ones.
-- **End session:** this needs a 2 s hold on a button. Mirror mode has no button and no shortcut for it.
-- **Reopen an activity, people (rename, remove, co-host), settings:** no shortcut.
-- **`Tab` key:** browsers use `Tab` to move keyboard focus (MD-5 2.7). Use `O` (overlay) instead.
+Decision: keep this design for R1 and accept the limit. Hosts who need private Q&A moderation use two displays (extend mode) or a co-host (H11).
 
-Options:
+Not chosen for R1 (ideas for later): phone as remote, audience screen on the room PC, window share for online classes, overlay that shows counts only.
 
-| Option | How it works | Note |
-| ------ | ------------ | ---- |
-| A. Extend display (default) | Presenter control on the laptop, audience window on the projector | Current design |
-| B. Phone as remote (recommended for one display) | Laptop mirrors and shows only the audience screen. Host opens `/host/:sessionId` on their phone | MD-5 already allows presenter control in two tabs. Needs a mobile layout of presenter control |
-| C. Audience screen on the room PC | Room PC opens `/screen/:sessionId` with a short code. Host laptop is not on the projector | Needs a rule for who may open the audience screen |
-| D. Online class: share one window | Host shares only the audience window in Zoom, Teams or Meet | "Audience screen ↗" must open a new window, not a tab |
-| E. Safer overlay (fallback) | Overlay shows counts only, never question text. Moderation moves to the phone (B) or the co-host page (H11) | Keep as the last fallback |
-
-Proposal: A is the default. B and D are the recommended ways for one display. E is the fallback. If the team agrees, update MD-5 Q19, then draw the phone remote and a "How will you present?" choice at Start session.
+Still open: mirror mode has no shortcut for End session (needs a 2 s hold on a button), Reopen, people or settings. Add shortcuts in hi-fi (MD-15), or the host leaves mirror mode for these actions.
 
 ## 5. Team review
 
 Agenda (30 min): walk the host flow on the Host page, walk the student flow on the Student page, then go through section 3.1 and section 4.
 
-- [ ] Host can run all activities from presenter control without switching screens (two displays, and one display per 4.1)
+- [ ] Host can run all activities from presenter control without switching screens (two displays; one display has the limit in 4.1)
 - [ ] Every screen in the MD-5 sitemap has a wireframe or a note in section 3.1
-- [ ] Section 4 points decided
+- [x] Section 4 points decided
 - [x] Known layout fixes done (section 6)
 
 | Name                      | Reviewed | Comments |
