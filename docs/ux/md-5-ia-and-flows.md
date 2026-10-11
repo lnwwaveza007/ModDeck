@@ -1,7 +1,7 @@
 # MD-5 Information Architecture and User Flows (Release 1)
 
 - **Ticket:** MD-5 (Jira MOD-9) · Sprint 1 · Track: UX
-- **Status:** Draft. Open questions decided on 2026-10-09 (see [section 8](#8-decisions)). Updated the same day after a student and an instructor role review (decisions Q14–Q23). Waiting for team review (see [section 9](#9-team-review)).
+- **Status:** Draft. Open questions decided on 2026-10-09 (see [section 8](#8-decisions)). Updated the same day after a student and an instructor role review (decisions Q14–Q23). Q14–Q23 are provisional: the team builds on them for now and revises them after user feedback (see [section 8](#8-decisions)). Waiting for team review (see [section 9](#9-team-review)).
 - **Feeds:** MD-6 low-fi wireframes (every screen in [section 3](#3-sitemap) needs a wireframe)
 - **Soft blockers:**
   - MD-4 (competitor review, journey maps): not done yet. When it is done, check the flows against the journey pain points.
@@ -31,7 +31,7 @@ Read this part first. The rest of the doc gives the details, and long tables are
 
 **Activity states:** Draft → Live → Closed → Results shown. Reopen goes back to Live and keeps answers.
 
-**Status:** Q1–Q13 were decided by the team. Q14–Q23 are defaults from a role-play review and need team confirmation (section 8).
+**Status:** Q1–Q13 were decided by the team. Q14–Q23 are defaults from a role-play review. They are provisional: build on them now, then revise after user feedback (section 8, section 9.5).
 
 **Easier to read:** an interactive version of this doc (tabs for host, student, edge cases, states, decisions) is at <https://claude.ai/artifact/7Cxndsnd3Hp95UuE1dp55c>. It is private until the owner shares it. If the two disagree, this file wins.
 
@@ -717,7 +717,9 @@ Decided by the team on 2026-10-09. The flows above already follow these decision
 
 ### Added after the student and instructor role review
 
-Both reviews were done by role-play agents, not real users. MD-16 usability tests should confirm them. The team has not confirmed these defaults yet.
+Both reviews were done by role-play agents, not real users. MD-16 usability tests should confirm them. The team keeps these defaults as **provisional** for now: build and review on them, and change them after real-user feedback (see [section 9.5](#95-user-feedback-log)).
+
+Most likely to change after user feedback: Q14 (reactions default), Q16 (hold 2 s plus Undo), Q19 (mirror-mode overlay), Q20 (no offline retry queue), Q22 (15 min seat release). Q15, Q17, Q18, Q21, and Q23 are lower risk.
 
 | #   | Question                                                          | Decision                                                                                                                                               |
 | --- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -770,3 +772,12 @@ Acceptance criterion "Flows reviewed by the whole team" needs a meeting. Suggest
 | ---------- | ------------------------------------------------------------------------------------------------------- | ---------------------------- |
 | 2026-10-09 | Q1–Q13 decided. Added live reactions (F11) to R1. Code and math allowed in Q&A. Activity edit/delete rules (4.3). | Team answers to open questions |
 | 2026-10-09 | Role review by student and instructor agents. Added F12–F14, privacy rules, host roles, nickname and accessibility rules, mirror mode, End-session undo, seat release (Q14–Q23). | Gaps found in role review |
+| 2026-10-11 | Q14–Q23 kept as provisional defaults. Build on them now; revise after user feedback. Added the user feedback log (9.5). | Real users have not seen these yet |
+
+### 9.5 User feedback log
+
+Fill this in after each user review or usability test (MD-16). One row per comment. Change the decision in section 8 and add a row to 9.4 when a comment changes a decision.
+
+| Date | Source (user, session) | Decision (Qn) | Comment | Action |
+| ---- | ---------------------- | ------------- | ------- | ------ |
+|      |                        |               |         |        |
