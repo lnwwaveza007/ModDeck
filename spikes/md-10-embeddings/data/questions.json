@@ -1,0 +1,1062 @@
+{
+  "about": "MD-10 labelled question set. One entry per question. 'group' = questions the instructor would want merged into one card (same deck only). 'slides' = page numbers that answer the question; empty = no slide answers it. 'source' = where the question came from: 'draft' = written by the team as a seed in student style, 'real' = asked by a real student or TA. Replace or extend 'draft' questions with 'real' ones before MD-18.",
+  "decks": {
+    "vue": "chapter1-introductiontovue",
+    "w07": "int319-w07-development-of-corporate-strategy-and-plan-ii-workshop-g1"
+  },
+  "questions": [
+    {
+      "id": "v01",
+      "deck": "vue",
+      "lang": "th",
+      "group": "vue-ai-policy",
+      "slides": [2],
+      "source": "draft",
+      "text": "ใช้ ChatGPT ช่วยทำ project ได้มั้ยครับ"
+    },
+    {
+      "id": "v02",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-ai-policy",
+      "slides": [2],
+      "source": "draft",
+      "text": "Can we use AI tools like Copilot during the exam?"
+    },
+    {
+      "id": "v03",
+      "deck": "vue",
+      "lang": "th",
+      "group": "vue-ai-policy",
+      "slides": [2],
+      "source": "draft",
+      "text": "ถ้าใช้ AI เขียนโค้ดตอนสอบจะโดนอะไรบ้างคะ"
+    },
+    {
+      "id": "v04",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-ai-policy",
+      "slides": [2],
+      "source": "draft",
+      "text": "เปิด copilot ใน vscode ไว้ตอนทำโปรเจคได้ไหม"
+    },
+    {
+      "id": "v05",
+      "deck": "vue",
+      "lang": "th",
+      "group": "vue-ai-policy",
+      "slides": [2],
+      "source": "draft",
+      "text": "อาจารย์อนุญาตให้ใช้ปัญญาประดิษฐ์ทำงานกลุ่มรึเปล่าครับ"
+    },
+
+    {
+      "id": "v06",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-vite-what",
+      "slides": [9],
+      "source": "draft",
+      "text": "Vite คืออะไรครับ ต่างจาก webpack ยังไง"
+    },
+    {
+      "id": "v07",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-vite-what",
+      "slides": [9],
+      "source": "draft",
+      "text": "Why is Vite faster than other build tools?"
+    },
+    {
+      "id": "v08",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-vite-what",
+      "slides": [9],
+      "source": "draft",
+      "text": "vite มันเร็วกว่าเพราะอะไรอะ"
+    },
+    {
+      "id": "v09",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-vite-what",
+      "slides": [9],
+      "source": "draft",
+      "text": "ทำไม dev server ของ vite start ไวจัง"
+    },
+
+    {
+      "id": "v10",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-node-install",
+      "slides": [10],
+      "source": "draft",
+      "text": "ต้องลง node version ไหนครับ"
+    },
+    {
+      "id": "v11",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-node-install",
+      "slides": [10],
+      "source": "draft",
+      "text": "Do I need to install Node.js before using Vite?"
+    },
+    {
+      "id": "v12",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-node-install",
+      "slides": [10],
+      "source": "draft",
+      "text": "npm กับ node ต้องลงแยกกันไหมคะ"
+    },
+
+    {
+      "id": "v13",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-create-project",
+      "slides": [14],
+      "source": "draft",
+      "text": "สร้างโปรเจค vue ใหม่ใช้คำสั่งอะไรครับ"
+    },
+    {
+      "id": "v14",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-create-project",
+      "slides": [14],
+      "source": "draft",
+      "text": "How do I create a new Vue project?"
+    },
+    {
+      "id": "v15",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-create-project",
+      "slides": [14],
+      "source": "draft",
+      "text": "npm create vue@latest แล้วมันถามเยอะมาก ต้องเลือกอะไรบ้าง"
+    },
+
+    {
+      "id": "v16",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-project-name",
+      "slides": [14],
+      "source": "draft",
+      "text": "ตั้งชื่อโปรเจคต้องเป็น kebab-case เท่านั้นหรอครับ"
+    },
+    {
+      "id": "v17",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-project-name",
+      "slides": [14],
+      "source": "draft",
+      "text": "Can the project name have capital letters?"
+    },
+
+    {
+      "id": "v18",
+      "deck": "vue",
+      "lang": "th",
+      "group": "vue-sfc",
+      "slides": [6],
+      "source": "draft",
+      "text": "ไฟล์ .vue มีส่วนประกอบอะไรบ้าง"
+    },
+    {
+      "id": "v19",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-sfc",
+      "slides": [6],
+      "source": "draft",
+      "text": "What is a Single File Component?"
+    },
+    {
+      "id": "v20",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-sfc",
+      "slides": [6],
+      "source": "draft",
+      "text": "SFC คืออะไรคะ"
+    },
+    {
+      "id": "v21",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-sfc",
+      "slides": [6],
+      "source": "draft",
+      "text": "ใน .vue file ต้องมี template script style ครบทุกครั้งไหม"
+    },
+
+    {
+      "id": "v22",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-composition-api",
+      "slides": [7, 8],
+      "source": "draft",
+      "text": "Composition API ต่างจาก Options API ยังไงครับ"
+    },
+    {
+      "id": "v23",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-composition-api",
+      "slides": [7, 8],
+      "source": "draft",
+      "text": "Composition API or Options API, which one should we use in this course?"
+    },
+    {
+      "id": "v24",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-composition-api",
+      "slides": [7, 8],
+      "source": "draft",
+      "text": "ทำไมวิชานี้ใช้ composition api"
+    },
+
+    {
+      "id": "v25",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-script-setup",
+      "slides": [8],
+      "source": "draft",
+      "text": "<script setup> ต่างจาก <script> ธรรมดายังไง"
+    },
+    {
+      "id": "v26",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-script-setup",
+      "slides": [8],
+      "source": "draft",
+      "text": "What does the setup attribute actually do?"
+    },
+    {
+      "id": "v27",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-script-setup",
+      "slides": [8],
+      "source": "draft",
+      "text": "ตัวแปรที่ประกาศใน script setup เอาไปใช้ใน template ได้เลยหรอ"
+    },
+
+    {
+      "id": "v28",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-create-app",
+      "slides": [15],
+      "source": "draft",
+      "text": "createApp(App).mount('#app') ทำอะไรครับ"
+    },
+    {
+      "id": "v29",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-create-app",
+      "slides": [15],
+      "source": "draft",
+      "text": "Why does nothing show on the page until I call mount()?"
+    },
+    {
+      "id": "v30",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-create-app",
+      "slides": [15],
+      "source": "draft",
+      "text": "#app ที่อยู่ใน mount มาจากไหน"
+    },
+    {
+      "id": "v31",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-root-component",
+      "slides": [15],
+      "source": "draft",
+      "text": "root component คืออะไรครับ"
+    },
+
+    {
+      "id": "v32",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-tailwind-setup",
+      "slides": [16],
+      "source": "draft",
+      "text": "ลง tailwind กับ vite ยังไงครับ"
+    },
+    {
+      "id": "v33",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-tailwind-setup",
+      "slides": [16],
+      "source": "draft",
+      "text": "Where do I put the @tailwind directives?"
+    },
+    {
+      "id": "v34",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-tailwind-setup",
+      "slides": [16],
+      "source": "draft",
+      "text": "ใส่ @tailwind ใน style.css แล้ว class ไม่ทำงานเลยครับ"
+    },
+
+    {
+      "id": "v35",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-css-choice",
+      "slides": [3, 16, 17],
+      "source": "draft",
+      "text": "ต้องใช้ tailwind อย่างเดียว หรือใช้ bootstrap ก็ได้ครับ"
+    },
+    {
+      "id": "v36",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-css-choice",
+      "slides": [3, 16, 17],
+      "source": "draft",
+      "text": "Is Bootstrap allowed instead of Tailwind?"
+    },
+    {
+      "id": "v37",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-css-choice",
+      "slides": [3, 16],
+      "source": "draft",
+      "text": "daisyUI บังคับใช้ไหมคะ"
+    },
+
+    {
+      "id": "v38",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-bootstrap-install",
+      "slides": [17],
+      "source": "draft",
+      "text": "import bootstrap css ที่ไฟล์ไหนครับ"
+    },
+    {
+      "id": "v39",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-bootstrap-install",
+      "slides": [17],
+      "source": "draft",
+      "text": "how to install bootstrap in a vue project"
+    },
+
+    {
+      "id": "v40",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-devtools",
+      "slides": [13],
+      "source": "draft",
+      "text": "Vue devtools โหลดที่ไหนครับ"
+    },
+    {
+      "id": "v41",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-devtools",
+      "slides": [13],
+      "source": "draft",
+      "text": "Is there a Vue Devtools for Firefox?"
+    },
+    {
+      "id": "v42",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-devtools",
+      "slides": [13],
+      "source": "draft",
+      "text": "ลง devtools แล้วไม่มี tab Vue ใน chrome"
+    },
+
+    {
+      "id": "v43",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-vscode-ext",
+      "slides": [11],
+      "source": "draft",
+      "text": "ควรลง extension อะไรใน vscode บ้าง"
+    },
+    {
+      "id": "v44",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-vscode-ext",
+      "slides": [11],
+      "source": "draft",
+      "text": "Which VS Code extension gives Vue syntax highlighting?"
+    },
+    {
+      "id": "v45",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-vscode-ext",
+      "slides": [11],
+      "source": "draft",
+      "text": "Vue Language Features กับ Volar คือตัวเดียวกันไหม"
+    },
+
+    {
+      "id": "v46",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-snippet",
+      "slides": [12],
+      "source": "draft",
+      "text": "พิมพ์ sfc แล้วขึ้นโครง component มาเลย ทำยังไงครับ"
+    },
+    {
+      "id": "v47",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-snippet",
+      "slides": [12],
+      "source": "draft",
+      "text": "How do I make a user snippet in VS Code?"
+    },
+
+    {
+      "id": "v48",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-reactivity",
+      "slides": [18],
+      "source": "draft",
+      "text": "Reactivity ใน Vue คืออะไร"
+    },
+    {
+      "id": "v49",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-reactivity",
+      "slides": [18],
+      "source": "draft",
+      "text": "vue รู้ได้ยังไงว่าตัวแปรเปลี่ยน แล้วไป update DOM เอง"
+    },
+    {
+      "id": "v50",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-declarative",
+      "slides": [18],
+      "source": "draft",
+      "text": "declarative rendering หมายถึงอะไรครับ"
+    },
+    {
+      "id": "v51",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-core-features",
+      "slides": [18],
+      "source": "draft",
+      "text": "What are the two core features of Vue?"
+    },
+
+    {
+      "id": "v52",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-version",
+      "slides": [3],
+      "source": "draft",
+      "text": "วิชานี้ใช้ Vue version ไหนครับ"
+    },
+    {
+      "id": "v53",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-version",
+      "slides": [3],
+      "source": "draft",
+      "text": "Is Vue 2 okay for the project?"
+    },
+    {
+      "id": "v54",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-pinia",
+      "slides": [3, 19],
+      "source": "draft",
+      "text": "Pinia คืออะไรครับ"
+    },
+    {
+      "id": "v55",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-router",
+      "slides": [3, 19],
+      "source": "draft",
+      "text": "Vue Router จะได้เรียนสัปดาห์ไหน"
+    },
+
+    {
+      "id": "v56",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-github",
+      "slides": [20],
+      "source": "draft",
+      "text": "repo GitHub ของวิชาอยู่ที่ไหนครับ"
+    },
+    {
+      "id": "v57",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-github",
+      "slides": [20],
+      "source": "draft",
+      "text": "Where can I find the course code examples?"
+    },
+
+    {
+      "id": "v58",
+      "deck": "vue",
+      "lang": "th",
+      "group": "vue-midterm",
+      "slides": [],
+      "source": "draft",
+      "text": "สอบกลางภาคออกบทไหนบ้างครับ"
+    },
+    {
+      "id": "v59",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-midterm",
+      "slides": [],
+      "source": "draft",
+      "text": "midterm ออกถึง chapter ไหน"
+    },
+    {
+      "id": "v60",
+      "deck": "vue",
+      "lang": "en",
+      "group": "vue-slides-upload",
+      "slides": [],
+      "source": "draft",
+      "text": "Will these slides be uploaded to LEB2?"
+    },
+    {
+      "id": "v61",
+      "deck": "vue",
+      "lang": "mix",
+      "group": "vue-slides-upload",
+      "slides": [],
+      "source": "draft",
+      "text": "สไลด์วันนี้จะลง LEB2 ไหมคะ"
+    },
+
+    {
+      "id": "w01",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-vision-mission",
+      "slides": [4],
+      "source": "draft",
+      "text": "Vision กับ Mission ต่างกันยังไงครับ"
+    },
+    {
+      "id": "w02",
+      "deck": "w07",
+      "lang": "en",
+      "group": "w07-vision-mission",
+      "slides": [4],
+      "source": "draft",
+      "text": "What's the difference between vision and mission?"
+    },
+    {
+      "id": "w03",
+      "deck": "w07",
+      "lang": "th",
+      "group": "w07-vision-mission",
+      "slides": [4],
+      "source": "draft",
+      "text": "วิสัยทัศน์กับพันธกิจ อันไหนเป็นระยะยาวกว่ากันคะ"
+    },
+    {
+      "id": "w04",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-vision-mission",
+      "slides": [4],
+      "source": "draft",
+      "text": "mission คือเหตุผลที่องค์กรมีอยู่ใช่ไหมครับ"
+    },
+
+    {
+      "id": "w05",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-objective-goal",
+      "slides": [4, 7],
+      "source": "draft",
+      "text": "Objectives กับ Goals ต่างกันยังไง"
+    },
+    {
+      "id": "w06",
+      "deck": "w07",
+      "lang": "th",
+      "group": "w07-objective-goal",
+      "slides": [7],
+      "source": "draft",
+      "text": "เป้าประสงค์กับเป้าหมายย่อยไม่เหมือนกันหรอครับ"
+    },
+    {
+      "id": "w07",
+      "deck": "w07",
+      "lang": "en",
+      "group": "w07-objective-goal",
+      "slides": [4, 7],
+      "source": "draft",
+      "text": "Is an objective the same thing as a goal?"
+    },
+
+    {
+      "id": "w08",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-kpi",
+      "slides": [4, 7],
+      "source": "draft",
+      "text": "KPI ย่อมาจากอะไรครับ"
+    },
+    {
+      "id": "w09",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-kpi",
+      "slides": [7],
+      "source": "draft",
+      "text": "KPI ปีที่ 1 ถึง 3 ต้องใส่เป็นตัวเลขไหมคะ"
+    },
+    {
+      "id": "w10",
+      "deck": "w07",
+      "lang": "en",
+      "group": "w07-kpi",
+      "slides": [7],
+      "source": "draft",
+      "text": "How many KPIs should we write for each goal?"
+    },
+
+    {
+      "id": "w11",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-vision-parts",
+      "slides": [6],
+      "source": "draft",
+      "text": "workshop 2 ต้องแยกวิสัยทัศน์เป็น 3 ส่วน มีอะไรบ้างครับ"
+    },
+    {
+      "id": "w12",
+      "deck": "w07",
+      "lang": "en",
+      "group": "w07-vision-parts",
+      "slides": [6],
+      "source": "draft",
+      "text": "What are the three parts of a vision in workshop 2?"
+    },
+    {
+      "id": "w13",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-vision-parts",
+      "slides": [6],
+      "source": "draft",
+      "text": "Core purpose กับ visionary goals ต่างกันยังไงครับ"
+    },
+    {
+      "id": "w14",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-value-prop",
+      "slides": [6],
+      "source": "draft",
+      "text": "Value proposition ในวิสัยทัศน์หมายถึงอะไรคะ"
+    },
+
+    {
+      "id": "w15",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-workshop-time",
+      "slides": [6, 7],
+      "source": "draft",
+      "text": "workshop นี้ให้เวลากี่นาทีครับ"
+    },
+    {
+      "id": "w16",
+      "deck": "w07",
+      "lang": "en",
+      "group": "w07-workshop-time",
+      "slides": [7],
+      "source": "draft",
+      "text": "How long do we have for workshop 3?"
+    },
+
+    {
+      "id": "w17",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-vision-examples",
+      "slides": [5],
+      "source": "draft",
+      "text": "vision ของ Tesla คืออะไร"
+    },
+    {
+      "id": "w18",
+      "deck": "w07",
+      "lang": "en",
+      "group": "w07-vision-examples",
+      "slides": [5],
+      "source": "draft",
+      "text": "Can you show some example vision statements from big companies?"
+    },
+    {
+      "id": "w19",
+      "deck": "w07",
+      "lang": "th",
+      "group": "w07-vision-examples",
+      "slides": [5],
+      "source": "draft",
+      "text": "มีตัวอย่างวิสัยทัศน์ของบริษัทดังๆ ไหมครับ"
+    },
+
+    {
+      "id": "w20",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-business-choice",
+      "slides": [3],
+      "source": "draft",
+      "text": "กลุ่มเราได้ Café Amazon ต้องเขียนวิสัยทัศน์ของ Café Amazon เองหรอ"
+    },
+    {
+      "id": "w21",
+      "deck": "w07",
+      "lang": "en",
+      "group": "w07-business-choice",
+      "slides": [3],
+      "source": "draft",
+      "text": "Which companies can we choose for the workshop?"
+    },
+    {
+      "id": "w22",
+      "deck": "w07",
+      "lang": "th",
+      "group": "w07-business-choice",
+      "slides": [3],
+      "source": "draft",
+      "text": "เลือกธุรกิจเองได้ไหม หรือต้องเป็นบริษัทในลิสต์"
+    },
+
+    {
+      "id": "w23",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-7s",
+      "slides": [8],
+      "source": "draft",
+      "text": "McKinsey 7S มีอะไรบ้างครับ"
+    },
+    {
+      "id": "w24",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-7s",
+      "slides": [8],
+      "source": "draft",
+      "text": "7S ใช้วิเคราะห์จุดแข็งจุดอ่อนยังไง"
+    },
+    {
+      "id": "w25",
+      "deck": "w07",
+      "lang": "en",
+      "group": "w07-7s",
+      "slides": [8],
+      "source": "draft",
+      "text": "How is the 7S model used to find strengths and weaknesses?"
+    },
+    {
+      "id": "w26",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-7s-style",
+      "slides": [8],
+      "source": "draft",
+      "text": "Style ใน 7S หมายถึงอะไรคะ"
+    },
+
+    {
+      "id": "w27",
+      "deck": "w07",
+      "lang": "th",
+      "group": "w07-internal-external",
+      "slides": [10, 12, 13],
+      "source": "draft",
+      "text": "จุดแข็งกับโอกาสต่างกันยังไง"
+    },
+    {
+      "id": "w28",
+      "deck": "w07",
+      "lang": "en",
+      "group": "w07-internal-external",
+      "slides": [10, 12, 13],
+      "source": "draft",
+      "text": "How do I know if something is a strength or an opportunity?"
+    },
+    {
+      "id": "w29",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-internal-external",
+      "slides": [8, 12],
+      "source": "draft",
+      "text": "S กับ W เป็นปัจจัยภายใน ส่วน O กับ T เป็นภายนอกใช่ไหมครับ"
+    },
+
+    {
+      "id": "w30",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-macro-micro",
+      "slides": [12],
+      "source": "draft",
+      "text": "Macro-environment กับ micro-environment ต่างกันยังไง"
+    },
+    {
+      "id": "w31",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-macro-micro",
+      "slides": [12],
+      "source": "draft",
+      "text": "คู่แข่งนับเป็น micro หรือ macro ครับ"
+    },
+
+    {
+      "id": "w32",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-pdpa",
+      "slides": [12],
+      "source": "draft",
+      "text": "PDPA เกี่ยวกับ SWOT ยังไงครับ"
+    },
+    {
+      "id": "w33",
+      "deck": "w07",
+      "lang": "en",
+      "group": "w07-pdpa",
+      "slides": [12],
+      "source": "draft",
+      "text": "Is PDPA a threat or an opportunity for a cafe business?"
+    },
+
+    {
+      "id": "w34",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-threat-examples",
+      "slides": [18],
+      "source": "draft",
+      "text": "ภัยคุกคามของ Toyota ในตัวอย่างมีอะไรบ้าง"
+    },
+    {
+      "id": "w35",
+      "deck": "w07",
+      "lang": "th",
+      "group": "w07-threat-examples",
+      "slides": [18, 21],
+      "source": "draft",
+      "text": "ราคาน้ำมันสูงขึ้นถือเป็นภัยคุกคามใช่ไหมคะ"
+    },
+
+    {
+      "id": "w36",
+      "deck": "w07",
+      "lang": "th",
+      "group": "w07-strategy-types",
+      "slides": [15],
+      "source": "draft",
+      "text": "กลยุทธ์เชิงรุก เชิงรับ เชิงป้องกัน ต่างกันยังไงครับ"
+    },
+    {
+      "id": "w37",
+      "deck": "w07",
+      "lang": "en",
+      "group": "w07-strategy-types",
+      "slides": [15, 20],
+      "source": "draft",
+      "text": "What is a turnaround strategy?"
+    },
+    {
+      "id": "w38",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-strategy-types",
+      "slides": [15, 19],
+      "source": "draft",
+      "text": "Aggressive strategy คือเอา S กับ O มาจับคู่กันใช่ไหม"
+    },
+
+    {
+      "id": "w39",
+      "deck": "w07",
+      "lang": "th",
+      "group": "w07-swot-rank",
+      "slides": [15],
+      "source": "draft",
+      "text": "จัดลำดับความสำคัญของ SWOT ก่อนเรียงขึ้นแกนยังไงครับ"
+    },
+    {
+      "id": "w40",
+      "deck": "w07",
+      "lang": "en",
+      "group": "w07-swot-rank",
+      "slides": [15],
+      "source": "draft",
+      "text": "How do we rank the SWOT items on the chart axes?"
+    },
+
+    {
+      "id": "w41",
+      "deck": "w07",
+      "lang": "th",
+      "group": "w07-projects",
+      "slides": [15],
+      "source": "draft",
+      "text": "โครงการต้องสอดคล้องกับกลยุทธ์ยังไงคะ"
+    },
+    {
+      "id": "w42",
+      "deck": "w07",
+      "lang": "en",
+      "group": "w07-projects",
+      "slides": [15],
+      "source": "draft",
+      "text": "How many projects do we need for each strategy?"
+    },
+
+    {
+      "id": "w43",
+      "deck": "w07",
+      "lang": "th",
+      "group": "w07-example-real",
+      "slides": [17, 18],
+      "source": "draft",
+      "text": "ข้อมูล Toyota ในสไลด์เป็นข้อมูลจริงไหมคะ"
+    },
+    {
+      "id": "w44",
+      "deck": "w07",
+      "lang": "en",
+      "group": "w07-example-real",
+      "slides": [17, 18],
+      "source": "draft",
+      "text": "Is the SWOT example based on real company data?"
+    },
+
+    {
+      "id": "w45",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-kaizen",
+      "slides": [20],
+      "source": "draft",
+      "text": "Kaizen คืออะไรครับ"
+    },
+    {
+      "id": "w46",
+      "deck": "w07",
+      "lang": "mix",
+      "group": "w07-jidoka",
+      "slides": [20],
+      "source": "draft",
+      "text": "Jidoka แปลว่าอะไร"
+    },
+    {
+      "id": "w47",
+      "deck": "w07",
+      "lang": "en",
+      "group": "w07-jit",
+      "slides": [17, 20],
+      "source": "draft",
+      "text": "What does Just-In-Time mean in the Toyota example?"
+    },
+
+    {
+      "id": "w48",
+      "deck": "w07",
+      "lang": "th",
+      "group": "w07-submit",
+      "slides": [],
+      "source": "draft",
+      "text": "งาน workshop ต้องส่งทางไหนครับ"
+    },
+    {
+      "id": "w49",
+      "deck": "w07",
+      "lang": "en",
+      "group": "w07-submit",
+      "slides": [],
+      "source": "draft",
+      "text": "Where do we submit the workshop?"
+    },
+    {
+      "id": "w50",
+      "deck": "w07",
+      "lang": "th",
+      "group": "w07-group-or-solo",
+      "slides": [],
+      "source": "draft",
+      "text": "งานนี้ส่งเดี่ยวหรือส่งกลุ่มคะ"
+    },
+    {
+      "id": "w51",
+      "deck": "w07",
+      "lang": "en",
+      "group": "w07-group-or-solo",
+      "slides": [],
+      "source": "draft",
+      "text": "Do we submit as a group or individually?"
+    },
+    {
+      "id": "w52",
+      "deck": "w07",
+      "lang": "en",
+      "group": "w07-leave-early",
+      "slides": [],
+      "source": "draft",
+      "text": "Can I leave class early today?"
+    }
+  ]
+}
