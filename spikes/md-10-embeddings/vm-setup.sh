@@ -143,4 +143,12 @@ cat <<MSG
   node src/evaluate.mjs bge-m3-q8   # optional check: top-3 lookup should be 91.3%
 
 Results: out/latency.json and out/vm-spec.txt
+
+Try your own questions in the browser (the server listens on localhost only):
+
+  node src/build-demo.mjs           # build the page from this VM's vectors
+  node demo/server.mjs              # keep it running
+
+  # on your own computer, open a tunnel, then browse http://localhost:4173
+  ssh -L 4173:localhost:4173 $USER@<vm-address>
 MSG
