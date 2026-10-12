@@ -107,7 +107,7 @@ Threshold sweep for bge-m3 (both decks, 113 questions, 49 true groups):
 
 ### 4.3 Latency per question (one question at a time, CPU)
 
-Measured on a developer PC (Ryzen 5 5500, 12 threads, 16 GB). A VM with fewer vCPUs will be slower. See [VM-TEST.md](VM-TEST.md).
+The table below was measured on a developer PC (Ryzen 5 5500, 12 threads, 16 GB). A 4-vCPU test VM is in section 4.3.1.
 
 | Model | Embed p50 | Embed p95 | Search (in DB) | Per question p50 / p95 | Burst of 50 | Throughput |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -121,6 +121,24 @@ Measured on a developer PC (Ryzen 5 5500, 12 threads, 16 GB). A VM with fewer vC
 - bge-m3-q8 meets < 150 ms at p95 for a single question. bge-m3 fp32 does not (248 ms p95).
 - **Bursts queue up.** One ONNX session handles one request at a time. With 50 questions at the same moment, the last one waits about 5 s on bge-m3-q8. Batching helps: batches of 8 ran at about 28 questions/s (113 questions in 4.1 s). This is fine for clustering, which does not need to finish in 150 ms, but it needs a queue (see section 8).
 - Model load at start-up: 4–13 s. Load the model once per worker, not per request.
+
+### 4.3.1 Test VM (4 vCPU, no AVX2)
+
+Spec: QEMU Virtual CPU version 2.5+, 4 vCPU (1 thread per core), 7.2 GB RAM, Node 22.22.1, pgvector in Docker on the same host. `grep -m1 -o -w -E 'avx2|avx512f' /proc/cpuinfo` printed nothing, so the VM hides AVX2 and AVX-512 from the guest. ONNX Runtime has to use slower kernels. Questions were sent one at a time, with nothing else running.
+
+| Model | Run | Embed p50 / p95 | Search p50 / p95 | Per question p50 / p95 | Burst of 50 | Throughput |
+| --- | --- | --- | --- | --- | --- | --- |
+| bge-m3-q8 | 1 (warm-up) | 106 / 196 ms | 3.7 / 11.0 ms | 110 / 199 ms | 5.5 s | 9.0 q/s |
+| bge-m3-q8 | 2 | 106 / 144 ms | 3.6 / 6.5 ms | **111 / 148 ms** | 5.8 s | 8.7 q/s |
+| e5-base | 1 (warm-up) | 49 / 134 ms | 3.4 / 9.2 ms | 55 / 141 ms | 2.8 s | 17.9 q/s |
+| e5-base | 2 | 49 / 67 ms | 3.5 / 6.7 ms | **53 / 71 ms** | 2.6 s | 19.5 q/s |
+
+- bge-m3-q8 is **at the limit**: p95 is 148 ms on run 2 and 199 ms on run 1. It meets the 150 ms target only with nothing else running. The API, Redis, WebSocket traffic and Postgres will share these 4 vCPUs in production.
+- e5-base has room (p95 71 ms) but is weaker at clustering (section 4.2).
+- Batch embedding (import and queue) was 2 to 3 times slower than on the developer PC: 41 slides in 59.9 s for bge-m3-q8 (about 1.5 s per slide), 113 questions in 11.0 s.
+- Search is a few ms here because the script reaches the database through Docker port forwarding. It is not a concern.
+- The accuracy rerun on the VM gave top-1 78.8% and top-3 92.3% for bge-m3-q8 (PC: 77.9% and 91.3%). The clustering oracle threshold was 0.69 with P 80% and R 33% (PC: 0.67, P 76%, R 40%). The 8-bit model gives slightly different vectors on different CPUs (mean cosine 0.986 between machines), so expect about one question of difference. The conclusions do not change.
+- Untested: AVX2 passthrough (VM CPU type `host` or `host-passthrough`), more vCPUs, and a test under load. AVX2 is the first thing to change, because it needs no extra hardware.
 
 ### 4.4 Cost per 1,000 questions
 
@@ -183,4 +201,4 @@ Use only the draft questions with the free tier. Do not send real student questi
 - Real-question numbers (section 7).
 - Does a short LLM check in the middle band (0.62–0.75) fix recall at an acceptable latency and cost? This is the next spike if the two-band design is not enough.
 - Can a small fine-tune or a Thai-specific model (for example WangchanBERTa-based sentence models) beat bge-m3 on mixed Thai/English? Not tested.
-- Server sizing: the target server's CPU is unknown. Follow [VM-TEST.md](VM-TEST.md) to rerun the latency test on it. Until then, the latency numbers in section 4.3 are from a developer PC only.
+- Server sizing: the target server's CPU is unknown. Section 4.3.1 has a first run on a 4-vCPU VM (bge-m3-q8 p95 148 to 199 ms). Rerun with AVX2 enabled, and under load (API + Redis + sockets), with [VM-TEST.md](VM-TEST.md).

@@ -8,3 +8,4 @@ pnpm-lock.yaml
 proposal_media
 spikes/*/out
 spikes/*/bench
+spikes/*/demo/index.html
