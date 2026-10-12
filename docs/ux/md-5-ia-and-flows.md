@@ -19,7 +19,7 @@ Read this part first. The rest of the doc gives the details, and long tables are
 **Ten rules to remember**
 
 1. The phone shows activities only. Slides stay on the projector.
-2. The host runs everything from one screen. With one display, keyboard shortcuts and a `Tab` overlay.
+2. The host runs everything from one screen. With one display, keyboard shortcuts and an `O` overlay.
 3. Activities start when the host presses Start. Auto-start is optional.
 4. Anonymous questions never show a name: not to the host, not to classmates, not in the export.
 5. Poll answers of KMUTT-login users are exported with their student ID. The join screen says so.
@@ -120,9 +120,11 @@ The host uses two screens at once:
 - **Presenter control** (host laptop): current slide, next slide, activity controls, Q&A panel, reactions toggle, participant count. The host runs everything from this one screen.
 - **Audience screen** (projector): the slide, live results, reactions, PIN and QR code. It has no controls. The host opens it in a second window and drags it to the projector.
 
-**Mirror mode (one display, Q19).** If the host has only one display, the audience screen runs full screen and the host controls it with keyboard shortcuts and a **presenter overlay**. The overlay is a small panel, opened with `Tab`, that shows: next slide thumbnail, "N answered of M online", unanswered Q&A count, reactions on/off, and the session clock. It hides when `Tab` is pressed again, and it never appears on the projector copy of the screen when two displays are used.
+**Mirror mode (one display, Q19).** If the host has only one display, the audience screen runs full screen and the host controls it with keyboard shortcuts and a **presenter overlay**. The overlay is a small panel, opened with `O`, that shows: next slide thumbnail, "N answered of M online", unanswered Q&A count, reactions on/off, and the session clock. It hides when `O` is pressed again, and it never appears on the projector copy of the screen when two displays are used. `Tab` is not used, so it stays free for keyboard focus (2.7).
 
-Shortcut list (shown with `?`): `→` / `←` next / previous slide, `Space` start or close the current activity, `S` show or hide results, `Q` open the Q&A panel, `R` reactions on/off, `B` blank screen, `G` then slide number to jump, `Tab` overlay. A slide jump list is always in presenter control, so a wrong advance is fixed in one click.
+Known limit (decided 2026-10-12): in mirror mode the projector shows everything on the laptop, so the audience also sees the overlay and the Q&A panel when the host opens them. The team accepts this for R1. Hosts who need private moderation use two displays or a co-host (2.5).
+
+Shortcut list (shown with `?`): `→` / `←` next / previous slide, `Space` start or close the current activity, `S` show or hide results, `Q` open the Q&A panel, `R` reactions on/off, `B` blank screen, `G` then slide number to jump, `O` overlay. A slide jump list is always in presenter control, so a wrong advance is fixed in one click.
 
 ### 2.3 Identity (placeholder until MD-7)
 
@@ -728,11 +730,20 @@ Most likely to change after user feedback: Q14 (reactions default), Q16 (hold 2 
 | Q16 | Protect against an accidental End session?                        | Hold the button for 2 s, then a 60 s Undo that reopens the session with the same PIN (4.2, 7.3).                                                        |
 | Q17 | TA co-host and per-deck "Require KMUTT login"?                    | One co-host per session: Q&A moderation and take-over only. "Require KMUTT login" is remembered per deck (2.5, 2.3).                                   |
 | Q18 | Anonymity versus scores by student ID?                            | Anonymous questions never show a name. Poll answers are exported with the student ID of SSO users, and the join screen says so (2.4).                  |
-| Q19 | Host with one display (mirror mode)?                              | Keyboard shortcuts plus a presenter overlay (`Tab`) with next slide, "N answered of M online", Q&A count (2.2).                                       |
+| Q19 | Host with one display (mirror mode)?                              | Keyboard shortcuts plus a presenter overlay (`O`, changed from `Tab` on 2026-10-12) with next slide, "N answered of M online", Q&A count. Overlay and Q&A panel are visible on the projector in mirror mode; accepted for R1 (2.2). |
 | Q20 | Retry queue for answers sent while offline?                       | Not in R1. Typed text is kept and "Answer sent" confirms every vote. MD-13 decides if a queue is worth it (6.2).                                       |
 | Q21 | Find an anonymous author? Rename or remove people?                | No name lookup in the app. Moderators can "Remove sender" without seeing the name. Host can rename or remove any participant (2.5).                    |
 | Q22 | Free seats of offline people when the session is full?            | Free after 15 min offline (6.5). MD-8 checks the load impact.                                                                                           |
 | Q23 | Thai and English UI, nickname rules, accessibility?               | Both languages in R1. Rules for nicknames, Thai text length, contrast, touch size, motion (2.6, 2.7).                                                   |
+
+### Added during MD-6 wireframes (2026-10-12)
+
+| #   | Question                                                          | Decision                                                                                                                                               |
+| --- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Q24 | Timer in presenter control?                                       | Elapsed session clock only. The countdown timer stays in R2 with Live Quiz.                                                                            |
+| Q25 | Can the host hide one word in a Word Cloud?                        | Yes. The host can hide a word (for example a rude one) before or after showing results. R1 has no automatic filter.                                     |
+| Q26 | Shortcut from a content slide to the next activity?                | Yes. On a content slide the activity card shows "Go to next activity", which jumps to the next activity slide.                                          |
+| Q27 | When do phones show the "+ React" button?                         | Always while reactions are on, on every Live screen (waiting and activity). Hidden only while the keyboard is open (2.7).                               |
 
 ---
 
@@ -773,6 +784,7 @@ Acceptance criterion "Flows reviewed by the whole team" needs a meeting. Suggest
 | 2026-10-09 | Q1–Q13 decided. Added live reactions (F11) to R1. Code and math allowed in Q&A. Activity edit/delete rules (4.3). | Team answers to open questions |
 | 2026-10-09 | Role review by student and instructor agents. Added F12–F14, privacy rules, host roles, nickname and accessibility rules, mirror mode, End-session undo, seat release (Q14–Q23). | Gaps found in role review |
 | 2026-10-11 | Q14–Q23 kept as provisional defaults. Build on them now; revise after user feedback. Added the user feedback log (9.5). | Real users have not seen these yet |
+| 2026-10-12 | Overlay key `Tab` → `O`. Mirror-mode limit accepted (2.2, Q19). Added Q24–Q27. | Found while drawing MD-6 wireframes |
 
 ### 9.5 User feedback log
 
