@@ -6,9 +6,12 @@
 3. Signed in with a KMUTT account through the browser.
 4. Successfully received an ID token.
 
-##Result
+## Result
 <video controls width="640">
   <source src="./Kmutt%20SSO%20Check.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
 [Watch the demo video](./Kmutt%20SSO%20Check.mp4)
 
 ## 2. Guest Identity Model: Anonymous Session
