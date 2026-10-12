@@ -1,0 +1,1225 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ModDeck Question Board</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap"
+    />
+    <style>
+      /* Layout: one control strip on top, then three columns (questions in, instructor board, slide suggestions). Stacks on phones. */
+      :root {
+        --bg: #eef1f4;
+        --surface: #ffffff;
+        --surface-2: #f6f8fa;
+        --ink: #14202b;
+        --muted: #566677;
+        --line: #d3dbe3;
+        --auto: #0a766f;
+        --auto-bg: #dff3f1;
+        --suggest: #9a5b00;
+        --suggest-bg: #fbecd0;
+        --fresh: #34558a;
+        --fresh-bg: #e1e9f7;
+        --bad: #b3261e;
+        --bad-bg: #fbe3e0;
+        --focus: #1b5fd1;
+        --sans: "IBM Plex Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #0e151c;
+          --surface: #16212b;
+          --surface-2: #1c2935;
+          --ink: #e5ecf2;
+          --muted: #9aabb9;
+          --line: #2b3b49;
+          --auto: #4fd1c5;
+          --auto-bg: #0f3a38;
+          --suggest: #f0b45a;
+          --suggest-bg: #3d2c0d;
+          --fresh: #8fb0ee;
+          --fresh-bg: #1c2b46;
+          --bad: #ff8a80;
+          --bad-bg: #4a1c19;
+          --focus: #7fb0ff;
+          color-scheme: dark;
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg: #0e151c;
+        --surface: #16212b;
+        --surface-2: #1c2935;
+        --ink: #e5ecf2;
+        --muted: #9aabb9;
+        --line: #2b3b49;
+        --auto: #4fd1c5;
+        --auto-bg: #0f3a38;
+        --suggest: #f0b45a;
+        --suggest-bg: #3d2c0d;
+        --fresh: #8fb0ee;
+        --fresh-bg: #1c2b46;
+        --bad: #ff8a80;
+        --bad-bg: #4a1c19;
+        --focus: #7fb0ff;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.5;
+        margin: 0;
+        padding-inline: 16px;
+        padding-block: 20px 40px;
+      }
+      .wrap {
+        max-width: 1280px;
+        margin-inline: auto;
+      }
+      h1 {
+        font-size: 22px;
+        line-height: 1.25;
+        margin: 0 0 4px;
+        font-weight: 600;
+        text-wrap: balance;
+      }
+      h2 {
+        font-size: 13px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-weight: 600;
+        margin: 0;
+      }
+      p {
+        margin: 0;
+      }
+      .lede {
+        color: var(--muted);
+        max-width: 70ch;
+      }
+      .mono {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+      }
+      button,
+      input {
+        font: inherit;
+        color: inherit;
+      }
+      button:focus-visible,
+      input:focus-visible,
+      .q:focus-visible,
+      .card:focus-visible {
+        outline: 2px solid var(--focus);
+        outline-offset: 2px;
+      }
+
+      .strip {
+        margin-top: 16px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px 14px;
+        display: grid;
+        gap: 12px 24px;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        align-items: start;
+      }
+      .group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .seg {
+        display: inline-flex;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .seg button {
+        border: 0;
+        background: transparent;
+        padding: 6px 12px;
+        cursor: pointer;
+      }
+      .seg button[aria-pressed="true"] {
+        background: var(--ink);
+        color: var(--bg);
+      }
+      .btn {
+        border: 1px solid var(--line);
+        background: var(--surface-2);
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .btn.primary {
+        background: var(--ink);
+        color: var(--bg);
+        border-color: var(--ink);
+      }
+      .btn:hover {
+        border-color: var(--muted);
+      }
+      .slider {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 2px 10px;
+        align-items: center;
+      }
+      .slider label {
+        font-size: 13px;
+      }
+      .slider input[type="range"] {
+        grid-column: 1 / -1;
+        width: 100%;
+        accent-color: var(--auto);
+      }
+      .hint {
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+      .check {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        font-size: 13.5px;
+        cursor: pointer;
+      }
+
+      .stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 22px;
+        margin-top: 14px;
+      }
+      .stat {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .stat b {
+        font-family: var(--mono);
+        font-size: 20px;
+        font-weight: 500;
+        line-height: 1.2;
+      }
+      .stat span {
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+
+      .cols {
+        margin-top: 16px;
+        display: grid;
+        gap: 16px;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: start;
+      }
+      @media (min-width: 980px) {
+        .cols {
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr) minmax(0, 1fr);
+        }
+      }
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px;
+        min-width: 0;
+      }
+      .panel > header {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: baseline;
+        margin-bottom: 10px;
+      }
+      .scroll {
+        max-height: 640px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-right: 2px;
+      }
+
+      .q {
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 8px 10px;
+        cursor: pointer;
+        text-align: left;
+        width: 100%;
+        display: block;
+      }
+      .q.newest {
+        border-color: var(--ink);
+      }
+      .q.sel {
+        box-shadow: 0 0 0 2px var(--focus);
+      }
+      .q .t {
+        overflow-wrap: anywhere;
+      }
+      .q .m {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 8px;
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--muted);
+        align-items: center;
+      }
+      .chip {
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 1px 6px;
+        border-radius: 4px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--muted);
+      }
+      .tag {
+        font-size: 12px;
+        font-weight: 500;
+        padding: 1px 7px;
+        border-radius: 4px;
+      }
+      .tag.auto {
+        background: var(--auto-bg);
+        color: var(--auto);
+      }
+      .tag.suggest {
+        background: var(--suggest-bg);
+        color: var(--suggest);
+      }
+      .tag.new {
+        background: var(--fresh-bg);
+        color: var(--fresh);
+      }
+      .tag.bad {
+        background: var(--bad-bg);
+        color: var(--bad);
+      }
+
+      .card {
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        border-left: 4px solid var(--fresh);
+        border-radius: 6px;
+        padding: 10px 12px;
+        cursor: pointer;
+      }
+      .card.has-many {
+        border-left-color: var(--auto);
+      }
+      .card.has-bad {
+        border-left-color: var(--bad);
+      }
+      .card.sel {
+        box-shadow: 0 0 0 2px var(--focus);
+      }
+      .card .top {
+        display: flex;
+        gap: 10px;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+      .card .rep {
+        font-weight: 500;
+        overflow-wrap: anywhere;
+      }
+      .count {
+        font-family: var(--mono);
+        font-size: 13px;
+        white-space: nowrap;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0 9px;
+      }
+      .members {
+        margin: 8px 0 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 13.5px;
+        color: var(--muted);
+      }
+      .members li {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+        flex-wrap: wrap;
+      }
+      .members .mt {
+        overflow-wrap: anywhere;
+      }
+      .suggestbox {
+        margin-top: 8px;
+        background: var(--suggest-bg);
+        color: var(--ink);
+        border-radius: 6px;
+        padding: 8px 10px;
+        font-size: 13.5px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+      .suggestbox .btn {
+        background: var(--surface);
+      }
+      .slidechip {
+        margin-top: 8px;
+        display: inline-flex;
+        gap: 8px;
+        align-items: baseline;
+        font-size: 13px;
+        color: var(--muted);
+        flex-wrap: wrap;
+      }
+      .slidechip b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      .sl {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 8px 10px;
+        background: var(--surface-2);
+      }
+      .sl.hit {
+        border-color: var(--auto);
+      }
+      .sl .h {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: baseline;
+      }
+      .bar {
+        height: 6px;
+        background: var(--line);
+        border-radius: 3px;
+        margin-top: 6px;
+        overflow: hidden;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        background: var(--fresh);
+      }
+      .sl.low .bar i {
+        background: var(--muted);
+      }
+      .sl .x {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 6px;
+        overflow-wrap: anywhere;
+      }
+      .empty {
+        color: var(--muted);
+        font-size: 14px;
+        padding: 8px 2px;
+      }
+      .note {
+        margin-top: 16px;
+        font-size: 13px;
+        color: var(--muted);
+        max-width: 90ch;
+      }
+      .note b {
+        color: var(--ink);
+        font-weight: 500;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .q.newest {
+          animation: pop 0.35s ease-out;
+        }
+        @keyframes pop {
+          from {
+            transform: translateY(-4px);
+            opacity: 0.5;
+          }
+          to {
+            transform: none;
+            opacity: 1;
+          }
+        }
+      }
+
+      .sr {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+      .ask {
+        margin-top: 16px;
+        display: grid;
+        gap: 10px;
+      }
+      .askrow {
+        display: flex;
+        gap: 8px;
+      }
+      .askrow input[type="text"] {
+        flex: 1;
+        min-width: 0;
+        border: 1px solid var(--line);
+        background: var(--surface-2);
+        color: var(--ink);
+        border-radius: 6px;
+        padding: 9px 11px;
+        font: inherit;
+      }
+      .askrow input[type="text"]:disabled,
+      .btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .chipbtn {
+        border: 1px solid var(--line);
+        background: var(--surface-2);
+        color: var(--ink);
+        border-radius: 999px;
+        padding: 3px 11px;
+        font-size: 13px;
+        cursor: pointer;
+        overflow-wrap: anywhere;
+        text-align: left;
+      }
+      .chipbtn:hover {
+        border-color: var(--muted);
+      }
+      .askresult {
+        font-size: 14px;
+        min-height: 1.5em;
+        margin: 0;
+      }
+      .q.mine {
+        border-left: 4px solid var(--focus);
+      }
+      .thumb {
+        display: block;
+        width: 100%;
+        height: auto;
+        margin-top: 8px;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        background: var(--surface);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>ModDeck question board</h1>
+      <p class="lede">
+        A simulated lecture. Student questions arrive one at a time and the board groups the ones
+        that mean the same thing, then suggests the slide that answers each. Type your own question
+        to see where it lands. Every score comes from the bge-m3 embedding model running on this
+        computer.
+      </p>
+
+      <div class="strip">
+        <div class="group">
+          <h2>Lecture deck</h2>
+          <div class="seg" id="decks" role="group" aria-label="Lecture deck"></div>
+          <div class="hint" id="deckTitle"></div>
+        </div>
+        <div class="group">
+          <h2>Class</h2>
+          <div class="row">
+            <button class="btn primary" id="play" type="button">Play</button>
+            <button class="btn" id="step" type="button">Next question</button>
+            <button class="btn" id="all" type="button">Show all</button>
+            <button class="btn" id="reset" type="button">Restart</button>
+          </div>
+          <div class="hint" id="progress"></div>
+        </div>
+        <div class="group">
+          <h2>Merge rules</h2>
+          <div class="slider">
+            <label for="hi">Merge automatically at or above</label
+            ><span class="mono" id="hiv"></span>
+            <input type="range" id="hi" min="0.55" max="0.95" step="0.01" value="0.75" />
+          </div>
+          <div class="slider">
+            <label for="lo">Suggest a merge at or above</label><span class="mono" id="lov"></span>
+            <input type="range" id="lo" min="0.40" max="0.90" step="0.01" value="0.62" />
+          </div>
+        </div>
+        <div class="group">
+          <h2>Check the answer</h2>
+          <label class="check"
+            ><input type="checkbox" id="key" /> Show the answer key (marks wrong merges and right
+            slides)</label
+          >
+          <div class="hint">Off by default, because a real instructor does not have the key.</div>
+        </div>
+      </div>
+
+      <section class="panel ask" aria-labelledby="ha">
+        <header>
+          <h2 id="ha">Ask your own question</h2>
+          <span class="hint" id="askStatus"></span>
+        </header>
+        <form id="askForm" class="askrow">
+          <label class="sr" for="askText">Your question</label>
+          <input
+            type="text"
+            id="askText"
+            maxlength="300"
+            autocomplete="off"
+            placeholder="Type a question in Thai, English or both"
+          />
+          <button class="btn primary" id="askBtn" type="submit">Ask</button>
+        </form>
+        <div class="row" id="examples"></div>
+        <p class="askresult" id="askResult" aria-live="polite"></p>
+      </section>
+
+      <div class="stats" id="stats"></div>
+
+      <div class="cols">
+        <section class="panel" aria-labelledby="hq">
+          <header>
+            <h2 id="hq">Students send</h2>
+            <span class="hint">newest first</span>
+          </header>
+          <div class="scroll" id="feed"></div>
+        </section>
+        <section class="panel" aria-labelledby="hb">
+          <header>
+            <h2 id="hb">Instructor board</h2>
+            <span class="hint">biggest groups first</span>
+          </header>
+          <div class="scroll" id="board"></div>
+        </section>
+        <section class="panel" aria-labelledby="hs">
+          <header>
+            <h2 id="hs">Slides that answer it</h2>
+            <span class="hint">top 3 by similarity</span>
+          </header>
+          <div class="scroll" id="slides"></div>
+        </section>
+      </div>
+
+      <p class="note">
+        <b>How to read it.</b> Green means the question was merged into an earlier group because it
+        scored above the first rule. Amber means it scored in between, so the board only suggests
+        the merge and the instructor decides. Blue means a new group. Slide suggestions are hidden
+        below a similarity of 0.45, because that is where answers stop being reliable. A question
+        you type joins the board after the questions already asked, and is compared with all of
+        them.
+      </p>
+      <p class="note">
+        <b>About the data.</b> The 113 sample questions are drafts written by the team in student
+        style, not real student questions, so accuracy on real questions will probably be lower.
+        Slide text comes from two real lecture decks and is shortened here. Your own questions are
+        embedded by the local server and are not sent anywhere else.
+      </p>
+    </div>
+
+    <script>
+      const DATA = __DATA__;
+      const FLOOR = 0.45;
+      const LANG = { th: "TH", mix: "TH+EN", en: "EN", you: "YOU" };
+      const EXAMPLES = {
+        vue: [
+          "ต้องลง Node ก่อนไหมครับ",
+          "Can I use ChatGPT during the exam?",
+          "ref กับ reactive ต่างกันยังไง",
+          "What is the weather today?",
+        ],
+        w07: [
+          "SWOT คืออะไรครับ",
+          "What is a KPI?",
+          "ภัยคุกคามกับโอกาสต่างกันยังไง",
+          "Where is the canteen?",
+        ],
+      };
+      const $ = (id) => document.getElementById(id);
+
+      // custom: questions typed by the user. after = how many sample questions had arrived when it was asked.
+      const S = {
+        deck: "vue",
+        seed: 7,
+        n: 14,
+        hi: 0.75,
+        lo: 0.62,
+        key: false,
+        sel: null,
+        merged: new Set(),
+        timer: null,
+        custom: [],
+        busy: false,
+        server: "checking",
+      };
+      let LAST = null;
+      let customCounter = 0;
+
+      function rng(seed) {
+        let s = seed;
+        return () => (s = (s * 1103515245 + 12345) % 2147483648) / 2147483648;
+      }
+      function orderFor(deck, seed) {
+        const idx = DATA.decks[deck].questions.map((_, i) => i);
+        const r = rng(seed * 97 + deck.length);
+        for (let i = idx.length - 1; i > 0; i--) {
+          const j = Math.floor(r() * (i + 1));
+          [idx[i], idx[j]] = [idx[j], idx[i]];
+        }
+        return idx;
+      }
+      const guessLang = (t) => {
+        const th = /[฀-๿]/.test(t);
+        const en = /[A-Za-z]/.test(t);
+        return th && en ? "mix" : th ? "th" : "en";
+      };
+
+      // One timeline of arrivals: sample questions in their random order, with typed questions inserted where they were asked.
+      function timeline(order) {
+        const tl = [];
+        for (let k = 0; k <= S.n; k++) {
+          for (const c of S.custom) if (c.after === k) tl.push({ key: "c:" + c.id, c });
+          if (k < S.n && k < order.length) tl.push({ key: "d:" + order[k], qi: order[k] });
+        }
+        return tl;
+      }
+      function question(D, it) {
+        if (it.c)
+          return {
+            id: it.c.id,
+            text: it.c.text,
+            lang: "you",
+            group: null,
+            gold: [],
+            top: it.c.top,
+          };
+        return D.questions[it.qi];
+      }
+      function simBetween(D, a, b) {
+        if (a.qi != null && b.qi != null) return D.sim[a.qi][b.qi];
+        if (a.c && b.qi != null) return a.c.sims[D.questions[b.qi].id] ?? 0;
+        if (a.qi != null && b.c) return b.c.sims[D.questions[a.qi].id] ?? 0;
+        return a.c.cs[b.c.id] ?? 0;
+      }
+
+      // Online clustering, one arrival at a time, like in class.
+      function compute() {
+        const D = DATA.decks[S.deck];
+        const order = orderFor(S.deck, S.seed);
+        const tl = timeline(order);
+        const cards = [];
+        const cardOf = new Map();
+        const events = new Map();
+        tl.forEach((it, k) => {
+          const q = question(D, it);
+          let near = null;
+          let bestSim = -1;
+          for (let j = 0; j < k; j++) {
+            const s = simBetween(D, it, tl[j]);
+            if (s > bestSim) {
+              bestSim = s;
+              near = tl[j];
+            }
+          }
+          let kind = "new";
+          if (near) {
+            if (S.merged.has(q.id) && bestSim >= S.lo && bestSim < S.hi) kind = "manual";
+            else if (bestSim >= S.hi) kind = "auto";
+            else if (bestSim >= S.lo) kind = "suggest";
+          }
+          events.set(it.key, { kind, sim: bestSim, near, k });
+          if (near && (kind === "auto" || kind === "manual")) {
+            const target = cardOf.get(near.key);
+            cards[target].members.push({ it, kind, sim: bestSim });
+            cardOf.set(it.key, target);
+            return;
+          }
+          const card = {
+            id: cards.length,
+            rep: it,
+            members: [{ it, kind, sim: bestSim }],
+            suggestTo: null,
+            order: k,
+          };
+          if (kind === "suggest") card.suggestTo = { card: cardOf.get(near.key), sim: bestSim };
+          cards.push(card);
+          cardOf.set(it.key, card.id);
+        });
+        return { D, order, tl, cards, cardOf, events };
+      }
+
+      const el = (tag, cls, text) => {
+        const e = document.createElement(tag);
+        if (cls) e.className = cls;
+        if (text != null) e.textContent = text;
+        return e;
+      };
+      const f2 = (x) => x.toFixed(2);
+      const sameTopic = (a, b) => a.group == null || b.group == null || a.group === b.group;
+
+      function render() {
+        const { D, order, tl, cards, events } = compute();
+        LAST = { tl };
+        const slideText = new Map(D.slides.map((s) => [s.page, s.text]));
+        $("deckTitle").textContent = D.title + " · " + D.slides.length + " slides";
+        $("hiv").textContent = f2(S.hi);
+        $("lov").textContent = f2(S.lo);
+        $("progress").textContent =
+          S.n +
+          " of " +
+          D.questions.length +
+          " sample questions asked" +
+          (S.custom.length ? " + " + S.custom.length + " of yours" : "");
+        $("play").textContent = S.timer ? "Pause" : "Play";
+        for (const b of $("decks").children)
+          b.setAttribute("aria-pressed", String(b.dataset.deck === S.deck));
+
+        // Stats
+        const merged = [...events.values()].filter(
+          (e) => e.kind === "auto" || e.kind === "manual",
+        ).length;
+        const sug = cards.filter((c) => c.suggestTo).length;
+        let wrong = 0;
+        const topics = new Set();
+        for (const c of cards) {
+          const rq = question(D, c.rep);
+          for (const m of c.members) {
+            const mq = question(D, m.it);
+            if (mq.group) topics.add(mq.group);
+            if (!sameTopic(mq, rq)) wrong++;
+          }
+        }
+        const stats = [
+          [tl.length, "questions asked"],
+          [cards.length, "cards on the board"],
+          [merged, "merged into a card"],
+          [sug, "merge suggestions"],
+        ];
+        if (S.key) {
+          stats.push([topics.size, "real topics so far"]);
+          stats.push([wrong, "wrong merges"]);
+        }
+        $("stats").replaceChildren(
+          ...stats.map(([v, l]) => {
+            const d = el("div", "stat");
+            d.append(el("b", null, String(v)), el("span", null, l));
+            return d;
+          }),
+        );
+
+        // Feed, newest first
+        const feed = $("feed");
+        feed.replaceChildren();
+        for (let k = tl.length - 1; k >= 0; k--) {
+          const it = tl[k];
+          const q = question(D, it);
+          const ev = events.get(it.key);
+          const b = el(
+            "button",
+            "q" +
+              (k === tl.length - 1 ? " newest" : "") +
+              (S.sel === it.key ? " sel" : "") +
+              (it.c ? " mine" : ""),
+          );
+          b.type = "button";
+          b.append(el("div", "t", q.text));
+          const m = el("div", "m");
+          m.append(el("span", "chip", LANG[q.lang]));
+          const label = {
+            auto: "merged automatically",
+            manual: "merged by instructor",
+            suggest: "merge suggested",
+            new: "new card",
+          }[ev.kind];
+          m.append(el("span", "tag " + (ev.kind === "manual" ? "auto" : ev.kind), label));
+          if (ev.near) m.append(el("span", "mono", "closest earlier question " + f2(ev.sim)));
+          b.append(m);
+          b.addEventListener("click", () => {
+            S.sel = it.key;
+            render();
+          });
+          feed.append(b);
+        }
+        if (!tl.length) feed.append(el("p", "empty", "No questions yet. Press Play or ask one."));
+
+        // Board
+        const board = $("board");
+        board.replaceChildren();
+        const sorted = [...cards].sort(
+          (a, b) => b.members.length - a.members.length || b.order - a.order,
+        );
+        for (const c of sorted) {
+          const rq = question(D, c.rep);
+          const bad = S.key ? c.members.filter((m) => !sameTopic(question(D, m.it), rq)).length : 0;
+          const d = el(
+            "div",
+            "card" +
+              (c.members.length > 1 ? " has-many" : "") +
+              (bad ? " has-bad" : "") +
+              (S.sel === c.rep.key ? " sel" : ""),
+          );
+          d.tabIndex = 0;
+          const top = el("div", "top");
+          top.append(el("div", "rep", rq.text), el("span", "count", "×" + c.members.length));
+          d.append(top);
+          if (c.members.length > 1) {
+            const ul = el("ul", "members");
+            for (const m of c.members.slice(1)) {
+              const mq = question(D, m.it);
+              const wrongHere = S.key && !sameTopic(mq, rq);
+              const li = el("li");
+              li.append(
+                el(
+                  "span",
+                  "tag " + (wrongHere ? "bad" : "auto"),
+                  wrongHere ? "different topic" : f2(m.sim),
+                ),
+                el("span", "mt", mq.text),
+              );
+              ul.append(li);
+            }
+            d.append(ul);
+          }
+          if (c.suggestTo) {
+            const target = cards[c.suggestTo.card];
+            const box = el("div", "suggestbox");
+            box.append(
+              el(
+                "span",
+                null,
+                "Looks like “" + question(D, target.rep).text + "” (" + f2(c.suggestTo.sim) + ")",
+              ),
+            );
+            const btn = el("button", "btn", "Merge");
+            btn.type = "button";
+            btn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              S.merged.add(rq.id);
+              render();
+            });
+            box.append(btn);
+            d.append(box);
+          }
+          const top1 = rq.top[0];
+          const chip = el("div", "slidechip");
+          if (top1.sim >= FLOOR) {
+            chip.append(
+              el("span", null, "Suggested slide"),
+              el("b", "mono", "#" + top1.page),
+              el("span", "mono", f2(top1.sim)),
+            );
+            if (S.key && rq.group)
+              chip.append(
+                el(
+                  "span",
+                  "tag " + (rq.gold.includes(top1.page) ? "auto" : rq.gold.length ? "bad" : "new"),
+                  rq.gold.includes(top1.page)
+                    ? "right slide"
+                    : rq.gold.length
+                      ? "wrong slide"
+                      : "no slide answers this",
+                ),
+              );
+          } else {
+            chip.append(el("span", null, "No slide suggested (best match " + f2(top1.sim) + ")"));
+            if (S.key && rq.group)
+              chip.append(
+                el(
+                  "span",
+                  "tag " + (rq.gold.length ? "bad" : "auto"),
+                  rq.gold.length ? "a slide did answer this" : "correct: no slide answers this",
+                ),
+              );
+          }
+          d.append(chip);
+          d.addEventListener("click", () => {
+            S.sel = c.rep.key;
+            render();
+          });
+          board.append(d);
+        }
+        if (!cards.length)
+          board.append(el("p", "empty", "The board is empty until the first question arrives."));
+
+        // Slides for the selected (or newest) question
+        const sl = $("slides");
+        sl.replaceChildren();
+        const focus = tl.find((it) => it.key === S.sel) || tl[tl.length - 1];
+        if (!focus) {
+          sl.append(el("p", "empty", "Slide suggestions appear here."));
+          return;
+        }
+        const fq = question(D, focus);
+        const head = el("div", "q");
+        head.style.cursor = "default";
+        head.append(el("div", "t", fq.text));
+        const hm = el("div", "m");
+        hm.append(el("span", "chip", LANG[fq.lang]), el("span", null, "selected question"));
+        head.append(hm);
+        sl.append(head);
+        fq.top.forEach((r, i) => {
+          const hit = S.key && fq.gold.includes(r.page);
+          const low = r.sim < FLOOR;
+          const box = el("div", "sl" + (hit ? " hit" : "") + (low ? " low" : ""));
+          const h = el("div", "h");
+          h.append(el("b", null, "Slide " + r.page), el("span", "mono", f2(r.sim)));
+          box.append(h);
+          const bar = el("div", "bar");
+          const fill = el("i");
+          fill.style.width = Math.max(2, Math.round(r.sim * 100)) + "%";
+          bar.append(fill);
+          box.append(bar);
+          // Slide image, served by the local server from the MD-14 import output. Hidden when it is not there.
+          const img = document.createElement("img");
+          img.className = "thumb";
+          img.alt = "Slide " + r.page;
+          img.loading = "lazy";
+          img.addEventListener("error", () => img.remove());
+          img.src = "/slides/" + S.deck + "/" + r.page;
+          box.append(img);
+          const bits = [];
+          if (i === 0 && low) bits.push("Below 0.45, so the board would not show this slide.");
+          if (hit) bits.push("This slide is in the answer key.");
+          box.append(
+            el(
+              "div",
+              "x",
+              (bits.length ? bits.join(" ") + " " : "") + (slideText.get(r.page) || ""),
+            ),
+          );
+          sl.append(box);
+        });
+        if (S.key && fq.group && !fq.gold.length)
+          sl.append(el("p", "empty", "Answer key: no slide answers this question."));
+      }
+
+      // ---- ask your own question ----
+      function setStatus() {
+        const s = $("askStatus");
+        const on = S.server === "ready" && !S.busy;
+        $("askBtn").disabled = !on;
+        $("askText").disabled = S.server !== "ready";
+        s.textContent =
+          S.server === "ready"
+            ? "model ready"
+            : S.server === "loading"
+              ? "loading the model, about 10 to 60 seconds…"
+              : S.server === "down"
+                ? "no server found. Run: node demo/server.mjs"
+                : S.server === "error"
+                  ? "the server could not load the model"
+                  : "checking…";
+      }
+      async function pollStatus() {
+        try {
+          const res = await fetch("/api/status");
+          if (!res.ok) throw new Error(String(res.status));
+          const j = await res.json();
+          S.server = j.error ? "error" : j.ready ? "ready" : "loading";
+          if (j.error) $("askResult").textContent = j.error;
+        } catch (e) {
+          S.server = "down";
+        }
+        setStatus();
+        if (S.server === "loading" || S.server === "checking") setTimeout(pollStatus, 1500);
+      }
+      async function ask(text) {
+        S.busy = true;
+        setStatus();
+        const out = $("askResult");
+        out.textContent = "Embedding your question…";
+        try {
+          const res = await fetch("/api/ask", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ deck: S.deck, text, previous: S.custom.map((c) => c.id) }),
+          });
+          const j = await res.json();
+          if (!res.ok) throw new Error(j.error || String(res.status));
+          S.custom.push({
+            id: j.id,
+            text,
+            after: S.n,
+            sims: j.sims,
+            cs: j.customSims,
+            top: j.slides,
+            ms: j.ms,
+          });
+          S.sel = "c:" + j.id;
+          render();
+          const ev = LAST && compute().events.get("c:" + j.id);
+          const top1 = j.slides[0];
+          const decision =
+            !ev || !ev.near
+              ? "It is the first question, so it starts a new card."
+              : ev.kind === "auto"
+                ? "It was merged into an earlier card (" + f2(ev.sim) + ")."
+                : ev.kind === "suggest"
+                  ? "The board suggests a merge (" + f2(ev.sim) + "), and the instructor decides."
+                  : "It starts a new card. The closest earlier question scored " + f2(ev.sim) + ".";
+          const slide =
+            top1.sim >= FLOOR
+              ? "Best slide: #" + top1.page + " (" + f2(top1.sim) + ")."
+              : "No slide is close enough (best " + f2(top1.sim) + "), so none would be suggested.";
+          out.textContent =
+            decision +
+            " " +
+            slide +
+            " Embedded in " +
+            Math.round(j.ms.embed) +
+            " ms, searched in " +
+            j.ms.search.toFixed(1) +
+            " ms.";
+        } catch (e) {
+          out.textContent = "Could not answer: " + e.message;
+          if (/fetch|network/i.test(String(e))) {
+            S.server = "down";
+          }
+        } finally {
+          S.busy = false;
+          setStatus();
+        }
+      }
+
+      function reset(n) {
+        S.n = n;
+        S.merged = new Set();
+        S.custom = [];
+        S.sel = null;
+        $("askResult").textContent = "";
+        stop();
+        render();
+        examples();
+      }
+      function stop() {
+        if (S.timer) {
+          clearInterval(S.timer);
+          S.timer = null;
+        }
+      }
+      function next() {
+        if (S.n >= DATA.decks[S.deck].questions.length) {
+          stop();
+          render();
+          return;
+        }
+        S.n += 1;
+        S.sel = null;
+        render();
+      }
+      function examples() {
+        const box = $("examples");
+        box.replaceChildren();
+        for (const t of EXAMPLES[S.deck]) {
+          const b = el("button", "chipbtn", t);
+          b.type = "button";
+          b.addEventListener("click", () => {
+            $("askText").value = t;
+            $("askText").focus();
+          });
+          box.append(b);
+        }
+      }
+
+      for (const k of Object.keys(DATA.decks)) {
+        const b = el(
+          "button",
+          null,
+          k === "vue" ? "Vue (mostly English)" : "Strategy (mostly Thai)",
+        );
+        b.type = "button";
+        b.dataset.deck = k;
+        b.addEventListener("click", () => {
+          S.deck = k;
+          reset(14);
+        });
+        $("decks").append(b);
+      }
+      $("play").addEventListener("click", () => {
+        if (S.timer) {
+          stop();
+          render();
+          return;
+        }
+        if (S.n >= DATA.decks[S.deck].questions.length) reset(0);
+        S.timer = setInterval(next, 1100);
+        render();
+      });
+      $("step").addEventListener("click", () => {
+        stop();
+        next();
+      });
+      $("all").addEventListener("click", () => {
+        stop();
+        S.n = DATA.decks[S.deck].questions.length;
+        S.sel = null;
+        render();
+      });
+      $("reset").addEventListener("click", () => {
+        S.seed += 1;
+        reset(0);
+      });
+      $("hi").addEventListener("input", (e) => {
+        S.hi = +e.target.value;
+        if (S.lo > S.hi) {
+          S.lo = S.hi;
+          $("lo").value = S.lo;
+        }
+        render();
+      });
+      $("lo").addEventListener("input", (e) => {
+        S.lo = +e.target.value;
+        if (S.hi < S.lo) {
+          S.hi = S.lo;
+          $("hi").value = S.hi;
+        }
+        render();
+      });
+      $("key").addEventListener("change", (e) => {
+        S.key = e.target.checked;
+        render();
+      });
+      $("askForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const text = $("askText").value.trim();
+        if (!text || S.busy || S.server !== "ready") return;
+        $("askText").value = "";
+        ask(text);
+      });
+      render();
+      examples();
+      setStatus();
+      pollStatus();
+    </script>
+  </body>
+</html>
