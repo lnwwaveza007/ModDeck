@@ -7,7 +7,10 @@
 4. Successfully received an ID token.
 
 ##Result
-[Result](./Kmutt SSO Check.mp4)
+<video controls width="640">
+  <source src="./Kmutt%20SSO%20Check.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ## 2. Guest Identity Model: Anonymous Session
 
