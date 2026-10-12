@@ -6,13 +6,8 @@
 3. Signed in with a KMUTT account through the browser.
 4. Successfully received an ID token.
 
-### Result
-- **Status:** Authentication flow tested successfully.
-- **Authentication:** OAuth 2.0 Authorization Code Flow with PKCE.
-- **Identity Provider:** Microsoft Azure Entra ID.
-- **Account Restriction:** KMUTT organizational accounts.
-
----
+##Result
+[Result](./Kmutt SSO Check.mp4)
 
 ## 2. Guest Identity Model: Anonymous Session
 
