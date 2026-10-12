@@ -107,24 +107,37 @@ async function loadLocal(name, m) {
 async function loadGemini(name, m) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error("GEMINI_API_KEY is not set (put it in the repo .env)");
+  // The title slide of a deck holds the lecturer's email and phone number.
+  // They add nothing to the embedding, so they are not sent to the API.
+  const redact = (t) =>
+    t.replace(/[w.+-]+@[w-]+(.[w-]+)+/g, "[email]").replace(/d{2,3}[-s]?d{3}[-s]?d{4}/g, "[phone]");
+  // One embedContent request per text. batchEmbedContents hits the free-tier
+  // quota at once, because a batch of 100 counts as 100 requests.
+  const one = async (text, taskType) => {
+    const res = await fetchRetry(`${GEMINI_URL}/${m.api}:embedContent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+      body: JSON.stringify({
+        model: `models/${m.api}`,
+        content: { parts: [{ text: redact(text) }] },
+        outputDimensionality: m.dims,
+        ...(taskType && { taskType }),
+      }),
+    });
+    // gemini-embedding-001 is unit length only at 3072 dims.
+    return normalize((await res.json()).embedding.values);
+  };
+  const CONCURRENCY = Number(process.env.GEMINI_CONCURRENCY || 4);
   const call = async (texts, taskType) => {
-    const requests = texts.map((text) => ({
-      model: `models/${m.api}`,
-      content: { parts: [{ text }] },
-      outputDimensionality: m.dims,
-      ...(taskType && { taskType }),
-    }));
-    const out = [];
-    for (let i = 0; i < requests.length; i += 100) {
-      const res = await fetchRetry(`${GEMINI_URL}/${m.api}:batchEmbedContents`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-        body: JSON.stringify({ requests: requests.slice(i, i + 100) }),
-      });
-      const json = await res.json();
-      // gemini-embedding-001 is unit length only at 3072 dims.
-      out.push(...json.embeddings.map((e) => normalize(e.values)));
-    }
+    const out = new Array(texts.length);
+    let next = 0;
+    const worker = async () => {
+      while (next < texts.length) {
+        const i = next++;
+        out[i] = await one(texts[i], taskType);
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, texts.length) }, worker));
     return out;
   };
   const countTokens = async (texts) => {
@@ -153,14 +166,16 @@ async function loadGemini(name, m) {
   };
 }
 
-async function fetchRetry(url, init, tries = 5) {
+async function fetchRetry(url, init, tries = 8) {
   for (let i = 0; ; i++) {
     const res = await fetch(url, init);
     if (res.ok) return res;
     const body = await res.text();
     // Free tier rate limits: wait and retry.
     if ((res.status === 429 || res.status >= 500) && i < tries - 1) {
-      await new Promise((r) => setTimeout(r, 2000 * 2 ** i));
+      const hinted = Number((body.match(/"retryDelay":s*"(d+(?:.d+)?)s"/) || [])[1]);
+      const wait = hinted ? hinted * 1000 + 500 : Math.min(30000, 2000 * 2 ** i);
+      await new Promise((r) => setTimeout(r, wait));
       continue;
     }
     throw new Error(`${res.status} ${url.split("/").pop()}: ${body.slice(0, 300)}`);

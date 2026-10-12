@@ -1,25 +1,23 @@
 # MD-10 Findings: Embeddings and pgvector clustering
 
-**Verdict: pass for slide lookup, conditional pass for clustering, provisional model decision.**
+**Verdict: pass. Slide lookup and grouping both work. Gemini is clearly more accurate than the self-hosted models, so the product supports both: the user picks our service or their own Gemini key.**
 
-- **Slide lookup works.** A self-hosted bge-m3 model finds the right slide in the top 3 for 91% of questions, in Thai, English and mixed text.
-- **Clustering by a similarity threshold alone gives high precision but low recall.** At a safe threshold, 86–100% of auto-merges are correct, but only 20–33% of duplicate pairs are merged.
-- **Recommendation: self-hosted bge-m3 (8-bit) in pgvector.** No question text leaves KMUTT, and the cost per question is close to zero.
+- **Slide lookup.** The right slide is in the top 3 for **99.0%** of questions with `gemini-embedding-2` (97.1% with `gemini-embedding-001`), against 91.3% for self-hosted bge-m3 (8-bit). Top-1: 93.3%, 89.4% and 77.9%.
+- **Grouping.** At the safest threshold (no wrong merges), Gemini merges 38% of duplicate pairs and bge-m3 (8-bit) merges 23%. A threshold alone still leaves many duplicate cards with every model, so the instructor-confirm band stays.
+- **Speed.** Gemini takes about 470 ms per question from this PC, and 50 questions at the same moment take about 3 s. Self-hosted bge-m3 (8-bit) takes about 110 ms per question on the 4 vCPU VM. This is fine for this feature, because it runs in the background (see section 1).
+- **Decision (13 Oct).** The product supports both ways and the user chooses: **our service** (self-hosted bge-m3, 8-bit, text stays at KMUTT, no per-question fee) or **their own Gemini key** (best accuracy, text goes to Google under that key, about $0.004 per 1,000 questions, paid by the user). See sections 5 and 8.
 
-Two parts are still open:
-
-1. The questions are a **draft set written by the team**, not real student questions. See section 7.
-2. The **Gemini comparison is not run yet**, because no API key was available. The code is ready, see section 6.
+One part is still open: the questions are a **draft set written by the team**, not real student questions (section 7).
 
 ## 1. Goal and acceptance criteria
 
 - [~] Dataset of ~100 labelled real-style student questions (Thai and English mixed). 113 are labelled, but all of them are `source: "draft"`.
-- [~] At least 2 embedding models compared. 4 self-hosted configurations are compared. The API model (Gemini) is still to be run.
+- [x] At least 2 embedding models compared. 4 self-hosted configurations and 2 Gemini models are compared.
 - [x] Metrics recorded: clustering precision, slide lookup top-3 accuracy, latency per question
-- [x] Decision on data handling: self-hosted (provisional until the Gemini run)
+- [x] Decision on data handling: support both, and the user chooses (section 5)
 - [x] Findings note written
 
-Proposal target: real-time. This note uses the spike rule's **< 150 ms per question** as the target.
+The spike rule's **< 150 ms** target is for the live real-time features (polls, word cloud, the live question list). The team confirmed that AI grouping and slide lookup may take longer, because they run in the background and fill in the card when ready. This note keeps 150 ms as a reference point and treats up to about 1 s per question, and a few seconds for a burst, as acceptable. This is a working assumption: confirm the exact limit in MD-18.
 
 ## 2. Setup
 
@@ -39,8 +37,8 @@ Models:
 | e5-base | `Xenova/multilingual-e5-base` | 278M | 768 | same prefixes |
 | bge-m3 | `Xenova/bge-m3` fp32 | 568M | 1024 | CLS pooling, about 2.2 GB download |
 | bge-m3-q8 | `Xenova/bge-m3` 8-bit | 568M | 1024 | about 570 MB |
-| gemini-2 | `gemini-embedding-2` (API) | — | 768 | **not run yet** |
-| gemini-001 | `gemini-embedding-001` (API) | — | 768 | **not run yet** |
+| gemini-2 | `gemini-embedding-2` (API) | — | 768 | task prefixes in the text |
+| gemini-001 | `gemini-embedding-001` (API) | — | 768 | `taskType` RETRIEVAL_QUERY / RETRIEVAL_DOCUMENT |
 
 ## 3. Method
 
@@ -147,10 +145,42 @@ Tokens measured with each model's tokenizer: **13–16 tokens per question** (bg
 | Option | 1,000 questions | One 50-slide deck | Notes |
 | --- | --- | --- | --- |
 | Self-hosted bge-m3-q8 | ~0 extra | ~0 extra | Uses CPU on the existing API server. RAM per worker not measured. 25 s to embed 41 slides. |
-| `gemini-embedding-2` paid tier ($0.20 / 1M tokens) | ~$0.004 (est.) | ~$0.0015 (est.) | Estimate from the token counts above. Gemini's own tokenizer may count Thai differently. Recheck with `countTokens` in the Gemini run. |
+| `gemini-embedding-2` paid tier ($0.20 / 1M tokens) | ~$0.004 | ~$0.0016 | Measured with the API token counter: 18 tokens per question and 163 per slide. |
 | `gemini-embedding-2` free tier | $0 | $0 | Rate limits apply. **Google uses the data to improve its products.** |
 
 Cost does not decide between the options, because both are close to free. Privacy, latency and offline operation decide.
+
+### 4.5 Gemini API results
+
+Same 113 questions and 41 slides, same scripts. Free-tier key, called from the developer PC.
+
+| Model | Top-1 | Top-3 | Top-3 Thai (14) | Top-3 mixed (57) | Top-3 English (33) | Top-1 sim, answerable / no answer |
+| --- | --- | --- | --- | --- | --- | --- |
+| gemini-embedding-2 | **93.3%** | **99.0%** | 92.9% | **100%** | **100%** | 0.716 / 0.625 |
+| gemini-embedding-001 | 89.4% | 97.1% | **100%** | 96.5% | 97.0% | 0.697 / 0.618 |
+| bge-m3-q8 (for comparison) | 77.9% | 91.3% | 85.7% | 93.0% | 90.9% | 0.559 / 0.395 |
+
+Grouping (single-link, online, as in section 4.2):
+
+| Model | Safest threshold (precision 100%) | Recall there | Cards for 49 real topics | Held-out precision / recall |
+| --- | --- | --- | --- | --- |
+| gemini-embedding-2 | 0.80 | **38%** | 84 | 100% / 35% (Vue), 54% / 55% (W07) |
+| gemini-embedding-001 | 0.81 | 31% | 87 | 95% / 32% (Vue), 82% / 42% (W07) |
+| bge-m3-q8 | 0.72 | 23% | 94 | see section 4.2 |
+
+Speed from this PC, one question at a time, with 4 requests in flight for the burst:
+
+| Model | Embed p50 / p95 | Slowest single call | Burst of 50 |
+| --- | --- | --- | --- |
+| gemini-embedding-2 | 470 / 524 ms | 2.6 s | 3.0 s (16.6 q/s) |
+| gemini-embedding-001 | 403 / 434 ms | 14.8 s | 3.2 s (15.7 q/s) |
+
+- **Gemini is more accurate on every measure except the no-answer gap.** It finds the right slide in the top 3 for all but 1 of 104 questions (`gemini-embedding-2`). It also merges more duplicates at the same precision, and it works well on English–Thai pairs.
+- **The no-answer gap is smaller.** Answerable and off-topic questions score 0.72 and 0.63 with Gemini, a gap of 0.09. With bge-m3 it is 0.56 and 0.40, a gap of 0.16. A "hide the suggestion below X" floor separates off-topic questions less cleanly with Gemini, so it needs a floor tuned for it.
+- **The best threshold is not stable across decks with `gemini-embedding-2`** (0.80 on one deck, 0.76 on the other, with precision dropping to 54%). `gemini-embedding-001` is steadier (0.79 and 0.78). Use a high auto-merge threshold and the confirm band, not a single cut.
+- **Each model has its own threshold range.** Gemini scores sit higher (0.6 to 0.9). Do not reuse the bge-m3 merge rules (0.75 and 0.62). For `gemini-embedding-2`, auto-merge at 0.80 or more, and suggest between about 0.74 and 0.80.
+- **API tail risk.** One `gemini-embedding-001` call took 14.8 s, probably a retry after a rate-limit response. The page must never wait on the embedding: post the question first and add the grouping when it is ready.
+- The "search" column printed by the latency script on this PC is dominated by Docker Desktop port forwarding and is not meaningful. It is under 1 ms in the database (section 4.3).
 
 ## 5. Data privacy: what leaves KMUTT with an external API
 
@@ -164,17 +194,31 @@ If ModDeck calls the Gemini API (or any hosted embedding API):
 
 With a self-hosted model, **nothing leaves the KMUTT server**. Slides, questions and vectors stay in our PostgreSQL. The only download is the open model weights, once (bge-m3: MIT licence; multilingual-e5: MIT).
 
-**Decision: self-hosted model.** Use an external API only if the Gemini run shows a large quality gain. If that happens, use the paid tier only, and add a student notice and a KMUTT approval step. This decision is provisional until the Gemini numbers are in.
+**Decision (13 Oct): support both ways, and the user chooses.** Section 4.5 shows Gemini is clearly more accurate (99% against 91% for the right slide in the top 3), and the self-hosted model keeps all text inside KMUTT. Each user picks one:
 
-## 6. Gemini: not run yet
+| | Our service (bge-m3, 8-bit) | Their own Gemini key (`gemini-embedding-2`) |
+| --- | --- | --- |
+| Accuracy | 8 points lower on slide lookup, 15 points lower recall at the same precision | best |
+| Privacy | nothing leaves KMUTT | question and slide text go to Google under the user's key |
+| Cost per 1,000 questions | no per-question fee | about $0.004, paid by the user |
+| One 50-slide deck, once | no fee, about 75 s of CPU on the 4 vCPU VM | about $0.0016 |
+| 10,000 questions (100 sessions of 100) | server cost only | about $0.04 |
+| We must provide | enough CPU (about 9 questions per second on 4 vCPU) and a queue | safe storage for the key |
 
-Gemini needs `GEMINI_API_KEY`, and no key was available for this run. The client code is in `src/models.mjs` (`gemini-2` uses task prefixes, `gemini-001` uses `taskType`, both at 768 dims). To run it:
+- The free Gemini tier costs $0, but Google may use that data to improve its products, and it has rate limits. It is the user's own account and choice, so the app should warn before they paste a free-tier key.
+- The server cost of our service is not priced. The spike measured throughput, not monthly cost.
+- Student question text can contain personal data. When a user picks their own Gemini key, show a notice that the text goes to Google. The wording is still to be defined.
 
-1. Add `GEMINI_API_KEY=...` to the repo `.env` (git ignores it).
-2. Run `node src/embed.mjs gemini-2 gemini-001`, then `node src/evaluate.mjs bge-m3 bge-m3-q8 gemini-2 gemini-001`, then `node src/latency.mjs gemini-2`.
-3. Add the rows to the tables in section 4. Change the decision only if Gemini beats bge-m3 by a clear margin. As a guide: +5 points of top-3 accuracy, or clustering recall up by 10 or more points at the same precision. Note the network latency from campus.
+## 6. What was sent to Google in this run
 
-Use only the draft questions with the free tier. Do not send real student questions there (see section 5).
+The Gemini run used a free-tier key, so Google may use that data to improve its products. It sent:
+
+- the text of the **41 slides** from the two lecture decks (Vue Chapter 1 and INT319 W07), taken from the MD-14 import;
+- the **113 draft questions** written by the team (no real student questions).
+
+The lecturer's email address and phone number on the title slide were removed before sending (`redact()` in `src/models.mjs`). Slide text was otherwise sent as it is. Rotate the API key after the spike, and do not send real course material or student questions on a free-tier key again.
+
+To rerun: add `GEMINI_API_KEY=...` to the repo `.env` (git ignores it), then run `node src/embed.mjs gemini-2 gemini-001`, `node src/evaluate.mjs bge-m3-q8 gemini-2 gemini-001` and `node src/latency.mjs gemini-2 gemini-001`.
 
 ## 7. Dataset limits
 
@@ -184,21 +228,28 @@ Use only the draft questions with the free tier. Do not send real student questi
 
 ## 8. Recommendation for the ADR (MD-18)
 
-- **Model: `bge-m3`, 8-bit ONNX, self-hosted** in a Node worker (transformers.js) next to the API. It has the best top-1 lookup, works on Thai, clusters with high precision, and has a clear no-answer gap. It meets < 150 ms p95 on CPU, and no data leaves KMUTT. Keep fp32 as an option if a GPU or a faster CPU is available: it is more stable on clustering and has better Thai top-3.
+- **Models: both, behind one embedding function** (section 5). The user picks per session or deck: our service (`bge-m3`, 8-bit ONNX, in a Node worker with transformers.js, next to the API) or their own Gemini key (`gemini-embedding-2`).
+  - Latency does not decide it: this feature may take about a second (section 1). A Gemini call takes about 0.5 s and the self-hosted model about 0.1 s.
+  - **Store the model name with each vector.** Vectors from different models cannot be compared. One session or deck uses one model, and switching means re-embedding that deck and its questions once.
+  - **Keep the user's key safe:** encrypt it at rest, never send it to the browser, never write it to logs.
+  - Keep fp32 bge-m3 as an option if a faster CPU is available: it is more stable on clustering and has better Thai top-3.
 - **Storage:** `vector(1024)` columns, cosine distance, filtered by `session_id` / `deck_id`. Per-deck tables are small (20–60 slides, hundreds of questions), so exact scan is fast. An HNSW index helps only for cross-deck or cross-course search. If HNSW is used with a filter, enable the pgvector 0.8 iterative scan (`hnsw.iterative_scan`), so that filtered queries do not return too few rows.
 - **Clustering design (important):** do not use a threshold alone. Use two bands:
-  - sim ≥ **0.75**: merge automatically (100% precision on this set);
-  - **0.62–0.75**: show "possibly the same as …" on the instructor card, with one-tap merge (or an LLM yes/no check, if a later spike allows it);
+  - sim ≥ the auto-merge value: merge automatically (100% precision on this set). bge-m3 (8-bit): **0.75**. `gemini-embedding-2`: **0.80**;
+  - between the suggest value and that: show "possibly the same as …" on the instructor card, with one-tap merge (or an LLM yes/no check, if a later spike allows it). The suggest value is **0.62** for bge-m3 (8-bit) and about **0.74** for `gemini-embedding-2`;
   - below that: a new card.
+
   Tune the bands again on real questions. The thresholds belong to one model, so tune them again if the model changes.
-- **Slide lookup:** show the top 3 slides, and hide the suggestion when the top-1 similarity is under ~0.45.
-- **Pipeline:** put questions on a Redis queue. A worker embeds them in micro-batches (for example, up to 8 questions or 50 ms), runs the nearest-question and top-3-slide queries, and publishes the result. Slide embedding runs in the MD-14 import job (about 0.5 s per slide on CPU).
+- **Slide lookup:** show the top 3 slides, and hide the suggestion when the top-1 similarity is under a floor: about 0.45 for bge-m3 (8-bit). Gemini separates off-topic questions less (section 4.5), so tune its floor on real questions.
+- **Pipeline:** the question is posted first, and the grouping and slide suggestion are added to the card when ready, so a slow or failed embedding never blocks the live question list. Put questions on a Redis queue. A worker embeds them in micro-batches (for example, up to 8 questions or 50 ms), runs the nearest-question and top-3-slide queries, and publishes the result. Slide embedding runs in the MD-14 import job (about 0.5 s per slide on CPU).
 - **Text preparation:** keep the MD-14 Thai repair, join vertical letters, and remove repeated footers. Diagram-heavy slides embed badly. Speaker notes or OCR (MD-14) could help there.
 
 ## 9. Open questions
 
-- Gemini numbers (section 6).
 - Real-question numbers (section 7).
+- Wording of the notice shown when a user adds their own Gemini key, and whether KMUTT needs to review it.
+- Monthly cost of the server for our service: not priced yet.
+- Gemini behaviour under load: rate limits on the paid tier, and the 14.8 s slowest call seen once.
 - Does a short LLM check in the middle band (0.62–0.75) fix recall at an acceptable latency and cost? This is the next spike if the two-band design is not enough.
 - Can a small fine-tune or a Thai-specific model (for example WangchanBERTa-based sentence models) beat bge-m3 on mixed Thai/English? Not tested.
 - Server sizing: the target server's CPU is unknown. Section 4.3.1 has a first run on a 4-vCPU VM (bge-m3-q8 p95 148 to 199 ms). Rerun with AVX2 enabled, and under load (API + Redis + sockets), with [VM-TEST.md](VM-TEST.md).
