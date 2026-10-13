@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ModDeck WebSocket PoC Test Client</title>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        margin: 20px;
+        background-color: #0f172a;
+        color: #f8fafc;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+      }
+      .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      .badge.connected {
+        background-color: #10b981;
+        color: #fff;
+      }
+      .badge.disconnected {
+        background-color: #ef4444;
+        color: #fff;
+      }
+      .card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      .field {
+        margin-bottom: 12px;
+      }
+      label {
+        display: block;
+        font-size: 0.85rem;
+        color: #94a3b8;
+        margin-bottom: 4px;
+      }
+      input {
+        background: #0f172a;
+        border: 1px solid #475569;
+        color: #f8fafc;
+        padding: 8px 12px;
+        border-radius: 4px;
+        width: 280px;
+        font-size: 0.95rem;
+      }
+      button {
+        background: #3b82f6;
+        color: #fff;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-right: 8px;
+      }
+      button:hover {
+        background: #2563eb;
+      }
+      button:disabled {
+        background: #475569;
+        cursor: not-allowed;
+      }
+      button.reset-btn {
+        background: #dc2626;
+      }
+      button.reset-btn:hover {
+        background: #b91c1c;
+      }
+      .vote-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-top: 12px;
+      }
+      .vote-card {
+        background: #0f172a;
+        border: 1px solid #334155;
+        padding: 12px;
+        border-radius: 6px;
+        text-align: center;
+      }
+      .vote-count {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #38bdf8;
+        margin: 8px 0;
+      }
+      pre {
+        background: #020617;
+        border: 1px solid #1e293b;
+        padding: 12px;
+        border-radius: 6px;
+        height: 180px;
+        overflow-y: auto;
+        font-family: monospace;
+        font-size: 0.85rem;
+        color: #cbd5e1;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>ModDeck WebSocket + Redis Pub/Sub PoC Client</h1>
+    <p>Status: <span id="connStatus" class="badge disconnected">Disconnected</span></p>
+
+    <div class="card">
+      <h3>1. Connect to Backend Instance</h3>
+      <div class="field">
+        <label>Server URL (e.g. http://localhost:4000 or http://localhost:4001):</label>
+        <input id="serverUrl" type="text" value="http://localhost:4000" />
+        <button id="btnConnect" onclick="connectSocket()">Connect</button>
+        <button id="btnDisconnect" onclick="disconnectSocket()" disabled>Disconnect</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>2. Join Room</h3>
+      <div class="field">
+        <label>6-digit Room PIN:</label>
+        <input id="roomPin" type="text" value="123456" maxlength="6" />
+      </div>
+      <div class="field">
+        <label>Nickname:</label>
+        <input id="nickname" type="text" value="Student-1" />
+      </div>
+      <button id="btnJoin" onclick="joinRoom()" disabled>Join Room</button>
+    </div>
+
+    <div class="card">
+      <h3>3. Live Polling / Vote</h3>
+      <p>Current Room: <strong id="currentRoomText">-</strong></p>
+      <div class="vote-grid">
+        <div class="vote-card">
+          <h4>Option A</h4>
+          <div id="countA" class="vote-count">0</div>
+          <button onclick="castVote('A')">Vote A</button>
+        </div>
+        <div class="vote-card">
+          <h4>Option B</h4>
+          <div id="countB" class="vote-count">0</div>
+          <button onclick="castVote('B')">Vote B</button>
+        </div>
+        <div class="vote-card">
+          <h4>Option C</h4>
+          <div id="countC" class="vote-count">0</div>
+          <button onclick="castVote('C')">Vote C</button>
+        </div>
+        <div class="vote-card">
+          <h4>Option D</h4>
+          <div id="countD" class="vote-count">0</div>
+          <button onclick="castVote('D')">Vote D</button>
+        </div>
+      </div>
+      <div style="margin-top: 16px">
+        <button class="reset-btn" onclick="resetVotes()">Reset All Votes</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Live Event Logs</h3>
+      <pre id="eventLogs"></pre>
+    </div>
+
+    <script>
+      let socket = null;
+      let joinedRoom = null;
+
+      function log(message, data) {
+        const logs = document.getElementById("eventLogs");
+        const time = new Date().toLocaleTimeString();
+        const text = `[${time}] ${message} ` + (data ? JSON.stringify(data) : "");
+        logs.textContent = text + "\n" + logs.textContent;
+      }
+
+      function updateCounts(votes = {}) {
+        document.getElementById("countA").textContent = votes.A || 0;
+        document.getElementById("countB").textContent = votes.B || 0;
+        document.getElementById("countC").textContent = votes.C || 0;
+        document.getElementById("countD").textContent = votes.D || 0;
+      }
+
+      function connectSocket() {
+        const url = document.getElementById("serverUrl").value.trim();
+        log(`Connecting to ${url}...`);
+
+        if (socket) {
+          socket.disconnect();
+        }
+
+        socket = io(url, {
+          transports: ["websocket", "polling"],
+        });
+
+        socket.on("connect", () => {
+          const badge = document.getElementById("connStatus");
+          badge.className = "badge connected";
+          badge.textContent = `Connected (${socket.id})`;
+          document.getElementById("btnConnect").disabled = true;
+          document.getElementById("btnDisconnect").disabled = false;
+          document.getElementById("btnJoin").disabled = false;
+          log(`Connected with socket ID: ${socket.id}`);
+        });
+
+        socket.on("disconnect", (reason) => {
+          const badge = document.getElementById("connStatus");
+          badge.className = "badge disconnected";
+          badge.textContent = "Disconnected";
+          document.getElementById("btnConnect").disabled = false;
+          document.getElementById("btnDisconnect").disabled = true;
+          document.getElementById("btnJoin").disabled = true;
+          document.getElementById("currentRoomText").textContent = "-";
+          joinedRoom = null;
+          log(`Disconnected: ${reason}`);
+        });
+
+        socket.on("joined", (data) => {
+          log("Received [joined]:", data);
+          joinedRoom = data.pin;
+          document.getElementById("currentRoomText").textContent = data.pin;
+          updateCounts(data.votes);
+        });
+
+        socket.on("user_joined", (data) => {
+          log("Received [user_joined]:", data);
+        });
+
+        socket.on("vote_update", (data) => {
+          log("Received [vote_update]:", data);
+          updateCounts(data.votes);
+        });
+
+        socket.on("error", (err) => {
+          log("Received [error]:", err);
+          alert(`Server Error: ${err.message}`);
+        });
+      }
+
+      function disconnectSocket() {
+        if (socket) {
+          socket.disconnect();
+        }
+      }
+
+      function joinRoom() {
+        if (!socket || !socket.connected) return alert("Not connected to server");
+        const pin = document.getElementById("roomPin").value.trim();
+        const nickname = document.getElementById("nickname").value.trim();
+        log(`Emitting [join] for room ${pin}...`);
+        socket.emit("join", { pin, nickname });
+      }
+
+      function castVote(option) {
+        if (!socket || !socket.connected) return alert("Not connected");
+        if (!joinedRoom) return alert("Please join a room first!");
+        log(`Emitting [vote] option ${option} for room ${joinedRoom}...`);
+        socket.emit("vote", { pin: joinedRoom, option });
+      }
+
+      function resetVotes() {
+        if (!socket || !socket.connected) return alert("Not connected");
+        if (!joinedRoom) return alert("Please join a room first!");
+        log(`Emitting [reset_votes] for room ${joinedRoom}...`);
+        socket.emit("reset_votes", { pin: joinedRoom });
+      }
+    </script>
+  </body>
+</html>

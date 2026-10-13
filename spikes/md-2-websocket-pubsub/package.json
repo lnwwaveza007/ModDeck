@@ -1,0 +1,30 @@
+{
+  "name": "spike-md-2-websocket-pubsub",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "nest build",
+    "start": "node dist/main",
+    "start:dev": "nest start --watch",
+    "test:multi-instance": "node test-multi-instance.mjs"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11",
+    "@nestjs/core": "^11",
+    "@nestjs/platform-express": "^11",
+    "@nestjs/platform-socket.io": "^11.2.7",
+    "@nestjs/websockets": "^11.2.7",
+    "@socket.io/redis-adapter": "^8.3.0",
+    "ioredis": "^6.0.0",
+    "reflect-metadata": "^0.2",
+    "rxjs": "^7",
+    "socket.io": "^4.8.4"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11",
+    "@types/express": "^5",
+    "@types/node": "^22",
+    "socket.io-client": "^4.8.4",
+    "typescript": "^5"
+  }
+}
