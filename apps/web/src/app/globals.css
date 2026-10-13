@@ -1,26 +1,125 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * ModDeck design tokens.
+ * Source of truth: Figma file 93tXP1BwSWwUnEtX2JCjmF, "Design System" page.
+ * Names map 1:1 to Figma variables: color/primary/600 = --color-primary-600 = bg-primary-600.
+ * Light theme only: projectors and bright rooms wash out dark UI.
+ */
+@theme {
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* KMUTT orange (official CI #FA4616) = primary-500. White text needs primary-600 or darker. */
+  --color-primary-50: #fff4ee;
+  --color-primary-100: #ffe6da;
+  --color-primary-200: #ffcab3;
+  --color-primary-300: #fda482;
+  --color-primary-400: #fb7448;
+  --color-primary-500: #fa4616;
+  --color-primary-600: #d63a0e;
+  --color-primary-700: #b02f0b;
+  --color-primary-800: #8c2810;
+  --color-primary-900: #722312;
+  --color-primary-950: #3e0e05;
+
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
+  --color-neutral-950: #020617;
+
+  --color-success-50: #ecfdf5;
+  --color-success-100: #d1fae5;
+  --color-success-500: #10b981;
+  --color-success-600: #059669;
+  --color-success-700: #047857;
+  --color-success-800: #065f46;
+
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-warning-800: #92400e;
+
+  /* Rose, not red, so errors never read as the orange primary. */
+  --color-error-50: #fff1f2;
+  --color-error-100: #ffe4e6;
+  --color-error-500: #f43f5e;
+  --color-error-600: #e11d48;
+  --color-error-700: #be123c;
+  --color-error-800: #9f1239;
+
+  /* Categorical chart palette. Fixed order: answer A = chart-1, B = chart-2, ... */
+  --color-chart-1: #4f46e5;
+  --color-chart-2: #0891b2;
+  --color-chart-3: #d97706;
+  --color-chart-4: #db2777;
+  --color-chart-5: #65a30d;
+  --color-chart-6: #7c3aed;
+
+  /* Type scale. Thai needs taller line-height than Latin so tone marks never clip. */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.25rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.375rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.625rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.875rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2.125rem;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 2.5rem;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 3rem;
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 3.75rem;
+  --text-6xl: 3.75rem;
+  --text-6xl--line-height: 4.5rem;
+  --text-7xl: 4.5rem;
+  --text-7xl--line-height: 5.5rem;
+
+  /* Spacing keeps the Tailwind default: --spacing 0.25rem (4px), so p-4 = 16px = Figma spacing/4. */
+
+  --radius-none: 0;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.06), 0 1px 3px 0 rgb(15 23 42 / 0.1);
+  --shadow-md: 0 2px 4px -2px rgb(15 23 42 / 0.1), 0 4px 6px -1px rgb(15 23 42 / 0.1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-background: var(--color-neutral-0);
+  --color-surface: var(--color-neutral-50);
+  --color-foreground: var(--color-neutral-900);
+  --color-muted: var(--color-neutral-600);
+  --color-border: var(--color-neutral-300);
+  --color-border-strong: var(--color-neutral-500);
+  --color-ring: var(--color-primary-500);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-plex-sans-thai), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
 }
