@@ -4,5 +4,5 @@ Git workflow (branch names, commit messages, pull requests) is defined in @CONTR
 
 - Never push to `main`. Open a pull request.
 - Branch: `<type>/<short-desc>`. Commit: `<type>: <short message>`. PR title: `<type>: <heading>`.
-- PR description uses the three sections in `.github/pull_request_template.md`.
+- PR description uses the three sections in `.github/pull_request_template.md`. Headings stay Thai. Write the body in English.
 - Types: feat, fix, refactor, style, test, chore.

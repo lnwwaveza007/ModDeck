@@ -42,6 +42,8 @@
 
 ### Description template
 
+Headings stay in Thai. Write the body under each heading in English.
+
 ```markdown
 ## ✨ ทำอะไรไปบ้าง?
 
@@ -61,13 +63,13 @@ desc
 ```markdown
 ## ✨ ทำอะไรไปบ้าง?
 
-เพิ่มหน้า Profile สำหรับผู้ใช้ พร้อมแก้บั๊กปุ่ม logout ที่กดแล้วไม่ออก
+Add a Profile page for users, and fix the logout button that did not log the user out.
 
 ## 🧪 ทดสอบยังไง?
 
-ลองกดเข้า Profile / Logout แล้ว ไม่มี error และพาไปหน้า login ได้ปกติ
+Open Profile, then press Logout. There is no error and the app goes to the login page.
 
 ## 📎 เพิ่มเติม
 
-ช่วยลองดูว่าปุ่ม logout ทำงานปกติใน mobile รึเปล่า
+Please check that the logout button works on mobile.
 ```
