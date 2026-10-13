@@ -1,0 +1,15 @@
+{
+  "name": "spike-md-9-burst-writes",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "burst": "node src/burst.mjs",
+    "leaderboard": "node src/leaderboard.mjs",
+    "restart": "node src/restart.mjs"
+  },
+  "dependencies": {
+    "ioredis": "^5.8.2",
+    "pg": "^8.23.1"
+  }
+}
