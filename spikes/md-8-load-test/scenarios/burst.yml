@@ -1,0 +1,18 @@
+# Scenario 2 (burst): 300 clients in one room each send one vote inside a 1 s window.
+# Run through run.mjs, which sets the target, phases and MD8_* timing env vars.
+config:
+  target: "http://localhost:4000"
+  processor: "./processor.cjs"
+  phases:
+    - name: connect
+      duration: 30
+      arrivalCount: 300
+  socketio:
+    transports: ["websocket"]
+    reconnection: false
+scenarios:
+  - name: burst
+    engine: socketio
+    flow:
+      - function: joinRoom
+      - function: burstVote

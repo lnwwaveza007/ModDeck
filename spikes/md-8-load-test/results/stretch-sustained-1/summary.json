@@ -1,0 +1,108 @@
+{
+  "scenario": "sustained",
+  "label": "stretch-sustained-1",
+  "note": "stretch: 2 instances via Redis adapter, clients split directly (no Nginx), single machine",
+  "clients": 1200,
+  "rooms": 6,
+  "pass": true,
+  "latency": {
+    "delivery_ms": {
+      "count": 1805000,
+      "p50": 5,
+      "p95": 17.1,
+      "p99": 45.8,
+      "max": 634.4,
+      "mean": 7.4
+    },
+    "echo_ms": {
+      "count": 9025,
+      "p50": 4.4,
+      "p95": 14.7,
+      "p99": 42.3,
+      "max": 511.4,
+      "mean": 6.5
+    },
+    "join_ms": {
+      "count": 1200,
+      "p50": 1,
+      "p95": 1.8,
+      "p99": 3.4,
+      "max": 16.7,
+      "mean": 1.2
+    }
+  },
+  "messages": {
+    "joined": 1200,
+    "sent": 9025,
+    "expected": 1805000,
+    "received": 1805000,
+    "dropped": 0,
+    "ownMissing": 0,
+    "disconnects": 0,
+    "joinFailed": 0,
+    "lateJoin": 0,
+    "perRoom": [
+      {
+        "pin": "244927",
+        "joined": 200,
+        "sent": 1507,
+        "recv": 301400,
+        "expected": 301400
+      },
+      {
+        "pin": "418545",
+        "joined": 200,
+        "sent": 1487,
+        "recv": 297400,
+        "expected": 297400
+      },
+      {
+        "pin": "578057",
+        "joined": 200,
+        "sent": 1504,
+        "recv": 300800,
+        "expected": 300800
+      },
+      {
+        "pin": "878820",
+        "joined": 200,
+        "sent": 1493,
+        "recv": 298600,
+        "expected": 298600
+      },
+      {
+        "pin": "733669",
+        "joined": 200,
+        "sent": 1519,
+        "recv": 303800,
+        "expected": 303800
+      },
+      {
+        "pin": "142461",
+        "joined": 200,
+        "sent": 1515,
+        "recv": 303000,
+        "expected": 303000
+      }
+    ]
+  },
+  "server": {
+    "peakConnections": 1200,
+    "cpuPctAvg": 17.8,
+    "cpuPctMax": 43.2,
+    "rssMbMax": 227.8,
+    "loopLagP99MsMax": 387.4,
+    "loopLagMaxMs": 387.4,
+    "redisCpuPctMax": 24.6,
+    "redisMemMbMax": 1.2
+  },
+  "loadGenerator": {
+    "cpuPctAvg": 23.6,
+    "cpuPctMax": 83.8
+  },
+  "warnings": [],
+  "artilleryExitCodes": [
+    0,
+    0
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "scenario": "sustained",
+  "label": "fixed-sustained-3",
+  "note": "fixed: 50 ms vote coalescing, single machine",
+  "clients": 300,
+  "rooms": 3,
+  "pass": true,
+  "latency": {
+    "delivery_ms": {
+      "count": 900000,
+      "p50": 4.5,
+      "p95": 12.1,
+      "p99": 20.7,
+      "max": 137.6,
+      "mean": 5.5
+    },
+    "echo_ms": {
+      "count": 9000,
+      "p50": 4.5,
+      "p95": 12.1,
+      "p99": 20.9,
+      "max": 116.4,
+      "mean": 5.5
+    },
+    "join_ms": {
+      "count": 300,
+      "p50": 0.9,
+      "p95": 2.5,
+      "p99": 7.9,
+      "max": 10.4,
+      "mean": 1.2
+    }
+  },
+  "messages": {
+    "joined": 300,
+    "sent": 9000,
+    "expected": 900000,
+    "received": 900000,
+    "dropped": 0,
+    "ownMissing": 0,
+    "disconnects": 0,
+    "joinFailed": 0,
+    "lateJoin": 0,
+    "perRoom": [
+      {
+        "pin": "256468",
+        "joined": 100,
+        "sent": 3000,
+        "recv": 300000,
+        "expected": 300000
+      },
+      {
+        "pin": "346716",
+        "joined": 100,
+        "sent": 3000,
+        "recv": 300000,
+        "expected": 300000
+      },
+      {
+        "pin": "918393",
+        "joined": 100,
+        "sent": 3000,
+        "recv": 300000,
+        "expected": 300000
+      }
+    ]
+  },
+  "server": {
+    "peakConnections": 300,
+    "cpuPctAvg": 9.4,
+    "cpuPctMax": 26.4,
+    "rssMbMax": 199.7,
+    "loopLagP99MsMax": 98.4,
+    "loopLagMaxMs": 98.4,
+    "redisCpuPctMax": 17.2,
+    "redisMemMbMax": 1.1
+  },
+  "loadGenerator": {
+    "cpuPctAvg": 22,
+    "cpuPctMax": 92.4
+  },
+  "warnings": [
+    "load generator CPU peaked at 92.4%; latency may include client-side queueing"
+  ],
+  "artilleryExitCodes": [
+    0
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "scenario": "burst",
+  "label": "baseline-burst-3",
+  "note": "baseline: MD-2 as built, single machine",
+  "clients": 300,
+  "rooms": 1,
+  "roomPins": [
+    "225688"
+  ],
+  "connectS": 30,
+  "targets": [
+    "http://localhost:4000"
+  ],
+  "metricsUrls": [
+    "http://localhost:4000/metrics"
+  ],
+  "schedule": {
+    "t0": 1791890641724,
+    "MD8_BURST_AT": 1791890681724,
+    "MD8_BURST_WINDOW_MS": 1000,
+    "MD8_FIRST_SEND_AT": 1791890681724
+  },
+  "window": {
+    "start": 1791890676724,
+    "end": 1791890692724
+  },
+  "loadGenerator": {
+    "hostname": "Aunney",
+    "platform": "Windows_NT 10.0.26200 x64",
+    "cpu": "AMD Ryzen 5 7535U with Radeon Graphics",
+    "logicalCpus": 12,
+    "memoryGb": 15.2,
+    "node": "v24.19.0"
+  },
+  "startedAt": "2026-10-13T11:23:57.603Z"
+}

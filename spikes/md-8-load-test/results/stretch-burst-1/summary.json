@@ -1,0 +1,94 @@
+{
+  "scenario": "burst",
+  "label": "stretch-burst-1",
+  "note": "stretch: 2 instances via Redis adapter, clients split directly (no Nginx), single machine",
+  "clients": 1200,
+  "rooms": 4,
+  "pass": false,
+  "latency": {
+    "delivery_ms": {
+      "count": 360000,
+      "p50": 147.6,
+      "p95": 263.3,
+      "p99": 299.2,
+      "max": 336.6,
+      "mean": 155.1
+    },
+    "echo_ms": {
+      "count": 1200,
+      "p50": 138.9,
+      "p95": 250.3,
+      "p99": 286.7,
+      "max": 309,
+      "mean": 147.8
+    },
+    "join_ms": {
+      "count": 1200,
+      "p50": 1.2,
+      "p95": 4.1,
+      "p99": 7.4,
+      "max": 48.5,
+      "mean": 1.6
+    }
+  },
+  "messages": {
+    "joined": 1200,
+    "sent": 1200,
+    "expected": 360000,
+    "received": 360000,
+    "dropped": 0,
+    "ownMissing": 0,
+    "disconnects": 0,
+    "joinFailed": 0,
+    "lateJoin": 0,
+    "perRoom": [
+      {
+        "pin": "675555",
+        "joined": 300,
+        "sent": 300,
+        "recv": 90000,
+        "expected": 90000
+      },
+      {
+        "pin": "670484",
+        "joined": 300,
+        "sent": 300,
+        "recv": 90000,
+        "expected": 90000
+      },
+      {
+        "pin": "195761",
+        "joined": 300,
+        "sent": 300,
+        "recv": 90000,
+        "expected": 90000
+      },
+      {
+        "pin": "978788",
+        "joined": 300,
+        "sent": 300,
+        "recv": 90000,
+        "expected": 90000
+      }
+    ]
+  },
+  "server": {
+    "peakConnections": 1200,
+    "cpuPctAvg": 10.8,
+    "cpuPctMax": 69.6,
+    "rssMbMax": 205.6,
+    "loopLagP99MsMax": 89.4,
+    "loopLagMaxMs": 101.6,
+    "redisCpuPctMax": 18.5,
+    "redisMemMbMax": 1.2
+  },
+  "loadGenerator": {
+    "cpuPctAvg": 28.3,
+    "cpuPctMax": 51.9
+  },
+  "warnings": [],
+  "artilleryExitCodes": [
+    0,
+    0
+  ]
+}

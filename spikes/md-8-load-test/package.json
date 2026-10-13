@@ -1,0 +1,11 @@
+{
+  "name": "spike-md-8-load-test",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {},
+  "devDependencies": {
+    "artillery": "^2.0.34",
+    "socket.io-client": "^4.8.4"
+  }
+}

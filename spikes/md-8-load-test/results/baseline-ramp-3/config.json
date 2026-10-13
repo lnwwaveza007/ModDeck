@@ -1,0 +1,36 @@
+{
+  "scenario": "ramp",
+  "label": "baseline-ramp-3",
+  "note": "baseline: MD-2 as built, single machine",
+  "clients": 300,
+  "rooms": 1,
+  "roomPins": [
+    "100125"
+  ],
+  "connectS": 60,
+  "targets": [
+    "http://localhost:4000"
+  ],
+  "metricsUrls": [
+    "http://localhost:4000/metrics"
+  ],
+  "schedule": {
+    "t0": 1791891623315,
+    "MD8_HOLD_START": 1791891688315,
+    "MD8_HOLD_END": 1791891988315,
+    "MD8_FIRST_SEND_AT": 1791891688315
+  },
+  "window": {
+    "start": 1791891623315,
+    "end": 1791891988315
+  },
+  "loadGenerator": {
+    "hostname": "Aunney",
+    "platform": "Windows_NT 10.0.26200 x64",
+    "cpu": "AMD Ryzen 5 7535U with Radeon Graphics",
+    "logicalCpus": 12,
+    "memoryGb": 15.2,
+    "node": "v24.19.0"
+  },
+  "startedAt": "2026-10-13T11:40:19.735Z"
+}

@@ -1,0 +1,36 @@
+{
+  "scenario": "burst",
+  "label": "fixed-burst-2",
+  "note": "fixed: 50 ms vote coalescing, single machine",
+  "clients": 300,
+  "rooms": 1,
+  "roomPins": [
+    "143915"
+  ],
+  "connectS": 30,
+  "targets": [
+    "http://localhost:4000"
+  ],
+  "metricsUrls": [
+    "http://localhost:4000/metrics"
+  ],
+  "schedule": {
+    "t0": 1791894055421,
+    "MD8_BURST_AT": 1791894095421,
+    "MD8_BURST_WINDOW_MS": 1000,
+    "MD8_FIRST_SEND_AT": 1791894095421
+  },
+  "window": {
+    "start": 1791894090421,
+    "end": 1791894106421
+  },
+  "loadGenerator": {
+    "hostname": "Aunney",
+    "platform": "Windows_NT 10.0.26200 x64",
+    "cpu": "AMD Ryzen 5 7535U with Radeon Graphics",
+    "logicalCpus": 12,
+    "memoryGb": 15.2,
+    "node": "v24.19.0"
+  },
+  "startedAt": "2026-10-13T12:20:51.205Z"
+}

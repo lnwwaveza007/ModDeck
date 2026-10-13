@@ -1,0 +1,13 @@
+# Scrapes the MD-2 api instances. Runs on the SERVER machine next to the api.
+# host.docker.internal reaches api processes running natively on the host.
+global:
+  scrape_interval: 2s
+  evaluation_interval: 2s
+
+scrape_configs:
+  - job_name: moddeck-api
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - host.docker.internal:4000
+          - host.docker.internal:4001
