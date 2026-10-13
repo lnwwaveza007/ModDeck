@@ -11,7 +11,7 @@
 | ------- | ----------------------------------------------------------------------------------------- |
 | Student | 21 phone screens (360 × 740) in 4 groups: Join, Activity tab, Q&A + reactions, connection + end |
 | Host    | Deck editor, presenter control, audience screen (projector), session history and results  |
-| Archive | Empty. Move replaced screens here instead of deleting them                                |
+| Design System | Design system section (tokens, components) and an "Archive" section below it. Move replaced screens into the Archive section instead of deleting them. The Starter plan allows only 3 pages, so the old Archive page became this page |
 
 Each screen has an ID (S01, H05, P03 …), a title with its route, and short notes under it. Notes point to the MD-5 section or decision (Q-number) that the screen follows.
 
