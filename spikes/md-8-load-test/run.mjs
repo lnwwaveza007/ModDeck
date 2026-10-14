@@ -25,6 +25,10 @@ const artilleryBin = path.join(
   "run",
 );
 
+// Load-generator CPU %. When the load generator is pinned to some cores
+// (e.g. `taskset -c 2,3` with MD8_LOADGEN_CPUS=2,3), only those cores count.
+const loadGenCpus = process.env.MD8_LOADGEN_CPUS?.split(",").map(Number);
+
 const DEFAULTS = {
   ramp: { clients: 300, rooms: 1, connectS: 60 },
   burst: { clients: 300, rooms: 1, connectS: 30 },
@@ -131,7 +135,7 @@ const config = {
   metricsUrls,
   schedule: null,
   window: null,
-  loadGenerator: machineSpec(),
+  loadGenerator: { ...machineSpec(), pinnedCpus: loadGenCpus ?? null },
   startedAt: new Date(now).toISOString(),
 };
 fs.writeFileSync(path.join(outDir, "config.json"), JSON.stringify(config, null, 2));
@@ -169,7 +173,8 @@ let prevCpu = cpuTimes();
 function cpuTimes() {
   let idle = 0;
   let total = 0;
-  for (const c of os.cpus()) {
+  for (const [i, c] of os.cpus().entries()) {
+    if (loadGenCpus && !loadGenCpus.includes(i)) continue;
     for (const [k, v] of Object.entries(c.times)) {
       total += v;
       if (k === "idle") idle += v;

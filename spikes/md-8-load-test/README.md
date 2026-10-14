@@ -83,6 +83,20 @@ Each run writes `results/<label>/`. Only `summary.json`, `config.json`, `schedul
 
 Useful flags: `--clients`, `--rooms`, `--connect-s`, `--hold-s`, `--duration-s`, `--rate` (messages/s per room), `--window-ms` (burst window), `--workers` (Artillery worker count), `--note`.
 
+## 2b. Fallback: load generator on the same VM, CPUs split
+
+Use this only when no second machine can reach the server without a VPN; a VPN distorts the latency (see FINDINGS.md). It doesn't meet the "different machine" criterion. It does remove CPU interference, by giving the server side and the load generator their own cores (here 4 vCPUs split 2 + 2):
+
+```sh
+# server side on vCPU 0-1
+sudo docker update --cpuset-cpus 0-1 moddeck-redis-1
+INSTANCE_NAME=api-a API_PORT=4000 nohup taskset -c 0,1 node dist/main > ~/api-a.log 2>&1 &
+
+# load generator on vCPU 2-3; MD8_LOADGEN_CPUS makes the CPU warning measure only those cores
+cd spikes/md-8-load-test
+MD8_LOADGEN_CPUS=2,3 taskset -c 2,3 node run.mjs --scenario burst --target http://localhost:4000 --label vmpin-burst-1
+```
+
 ## 3. Stretch: 2 instances behind Nginx, 1,000+ connections
 
 On the server, start a second instance and Nginx:
