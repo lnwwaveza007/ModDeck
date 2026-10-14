@@ -1,0 +1,38 @@
+{
+  "source": "Results tables captured from the local rating page, 14 Oct 2026. Counts only; per-suggestion ratings were not collected.",
+  "raters": [
+    {
+      "rater": "Rater 1 (no name given)",
+      "g": {
+        "gemini-3.1-flash-lite|en": [7, 2, 0],
+        "gemini-3.1-flash-lite|th": [8, 0, 0],
+        "gemini-3.8-flash|en": [4, 4, 0],
+        "gemini-3.8-flash-low|en": [3, 1, 0]
+      }
+    },
+    {
+      "rater": "Rater 2 (no name given)",
+      "g": {
+        "gemini-3.1-flash-lite|en": [5, 2, 2],
+        "gemini-3.1-flash-lite|th": [5, 3, 0],
+        "gemini-3.8-flash|en": [5, 3, 0],
+        "gemini-3.8-flash-low|en": [2, 1, 1]
+      }
+    },
+    {
+      "rater": "Rater 3 (Ajarn Aunn)",
+      "g": {
+        "gemini-3.1-flash-lite|en": [4, 5, 0],
+        "gemini-3.1-flash-lite|th": [4, 4, 0],
+        "gemini-3.8-flash|en": [7, 1, 0],
+        "gemini-3.8-flash-low|en": [4, 0, 0]
+      }
+    }
+  ],
+  "combined": {
+    "gemini-3.1-flash-lite|en": [16, 9, 2],
+    "gemini-3.1-flash-lite|th": [17, 7, 0],
+    "gemini-3.8-flash|en": [16, 8, 0],
+    "gemini-3.8-flash-low|en": [9, 2, 1]
+  }
+}

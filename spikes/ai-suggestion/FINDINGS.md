@@ -1,8 +1,8 @@
 # AI Suggestion Findings: activity insertion points and poll/quiz generation
 
-**Verdict: provisional pass.** Gemini reads the MD-14 slide text and suggests where to insert activities. It also writes poll and quiz questions that a teacher can use, in Thai and in English. The ratings in this note are **provisional**: Claude rated each suggestion against the slide text. A teacher has not rated them yet (section 6). The final verdict waits for the teacher rating.
+**Verdict: pass on quality, with two gaps.** Gemini reads the MD-14 slide text, suggests where to insert activities, and writes poll and quiz questions that testers rated usable or edit-needed in 97% of ratings, in Thai and in English. The gaps: only 3 testers rated, and `gemini-3.8-flash` has not been tested on Thai decks (sections 4.1, 6 and 8).
 
-- **Quality (provisional).** `gemini-3.1-flash-lite`: 17 of 17 suggestions are usable or need a small edit (EN 9/9, TH 8/8). No suggestion is unusable. `gemini-3.8-flash`: 12 of 12 are usable, but only on the two English decks. The free-tier quota ran out before the Thai decks (section 4.4).
+- **Quality.** 3 testers rated all 29 suggestions each (87 ratings). `gemini-3.1-flash-lite`: **96%** usable or edit-needed (EN 93%, TH 100%). `gemini-3.8-flash`: 100% on the English decks. `gemini-3.8-flash` with low thinking: 92% on 4 suggestions. Every group passes the 70% mark for every tester. Only 3 of 87 ratings were "unusable", all from one tester. `gemini-3.8-flash` was not run on the Thai decks because the free-tier quota ran out (section 4.4).
 - **Latency.** `gemini-3.1-flash-lite` takes **2.5–4.1 s per deck**. On the free tier, `gemini-3.8-flash` takes **129–209 s per deck**, and 2 of 3 calls on the 37-slide deck failed (section 4.2).
 - **Cost per deck.** `gemini-3.1-flash-lite`: about **$0.002**. `gemini-3.8-flash`: about **$0.013–0.022** at the introductory price, and about $0.025–0.043 from 1 Jan 2027. The user pays with their own key (section 4.3).
 - **Decision (14 Oct): pick one.** The team dropped the self-hosted LLM. The product calls Gemini with **the user's own API key**. Default model: `gemini-3.1-flash-lite`. Keep the model name in config, so that a user can choose a larger model (section 7).
@@ -13,7 +13,7 @@ Check the AI Suggestion promise from the proposal (section 3: "ก่อนส�
 
 - [x] Use the MD-14 text extraction from 3–5 real Thai and English lecture decks. 4 decks are used: 2 English, 2 Thai.
 - [~] Prompt Gemini and one self-hosted LLM. **Gemini only.** The team dropped the self-hosted option on 14 Oct (section 7).
-- [~] A teacher rates each suggestion as usable, edit needed, or unusable. The rating sheet is ready (`rating/rating-sheet.html`). Only provisional ratings exist now.
+- [~] A teacher rates each suggestion as usable, edit needed, or unusable. 3 testers rated all 29 suggestions with the local rating page (`rating/rating-sheet-local.html`). One gave the name "Ajarn Aunn"; the other two gave no name, so we cannot say how many are teachers. Only their result tables were kept, not per-suggestion ratings (section 6).
 - [x] Latency per deck measured.
 - [x] Cost per deck measured from the API token counts.
 
@@ -21,7 +21,7 @@ Pass criteria:
 
 | Criterion | Result |
 | --- | --- |
-| At least 70% usable or edit needed, Thai and English | **Provisional pass.** flash-lite: EN 100%, TH 100%. 3.8-flash: EN 100%, TH not tested. |
+| At least 70% usable or edit needed, Thai and English | **Pass.** flash-lite: EN 93%, TH 100%. 3.8-flash: EN 100%, TH not tested. Lowest single tester in any group: 75% (section 4.1). |
 | Latency per deck within the budget for an async prep-time job | **Pass for flash-lite** (≤ 4.1 s). 3.8-flash on the free tier misses the 60 s target (section 4.2). |
 | Cost per deck known | **Pass.** Known for both models (section 4.3). |
 
@@ -51,8 +51,8 @@ Decks:
 2. `src/prompt.mjs` holds one system prompt and a JSON schema. The model returns 3–6 suggestions. Each suggestion has `after_slide`, `type` (`quiz` or `poll`), `reason` (for the teacher), `question`, `options` (2–5), `correct_option` (-1 for a poll) and `explanation` (shown to students). The rules in the prompt: about 1 activity per 5–8 slides, a quiz comes after the content it tests, no activity after the title slide or the last slide, quiz facts come only from the slides, and the text uses the main language of the slides.
 3. `src/run.mjs <model> --runs 3` sends each deck 3 times. Run 1 is the one rated. Runs 2 and 3 only add latency samples.
 4. `src/check.mjs` writes `data/metrics.json`. It has the median and maximum latency, the token counts and the cost per deck. It also runs mechanical checks on each suggestion: position, number of options, a valid correct option, and a Thai question on a Thai deck.
-5. `src/build-sheet.mjs` builds `rating/rating-sheet.html`. The page shuffles the suggestions and hides the model name. It shows the slide text around each insertion point. The teacher clicks a rating, adds a note, and downloads a JSON file.
-6. `src/score.mjs <ratings.json>` gives the share of usable and edit-needed suggestions per model and language.
+5. The testers used a local rating page (`rating/rating-sheet-local.html`). It shuffles the suggestions and hides the model name while rating. It shows the slide text around each insertion point. The tester clicks a rating, and the page calculates a results table on the device. Nothing is sent anywhere. The tester captures the table as a screenshot.
+6. `src/build-sheet.mjs` and `src/score.mjs` are the first version of this step (download a JSON file, then score it). They are no longer used for the ratings in section 4.1.
 
 Run it:
 
@@ -61,26 +61,47 @@ cd spikes/ai-suggestion
 node src/run.mjs gemini-3.1-flash-lite --runs 3   # needs GEMINI_API_KEY in the repo .env
 node src/run.mjs gemini-3.8-flash --runs 3
 node src/check.mjs                                # writes data/metrics.json
-node src/build-sheet.mjs                          # writes rating/rating-sheet.html
-node src/score.mjs data/ratings-provisional.json  # or the teacher's file
+node src/build-sheet.mjs                          # first-version rating sheet (JSON download)
+node src/score.mjs data/ratings-provisional.json  # scores a ratings JSON file
 ```
+
+The tester results in section 4.1 are in `data/ratings-summary.json`.
 
 ## 4. Results
 
-### 4.1 Quality (provisional rating)
+### 4.1 Quality
 
-Claude checked each suggestion against the slide text: the placement, whether the marked answer is correct according to the slides, and whether the wrong options are plausible. `data/ratings-provisional.json` has a note for each rating.
+**Tester ratings.** 3 testers each rated all 29 suggestions, with the model name hidden. The table adds their counts (ratings = suggestions × testers). Source: `data/ratings-summary.json`.
 
-| Model | Language | Suggestions | Usable | Edit needed | Unusable | Usable + edit |
-| --- | --- | --- | --- | --- | --- | --- |
-| gemini-3.1-flash-lite | English | 9 | 8 | 1 | 0 | 100% |
-| gemini-3.1-flash-lite | Thai | 8 | 4 | 4 | 0 | 100% |
-| gemini-3.8-flash | English | 8 | 8 | 0 | 0 | 100% |
-| gemini-3.8-flash (low thinking) | English | 4 | 4 | 0 | 0 | 100% |
+| Model | Language | Suggestions | Ratings | Usable | Edit needed | Unusable | Usable + edit | Lowest tester |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| gemini-3.1-flash-lite | English | 9 | 27 | 16 | 9 | 2 | **93%** | 78% |
+| gemini-3.1-flash-lite | Thai | 8 | 24 | 17 | 7 | 0 | **100%** | 100% |
+| gemini-3.1-flash-lite | All | 17 | 51 | 33 | 16 | 2 | **96%** | |
+| gemini-3.8-flash | English | 8 | 24 | 16 | 8 | 0 | **100%** | 100% |
+| gemini-3.8-flash | Thai | 0 | – | – | – | – | not tested | |
+| gemini-3.8-flash (low thinking) | English | 4 | 12 | 9 | 2 | 1 | **92%** | 75% |
+| All models | All | 29 | 87 | 58 | 26 | 3 | **97%** | 90% |
+
+Per tester, over all 29 suggestions:
+
+| Tester | Usable | Edit needed | Unusable | Usable + edit |
+| --- | --- | --- | --- | --- |
+| Rater 1 | 22 | 7 | 0 | 100% |
+| Rater 2 | 17 | 9 | 3 | 90% |
+| Rater 3 (Ajarn Aunn) | 19 | 10 | 0 | 100% |
+
+- **Every group passes for every tester.** The lowest result is 75% (low-thinking 3.8-flash, 4 suggestions, Rater 2).
+- **Rater 2 is the strict one.** All 3 "unusable" ratings are theirs: 2 on flash-lite English and 1 on low-thinking 3.8-flash. The results tables do not show which suggestions these are, so we cannot say why. Per-suggestion ratings were not kept.
+- **Thai is not weaker.** flash-lite is 100% on Thai for all three testers. English has the 2 unusable ratings, so the English figure (93%) is the lower one.
+- **Testers rate "edit needed" often** (26 of 87, 30%). The product should make editing a suggestion easy, because a third of suggestions will be edited before use.
+- **Small sample.** 3 testers, one deck set, and only 4 suggestions for low-thinking 3.8-flash. Treat 92% there as a weak signal.
+
+**Claude's check against the slide text** (earlier, provisional). Claude checked each suggestion for placement, a correct marked answer according to the slides, and plausible wrong options. `data/ratings-provisional.json` has a note for each. It found no wrong answers and no unusable suggestions, so it was more lenient than Rater 2 and close to Raters 1 and 3.
 
 - **No wrong answers were found.** Every marked quiz answer matches the slides. The wrong options are plausible, for example `@submit.stop` / `.once` / `.self` against `@submit.prevent`.
 - **Placement is good.** Quizzes come right after the slide that teaches the fact, and polls come at topic changes or before a workshop. One suggestion breaks the rule: flash-lite placed a quiz after the last slide of vue3.
-- **The output language is not stable.** This is the main reason for "edit needed". flash-lite wrote all 4 W07 activities in **English** on a Thai deck, because the W07 slides it quoted are in English. It wrote vue3 activities in Thai. `gemini-3.8-flash` wrote all activities for the English Vue decks in **Thai**, because one slide in vue1 is Thai. A teacher may accept either language, but the product should not guess. Let the teacher choose the language (section 7).
+- **The output language is not stable.** This is a likely reason for "edit needed" (the testers did not record reasons). flash-lite wrote all 4 W07 activities in **English** on a Thai deck, because the W07 slides it quoted are in English. It wrote vue3 activities in Thai. `gemini-3.8-flash` wrote all activities for the English Vue decks in **Thai**, because one slide in vue1 is Thai. A teacher may accept either language, but the product should not guess. Let the teacher choose the language (section 7).
 - **One answer needs a check against the picture.** On W07 slide 15, the SWOT chart text is a set of labels with no layout. flash-lite matched "Strengths + Threats" to the "Defensive/Diversify" label. The text alone does not prove this. Diagram slides need OCR or a picture input (MD-14) for reliable quiz facts.
 - **Bias in the answer position.** In an early test, `gemini-3.8-flash` put the correct answer first in all 3 quizzes. Across the rated set the positions are mixed, but the product should shuffle the options anyway.
 - Most quizzes test recall of one slide. Few test application. This is fine for a check-in quiz, but teachers may want harder questions. A "difficulty" field in the prompt is a cheap next step.
@@ -112,7 +133,7 @@ Tokens come from the API `usageMetadata`. Thinking tokens are billed as output.
 | Free tier | $0 | same | $0, but 20 requests per day per model, and Google may use the data |
 
 - One teacher with 15 decks per term costs about **$0.03 per term** with flash-lite, or about $0.35 with `gemini-3.8-flash`. Cost does not decide between the models.
-- Thinking is most of the `gemini-3.8-flash` cost: 1,700–6,400 thinking tokens per deck against about 750 output tokens. Low thinking cuts the cost by about two thirds, and its 4 rated suggestions were all usable.
+- Thinking is most of the `gemini-3.8-flash` cost: 1,700–6,400 thinking tokens per deck against about 750 output tokens. Low thinking cuts the cost by about two thirds. Its 4 suggestions were rated 92% usable or edit-needed (section 4.1).
 - The `gemini-3.8-flash` price is from the official Gemini API "What's new" page. The `gemini-3.1-flash-lite` price is from third-party listings (OpenRouter and others). Check it on the official pricing page before quoting it to users.
 
 ### 4.4 Free-tier limits
@@ -131,16 +152,15 @@ The lecturer's email and phone number were replaced before sending (`redact()` i
 
 **Note on MD-10:** the `redact()` regex in `spikes/md-10-embeddings/src/models.mjs` is missing its backslashes (`[w.+-]+@…`, `d{2,3}…`). It matches nothing, so the MD-10 Gemini run probably sent the lecturer's contact details. This spike uses a fixed regex. Fix MD-10 too.
 
-## 6. Teacher rating (open)
+## 6. Rating by testers (partly done)
 
-The provisional ratings are a first estimate. Claude is not a teacher, and it may be more lenient or stricter than one.
+3 testers rated all 29 suggestions on 14 Oct (section 4.1). What is still open:
 
-1. Open `rating/rating-sheet.html` in a browser (works offline). It has 29 suggestions, shuffled, with no model names.
-2. The teacher rates each one, adds notes, and clicks **Download ratings**.
-3. Save the file as `data/ratings-<name>.json` and run `node src/score.mjs data/ratings-<name>.json`.
-4. Update section 4.1 and the verdict.
+- **Who rated.** One tester gave the name "Ajarn Aunn". The other two gave no name. If the pass criterion needs teachers, confirm who they are, or repeat with named teachers.
+- **Only counts were kept.** Each tester captured their results table, not their per-suggestion ratings and notes. We cannot say which suggestions were "unusable". If the product team wants to learn from the 3 unusable ratings, rerun the page (`rating/rating-sheet-local.html`) and copy each tester's notes.
+- **The Thai side of `gemini-3.8-flash`.** Run it on w07 and w08 when the quota resets (or with a paid key), rebuild the page with the new suggestions, and rate them.
 
-Before the teacher rating, run `gemini-3.8-flash` on w07 and w08 when the quota resets (or with a paid key), then rebuild the sheet. Otherwise the Thai side of the larger model has no data.
+To run another round: open `rating/rating-sheet-local.html` in a browser (it works offline, apart from the font). It has 29 suggestions, shuffled, with no model names while rating. The results table at the bottom has a name box for the screenshot.
 
 ## 7. Decision and recommendation for the ADR (MD-18)
 
@@ -161,7 +181,7 @@ How to build it:
 
 ## 8. Open questions
 
-- Teacher rating (section 6). Ideally two teachers: one for the Vue decks, one for INT319.
+- Who the 3 testers are, and per-suggestion ratings with notes (section 6). Ideally two teachers: one for the Vue decks, one for INT319.
 - `gemini-3.8-flash` on the Thai decks (quota).
 - Latency on a paid key. Is `gemini-3.8-flash` faster than 2–3 minutes when it is not free tier?
 - Should the product also accept other providers' keys (OpenAI, Anthropic)? The prompt and schema are simple and should carry over, but this spike tested only Gemini.
