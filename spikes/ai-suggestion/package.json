@@ -1,0 +1,12 @@
+{
+  "name": "spike-ai-suggestion",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "run": "node src/run.mjs",
+    "check": "node src/check.mjs",
+    "sheet": "node src/build-sheet.mjs",
+    "score": "node src/score.mjs"
+  }
+}

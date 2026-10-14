@@ -1,0 +1,333 @@
+{
+  "rows": [
+    {
+      "provider": "gemini-3.1-flash-lite",
+      "deck": "vue1",
+      "lang": "en",
+      "slides": 20,
+      "runs": 3,
+      "errors": 0,
+      "msAll": [4147, 2615, 2575],
+      "msMedian": 2615,
+      "msMax": 4147,
+      "inTokens": 2885,
+      "outTokens": 650,
+      "thinkTokens": 0,
+      "costUsd": 0.00169625,
+      "cost2027Usd": 0.00169625,
+      "suggestions": [4, 4, 4]
+    },
+    {
+      "provider": "gemini-3.1-flash-lite",
+      "deck": "vue3",
+      "lang": "en",
+      "slides": 37,
+      "runs": 3,
+      "errors": 0,
+      "msAll": [3126, 3479, 3140],
+      "msMedian": 3140,
+      "msMax": 3479,
+      "inTokens": 4764,
+      "outTokens": 849,
+      "thinkTokens": 0,
+      "costUsd": 0.0024645,
+      "cost2027Usd": 0.0024645,
+      "suggestions": [5, 5, 5]
+    },
+    {
+      "provider": "gemini-3.1-flash-lite",
+      "deck": "w07",
+      "lang": "th",
+      "slides": 22,
+      "runs": 3,
+      "errors": 0,
+      "msAll": [2510, 2674, 3146],
+      "msMedian": 2674,
+      "msMax": 3146,
+      "inTokens": 3752,
+      "outTokens": 720,
+      "thinkTokens": 0,
+      "costUsd": 0.002018,
+      "cost2027Usd": 0.002018,
+      "suggestions": [4, 4, 4]
+    },
+    {
+      "provider": "gemini-3.1-flash-lite",
+      "deck": "w08",
+      "lang": "th",
+      "slides": 19,
+      "runs": 3,
+      "errors": 0,
+      "msAll": [2661, 2490, 2808],
+      "msMedian": 2661,
+      "msMax": 2808,
+      "inTokens": 2340,
+      "outTokens": 643,
+      "thinkTokens": 0,
+      "costUsd": 0.0015495,
+      "cost2027Usd": 0.0015495,
+      "suggestions": [4, 3, 4]
+    },
+    {
+      "provider": "gemini-3.5-flash",
+      "deck": "vue1",
+      "lang": "en",
+      "slides": 20,
+      "runs": 1,
+      "errors": 1,
+      "msAll": [],
+      "msMedian": null,
+      "msMax": null,
+      "inTokens": null,
+      "outTokens": null,
+      "thinkTokens": null,
+      "costUsd": null,
+      "cost2027Usd": null,
+      "suggestions": []
+    },
+    {
+      "provider": "gemini-3.5-flash",
+      "deck": "w07",
+      "lang": "th",
+      "slides": 22,
+      "runs": 1,
+      "errors": 1,
+      "msAll": [],
+      "msMedian": null,
+      "msMax": null,
+      "inTokens": null,
+      "outTokens": null,
+      "thinkTokens": null,
+      "costUsd": null,
+      "cost2027Usd": null,
+      "suggestions": []
+    },
+    {
+      "provider": "gemini-3.8-flash-low",
+      "deck": "vue1",
+      "lang": "en",
+      "slides": 20,
+      "runs": 3,
+      "errors": 0,
+      "msAll": [194499, 158466, 136951],
+      "msMedian": 158466,
+      "msMax": 194499,
+      "inTokens": 2885,
+      "outTokens": 653,
+      "thinkTokens": 0,
+      "costUsd": 0.0046125,
+      "cost2027Usd": 0.009225,
+      "suggestions": [4, 4, 4]
+    },
+    {
+      "provider": "gemini-3.8-flash",
+      "deck": "vue1",
+      "lang": "en",
+      "slides": 20,
+      "runs": 3,
+      "errors": 0,
+      "msAll": [209433, 170326, 195513],
+      "msMedian": 195513,
+      "msMax": 209433,
+      "inTokens": 2885,
+      "outTokens": 736,
+      "thinkTokens": 1951,
+      "costUsd": 0.0126075,
+      "cost2027Usd": 0.025215,
+      "suggestions": [3, 4, 4]
+    },
+    {
+      "provider": "gemini-3.8-flash",
+      "deck": "vue3",
+      "lang": "en",
+      "slides": 37,
+      "runs": 3,
+      "errors": 2,
+      "msAll": [128572],
+      "msMedian": 128572,
+      "msMax": 128572,
+      "inTokens": 4764,
+      "outTokens": 1056,
+      "thinkTokens": 3784,
+      "costUsd": 0.021723,
+      "cost2027Usd": 0.043446,
+      "suggestions": [5]
+    }
+  ],
+  "items": [
+    {
+      "id": "gemini-3.1-flash-lite:vue1:1",
+      "problems": [],
+      "type": "quiz",
+      "correct": 0
+    },
+    {
+      "id": "gemini-3.1-flash-lite:vue1:2",
+      "problems": [],
+      "type": "quiz",
+      "correct": 1
+    },
+    {
+      "id": "gemini-3.1-flash-lite:vue1:3",
+      "problems": [],
+      "type": "poll",
+      "correct": -1
+    },
+    {
+      "id": "gemini-3.1-flash-lite:vue1:4",
+      "problems": [],
+      "type": "quiz",
+      "correct": 1
+    },
+    {
+      "id": "gemini-3.1-flash-lite:vue3:1",
+      "problems": [],
+      "type": "quiz",
+      "correct": 1
+    },
+    {
+      "id": "gemini-3.1-flash-lite:vue3:2",
+      "problems": [],
+      "type": "poll",
+      "correct": -1
+    },
+    {
+      "id": "gemini-3.1-flash-lite:vue3:3",
+      "problems": [],
+      "type": "quiz",
+      "correct": 1
+    },
+    {
+      "id": "gemini-3.1-flash-lite:vue3:4",
+      "problems": [],
+      "type": "quiz",
+      "correct": 2
+    },
+    {
+      "id": "gemini-3.1-flash-lite:vue3:5",
+      "problems": ["position: after title slide, last slide or out of range"],
+      "type": "quiz",
+      "correct": 2
+    },
+    {
+      "id": "gemini-3.1-flash-lite:w07:1",
+      "problems": ["language: English question on a Thai deck"],
+      "type": "quiz",
+      "correct": 1
+    },
+    {
+      "id": "gemini-3.1-flash-lite:w07:2",
+      "problems": ["language: English question on a Thai deck"],
+      "type": "quiz",
+      "correct": 3
+    },
+    {
+      "id": "gemini-3.1-flash-lite:w07:3",
+      "problems": ["language: English question on a Thai deck"],
+      "type": "poll",
+      "correct": -1
+    },
+    {
+      "id": "gemini-3.1-flash-lite:w07:4",
+      "problems": ["language: English question on a Thai deck"],
+      "type": "quiz",
+      "correct": 2
+    },
+    {
+      "id": "gemini-3.1-flash-lite:w08:1",
+      "problems": [],
+      "type": "poll",
+      "correct": -1
+    },
+    {
+      "id": "gemini-3.1-flash-lite:w08:2",
+      "problems": [],
+      "type": "quiz",
+      "correct": 2
+    },
+    {
+      "id": "gemini-3.1-flash-lite:w08:3",
+      "problems": [],
+      "type": "quiz",
+      "correct": 0
+    },
+    {
+      "id": "gemini-3.1-flash-lite:w08:4",
+      "problems": [],
+      "type": "quiz",
+      "correct": 3
+    },
+    {
+      "id": "gemini-3.8-flash:vue1:1",
+      "problems": [],
+      "type": "quiz",
+      "correct": 0
+    },
+    {
+      "id": "gemini-3.8-flash:vue1:2",
+      "problems": [],
+      "type": "poll",
+      "correct": -1
+    },
+    {
+      "id": "gemini-3.8-flash:vue1:3",
+      "problems": [],
+      "type": "quiz",
+      "correct": 0
+    },
+    {
+      "id": "gemini-3.8-flash:vue3:1",
+      "problems": [],
+      "type": "quiz",
+      "correct": 2
+    },
+    {
+      "id": "gemini-3.8-flash:vue3:2",
+      "problems": [],
+      "type": "quiz",
+      "correct": 2
+    },
+    {
+      "id": "gemini-3.8-flash:vue3:3",
+      "problems": [],
+      "type": "poll",
+      "correct": -1
+    },
+    {
+      "id": "gemini-3.8-flash:vue3:4",
+      "problems": [],
+      "type": "quiz",
+      "correct": 1
+    },
+    {
+      "id": "gemini-3.8-flash:vue3:5",
+      "problems": [],
+      "type": "quiz",
+      "correct": 2
+    },
+    {
+      "id": "gemini-3.8-flash-low:vue1:1",
+      "problems": [],
+      "type": "quiz",
+      "correct": 0
+    },
+    {
+      "id": "gemini-3.8-flash-low:vue1:2",
+      "problems": [],
+      "type": "quiz",
+      "correct": 1
+    },
+    {
+      "id": "gemini-3.8-flash-low:vue1:3",
+      "problems": [],
+      "type": "quiz",
+      "correct": 1
+    },
+    {
+      "id": "gemini-3.8-flash-low:vue1:4",
+      "problems": [],
+      "type": "poll",
+      "correct": -1
+    }
+  ]
+}
