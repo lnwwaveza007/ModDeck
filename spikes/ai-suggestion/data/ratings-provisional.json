@@ -1,0 +1,122 @@
+{
+  "rater": "provisional (Claude, not a teacher)",
+  "at": "2026-10-14T07:53:35.961Z",
+  "ratings": {
+    "gemini-3.1-flash-lite:vue1:1": {
+      "rating": "usable",
+      "note": "Matches slide 6."
+    },
+    "gemini-3.1-flash-lite:vue1:2": {
+      "rating": "usable",
+      "note": "Matches slide 9 (HMR invalidates only the edited module chain)."
+    },
+    "gemini-3.1-flash-lite:vue1:3": {
+      "rating": "usable",
+      "note": "Confidence poll right after the project setup slide."
+    },
+    "gemini-3.1-flash-lite:vue1:4": {
+      "rating": "usable",
+      "note": "Pure recall of slide 18, but valid as a wrap-up."
+    },
+    "gemini-3.1-flash-lite:vue3:1": {
+      "rating": "usable",
+      "note": "Matches slide 5."
+    },
+    "gemini-3.1-flash-lite:vue3:2": {
+      "rating": "usable",
+      "note": "Check-in poll after v-model select."
+    },
+    "gemini-3.1-flash-lite:vue3:3": {
+      "rating": "usable",
+      "note": "Tests slide 24 (.prevent); placed one slide late, acceptable."
+    },
+    "gemini-3.1-flash-lite:vue3:4": {
+      "rating": "usable",
+      "note": "Matches slide 27; placed after the example on slide 28."
+    },
+    "gemini-3.1-flash-lite:vue3:5": {
+      "rating": "edit",
+      "note": "Placed after the last slide, against the rule. Content matches slide 37. Move or mark as end-of-lecture quiz."
+    },
+    "gemini-3.1-flash-lite:w07:1": {
+      "rating": "edit",
+      "note": "Correct (slide 5), but English on a Thai deck. Slide 5 itself is English, so a teacher may accept it."
+    },
+    "gemini-3.1-flash-lite:w07:2": {
+      "rating": "edit",
+      "note": "Correct (slide 8). English on a Thai deck; the slide labels are Thai + English."
+    },
+    "gemini-3.1-flash-lite:w07:3": {
+      "rating": "edit",
+      "note": "Good discussion poll during the SWOT workshop. English on a Thai deck."
+    },
+    "gemini-3.1-flash-lite:w07:4": {
+      "rating": "edit",
+      "note": "Slide 15 chart text is ambiguous: 'Defensive/Diversify' is one label; the model mapped S+T to it. Teacher must check against the chart image. English."
+    },
+    "gemini-3.1-flash-lite:w08:1": {
+      "rating": "usable",
+      "note": "Opinion poll on slide 3 functions, Thai."
+    },
+    "gemini-3.1-flash-lite:w08:2": {
+      "rating": "usable",
+      "note": "CLV is listed on slide 9; definition is general knowledge, correct."
+    },
+    "gemini-3.1-flash-lite:w08:3": {
+      "rating": "usable",
+      "note": "Matches slide 12 (customer-segment, channel, time pricing)."
+    },
+    "gemini-3.1-flash-lite:w08:4": {
+      "rating": "usable",
+      "note": "Matches slide 15 Thai description of Customer Relationships."
+    },
+    "gemini-3.8-flash:vue1:1": {
+      "rating": "usable",
+      "note": "Matches slide 6. Thai text on an English deck."
+    },
+    "gemini-3.8-flash:vue1:2": {
+      "rating": "usable",
+      "note": "Poll on slide 11 extensions; useful for the lecturer."
+    },
+    "gemini-3.8-flash:vue1:3": {
+      "rating": "usable",
+      "note": "Matches slide 18."
+    },
+    "gemini-3.8-flash:vue3:1": {
+      "rating": "usable",
+      "note": "Matches slide 5."
+    },
+    "gemini-3.8-flash:vue3:2": {
+      "rating": "usable",
+      "note": "Matches slide 12 (multiple checkboxes bound to an array)."
+    },
+    "gemini-3.8-flash:vue3:3": {
+      "rating": "usable",
+      "note": "Poll after inline handler slides 18-19."
+    },
+    "gemini-3.8-flash:vue3:4": {
+      "rating": "usable",
+      "note": "Matches slide 27."
+    },
+    "gemini-3.8-flash:vue3:5": {
+      "rating": "usable",
+      "note": "Matches slide 34 (runs immediately, tracks dependencies)."
+    },
+    "gemini-3.8-flash-low:vue1:1": {
+      "rating": "usable",
+      "note": "Matches slide 6."
+    },
+    "gemini-3.8-flash-low:vue1:2": {
+      "rating": "usable",
+      "note": "Matches slide 8."
+    },
+    "gemini-3.8-flash-low:vue1:3": {
+      "rating": "usable",
+      "note": "Matches slide 14."
+    },
+    "gemini-3.8-flash-low:vue1:4": {
+      "rating": "usable",
+      "note": "CSS framework poll after slides 16-17."
+    }
+  }
+}
