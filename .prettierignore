@@ -9,4 +9,5 @@ proposal_media
 spikes/*/out
 spikes/*/bench
 spikes/*/demo/index.html
+spikes/*/results
 spikes/ai-suggestion/rating/

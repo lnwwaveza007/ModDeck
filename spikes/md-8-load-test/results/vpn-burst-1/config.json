@@ -1,0 +1,36 @@
+{
+  "scenario": "burst",
+  "label": "vpn-burst-1",
+  "note": "preliminary: load generator on laptop over campus VPN, server on VM 10.4.82.23",
+  "clients": 300,
+  "rooms": 1,
+  "roomPins": [
+    "403622"
+  ],
+  "connectS": 30,
+  "targets": [
+    "http://10.4.82.23:4000"
+  ],
+  "metricsUrls": [
+    "http://10.4.82.23:4000/metrics"
+  ],
+  "schedule": {
+    "t0": 1791989679746,
+    "MD8_BURST_AT": 1791989719746,
+    "MD8_BURST_WINDOW_MS": 1000,
+    "MD8_FIRST_SEND_AT": 1791989719746
+  },
+  "window": {
+    "start": 1791989714746,
+    "end": 1791989730746
+  },
+  "loadGenerator": {
+    "hostname": "Aunney",
+    "platform": "Windows_NT 10.0.26200 x64",
+    "cpu": "AMD Ryzen 5 7535U with Radeon Graphics",
+    "logicalCpus": 12,
+    "memoryGb": 15.2,
+    "node": "v24.19.0"
+  },
+  "startedAt": "2026-10-14T14:54:36.045Z"
+}

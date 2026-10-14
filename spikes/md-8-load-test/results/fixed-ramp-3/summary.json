@@ -1,0 +1,72 @@
+{
+  "scenario": "ramp",
+  "label": "fixed-ramp-3",
+  "note": "fixed: 50 ms vote coalescing, single machine",
+  "clients": 300,
+  "rooms": 1,
+  "pass": true,
+  "latency": {
+    "delivery_ms": {
+      "count": 90000,
+      "p50": 69.2,
+      "p95": 81,
+      "p99": 94.2,
+      "max": 340.1,
+      "mean": 69.7
+    },
+    "echo_ms": {
+      "count": 300,
+      "p50": 69,
+      "p95": 79.2,
+      "p99": 90,
+      "max": 122.7,
+      "mean": 69.3
+    },
+    "join_ms": {
+      "count": 300,
+      "p50": 0.8,
+      "p95": 1.3,
+      "p99": 2.5,
+      "max": 12.7,
+      "mean": 0.9
+    }
+  },
+  "messages": {
+    "joined": 300,
+    "sent": 300,
+    "expected": 90000,
+    "received": 90000,
+    "dropped": 0,
+    "ownMissing": 0,
+    "disconnects": 0,
+    "joinFailed": 0,
+    "lateJoin": 0,
+    "perRoom": [
+      {
+        "pin": "487769",
+        "joined": 300,
+        "sent": 300,
+        "recv": 90000,
+        "expected": 90000
+      }
+    ]
+  },
+  "server": {
+    "peakConnections": 300,
+    "cpuPctAvg": 2.7,
+    "cpuPctMax": 15.5,
+    "rssMbMax": 119.8,
+    "loopLagP99MsMax": 43.4,
+    "loopLagMaxMs": 76,
+    "redisCpuPctMax": 12.4,
+    "redisMemMbMax": 1.1
+  },
+  "loadGenerator": {
+    "cpuPctAvg": 16.6,
+    "cpuPctMax": 84.6
+  },
+  "warnings": [],
+  "artilleryExitCodes": [
+    0
+  ]
+}

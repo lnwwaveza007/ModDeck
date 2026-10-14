@@ -30,6 +30,10 @@ export class VoteService implements OnModuleInit, OnModuleDestroy {
     return this.getVotes(pin);
   }
 
+  async incrementVote(pin: string, option: string): Promise<void> {
+    await this.redisClient.hincrby(this.getVotesKey(pin), option, 1);
+  }
+
   async getVotes(pin: string): Promise<Record<string, number>> {
     const key = this.getVotesKey(pin);
     const rawVotes = await this.redisClient.hgetall(key);
@@ -43,5 +47,26 @@ export class VoteService implements OnModuleInit, OnModuleDestroy {
   async resetVotes(pin: string): Promise<void> {
     const key = this.getVotesKey(pin);
     await this.redisClient.del(key);
+  }
+
+  // Q&A message: keep the last 200 per room, expire with the room.
+  async recordQuestion(pin: string, question: string): Promise<void> {
+    const key = `moddeck:room:${pin}:questions`;
+    await this.redisClient
+      .multi()
+      .rpush(key, question)
+      .ltrim(key, -200, -1)
+      .expire(key, 86400)
+      .exec();
+  }
+
+  async redisInfo(): Promise<Record<string, string>> {
+    const raw = await this.redisClient.info();
+    const out: Record<string, string> = {};
+    for (const line of raw.split("\r\n")) {
+      const i = line.indexOf(":");
+      if (i > 0) out[line.slice(0, i)] = line.slice(i + 1);
+    }
+    return out;
   }
 }

@@ -1,0 +1,18 @@
+# Scenario 3 (sustained): Q&A traffic, 5 messages/s per room for 10 min.
+# Run through run.mjs, which sets the target, phases and MD8_* timing env vars.
+config:
+  target: "http://localhost:4000"
+  processor: "./processor.cjs"
+  phases:
+    - name: connect
+      duration: 30
+      arrivalCount: 300
+  socketio:
+    transports: ["websocket"]
+    reconnection: false
+scenarios:
+  - name: sustained
+    engine: socketio
+    flow:
+      - function: joinRoom
+      - function: qaSustained

@@ -1,0 +1,18 @@
+# Scenario 1 (ramp): ramp to 300 connections in one room, hold 5 min, light vote probe.
+# Run through run.mjs, which sets the target, phases and MD8_* timing env vars.
+config:
+  target: "http://localhost:4000"
+  processor: "./processor.cjs"
+  phases:
+    - name: connect
+      duration: 30
+      arrivalCount: 300
+  socketio:
+    transports: ["websocket"]
+    reconnection: false
+scenarios:
+  - name: ramp
+    engine: socketio
+    flow:
+      - function: joinRoom
+      - function: rampHold

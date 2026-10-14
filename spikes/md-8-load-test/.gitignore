@@ -1,0 +1,5 @@
+# Large per-run files: kept locally, not committed. The committed charts are
+# generated from samples.jsonl; summary/config/raw-* hold the results.
+results/*/samples.jsonl
+results/*/artillery-report-*.json
+results/*/artillery-*.log

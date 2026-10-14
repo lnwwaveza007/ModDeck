@@ -1,0 +1,13 @@
+# Nginx in front of two api instances running natively on the host (:4000, :4001).
+#   docker compose -f spikes/md-8-load-test/nginx/docker-compose.yml up -d
+services:
+  nginx:
+    image: nginx:1.28-alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "8080:8080"
+    ulimits:
+      nofile: { soft: 65535, hard: 65535 }
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

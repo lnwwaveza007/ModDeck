@@ -1,0 +1,36 @@
+{
+  "scenario": "burst",
+  "label": "zz-vm-smoke",
+  "note": "",
+  "clients": 30,
+  "rooms": 1,
+  "roomPins": [
+    "663779"
+  ],
+  "connectS": 5,
+  "targets": [
+    "http://10.4.82.23:4000"
+  ],
+  "metricsUrls": [
+    "http://10.4.82.23:4000/metrics"
+  ],
+  "schedule": {
+    "t0": 1791989164206,
+    "MD8_BURST_AT": 1791989179206,
+    "MD8_BURST_WINDOW_MS": 1000,
+    "MD8_FIRST_SEND_AT": 1791989179206
+  },
+  "window": {
+    "start": 1791989174206,
+    "end": 1791989183206
+  },
+  "loadGenerator": {
+    "hostname": "Aunney",
+    "platform": "Windows_NT 10.0.26200 x64",
+    "cpu": "AMD Ryzen 5 7535U with Radeon Graphics",
+    "logicalCpus": 12,
+    "memoryGb": 15.2,
+    "node": "v24.19.0"
+  },
+  "startedAt": "2026-10-14T14:45:28.839Z"
+}

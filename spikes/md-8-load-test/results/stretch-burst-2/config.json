@@ -1,0 +1,41 @@
+{
+  "scenario": "burst",
+  "label": "stretch-burst-2",
+  "note": "stretch: 2 instances via Redis adapter, clients split directly (no Nginx), single machine",
+  "clients": 1200,
+  "rooms": 4,
+  "roomPins": [
+    "860534",
+    "885750",
+    "336468",
+    "705378"
+  ],
+  "connectS": 60,
+  "targets": [
+    "http://localhost:4000",
+    "http://localhost:4001"
+  ],
+  "metricsUrls": [
+    "http://localhost:4000/metrics",
+    "http://localhost:4001/metrics"
+  ],
+  "schedule": {
+    "t0": 1791897411927,
+    "MD8_BURST_AT": 1791897481927,
+    "MD8_BURST_WINDOW_MS": 1000,
+    "MD8_FIRST_SEND_AT": 1791897481927
+  },
+  "window": {
+    "start": 1791897476927,
+    "end": 1791897492927
+  },
+  "loadGenerator": {
+    "hostname": "Aunney",
+    "platform": "Windows_NT 10.0.26200 x64",
+    "cpu": "AMD Ryzen 5 7535U with Radeon Graphics",
+    "logicalCpus": 12,
+    "memoryGb": 15.2,
+    "node": "v24.19.0"
+  },
+  "startedAt": "2026-10-13T13:16:44.955Z"
+}
