@@ -1,0 +1,40 @@
+{
+  "scenario": "ramp",
+  "label": "vmpin-ramp-3",
+  "note": "VM 4 vCPU: server+Redis on vCPU 0-1, load generator on vCPU 2-3, same VM (no network)",
+  "clients": 300,
+  "rooms": 1,
+  "roomPins": [
+    "742508"
+  ],
+  "connectS": 60,
+  "targets": [
+    "http://localhost:4000"
+  ],
+  "metricsUrls": [
+    "http://localhost:4000/metrics"
+  ],
+  "schedule": {
+    "t0": 1791994188075,
+    "MD8_HOLD_START": 1791994253075,
+    "MD8_HOLD_END": 1791994553075,
+    "MD8_FIRST_SEND_AT": 1791994253075
+  },
+  "window": {
+    "start": 1791994188075,
+    "end": 1791994553075
+  },
+  "loadGenerator": {
+    "hostname": "CP26SSA2",
+    "platform": "Linux 7.0.0-34-generic x64",
+    "cpu": "QEMU Virtual CPU version 2.5+",
+    "logicalCpus": 4,
+    "memoryGb": 7.2,
+    "node": "v22.22.1",
+    "pinnedCpus": [
+      2,
+      3
+    ]
+  },
+  "startedAt": "2026-10-14T16:09:44.684Z"
+}

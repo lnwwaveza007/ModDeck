@@ -1,0 +1,72 @@
+{
+  "scenario": "burst",
+  "label": "zz-vm-smoke",
+  "note": "",
+  "clients": 30,
+  "rooms": 1,
+  "pass": false,
+  "latency": {
+    "delivery_ms": {
+      "count": 900,
+      "p50": 103.5,
+      "p95": 175.3,
+      "p99": 176.7,
+      "max": 177.3,
+      "mean": 112.4
+    },
+    "echo_ms": {
+      "count": 30,
+      "p50": 102.6,
+      "p95": 176.5,
+      "p99": 177,
+      "max": 177,
+      "mean": 112.4
+    },
+    "join_ms": {
+      "count": 30,
+      "p50": 54.5,
+      "p95": 186.6,
+      "p99": 253.8,
+      "max": 253.8,
+      "mean": 67
+    }
+  },
+  "messages": {
+    "joined": 30,
+    "sent": 30,
+    "expected": 900,
+    "received": 900,
+    "dropped": 0,
+    "ownMissing": 0,
+    "disconnects": 0,
+    "joinFailed": 0,
+    "lateJoin": 0,
+    "perRoom": [
+      {
+        "pin": "663779",
+        "joined": 30,
+        "sent": 30,
+        "recv": 900,
+        "expected": 900
+      }
+    ]
+  },
+  "server": {
+    "peakConnections": 30,
+    "cpuPctAvg": 2.3,
+    "cpuPctMax": 8.3,
+    "rssMbMax": 106.1,
+    "loopLagP99MsMax": 11,
+    "loopLagMaxMs": 11.8,
+    "redisCpuPctMax": 1.1,
+    "redisMemMbMax": 1.2
+  },
+  "loadGenerator": {
+    "cpuPctAvg": 23.6,
+    "cpuPctMax": 38.5
+  },
+  "warnings": [],
+  "artilleryExitCodes": [
+    0
+  ]
+}

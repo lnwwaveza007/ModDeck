@@ -1,0 +1,72 @@
+{
+  "scenario": "burst",
+  "label": "vmpin-burst-2",
+  "note": "VM 4 vCPU: server+Redis on vCPU 0-1, load generator on vCPU 2-3, same VM (no network)",
+  "clients": 300,
+  "rooms": 1,
+  "pass": true,
+  "latency": {
+    "delivery_ms": {
+      "count": 90000,
+      "p50": 43.5,
+      "p95": 70.1,
+      "p99": 79.8,
+      "max": 96.2,
+      "mean": 43
+    },
+    "echo_ms": {
+      "count": 300,
+      "p50": 44.5,
+      "p95": 69.1,
+      "p99": 81.1,
+      "max": 94,
+      "mean": 43.1
+    },
+    "join_ms": {
+      "count": 300,
+      "p50": 1.1,
+      "p95": 2,
+      "p99": 3.6,
+      "max": 5.3,
+      "mean": 1.3
+    }
+  },
+  "messages": {
+    "joined": 300,
+    "sent": 300,
+    "expected": 90000,
+    "received": 90000,
+    "dropped": 0,
+    "ownMissing": 0,
+    "disconnects": 0,
+    "joinFailed": 0,
+    "lateJoin": 0,
+    "perRoom": [
+      {
+        "pin": "270956",
+        "joined": 300,
+        "sent": 300,
+        "recv": 90000,
+        "expected": 90000
+      }
+    ]
+  },
+  "server": {
+    "peakConnections": 300,
+    "cpuPctAvg": 3.8,
+    "cpuPctMax": 22.4,
+    "rssMbMax": 142,
+    "loopLagP99MsMax": 17.2,
+    "loopLagMaxMs": 18.6,
+    "redisCpuPctMax": 1.6,
+    "redisMemMbMax": 1.2
+  },
+  "loadGenerator": {
+    "cpuPctAvg": 4,
+    "cpuPctMax": 16.6
+  },
+  "warnings": [],
+  "artilleryExitCodes": [
+    0
+  ]
+}

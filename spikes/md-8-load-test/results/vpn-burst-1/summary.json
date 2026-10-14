@@ -1,0 +1,72 @@
+{
+  "scenario": "burst",
+  "label": "vpn-burst-1",
+  "note": "preliminary: load generator on laptop over campus VPN, server on VM 10.4.82.23",
+  "clients": 300,
+  "rooms": 1,
+  "pass": false,
+  "latency": {
+    "delivery_ms": {
+      "count": 90000,
+      "p50": 658.1,
+      "p95": 1488.3,
+      "p99": 1740.8,
+      "max": 2177.1,
+      "mean": 734.6
+    },
+    "echo_ms": {
+      "count": 300,
+      "p50": 625,
+      "p95": 1494.4,
+      "p99": 1800.1,
+      "max": 2085.7,
+      "mean": 741.5
+    },
+    "join_ms": {
+      "count": 300,
+      "p50": 63.6,
+      "p95": 201.8,
+      "p99": 302.7,
+      "max": 317.2,
+      "mean": 77.9
+    }
+  },
+  "messages": {
+    "joined": 300,
+    "sent": 300,
+    "expected": 90000,
+    "received": 90000,
+    "dropped": 0,
+    "ownMissing": 0,
+    "disconnects": 0,
+    "joinFailed": 0,
+    "lateJoin": 0,
+    "perRoom": [
+      {
+        "pin": "403622",
+        "joined": 300,
+        "sent": 300,
+        "recv": 90000,
+        "expected": 90000
+      }
+    ]
+  },
+  "server": {
+    "peakConnections": 300,
+    "cpuPctAvg": 3.5,
+    "cpuPctMax": 17.3,
+    "rssMbMax": 136.1,
+    "loopLagP99MsMax": 14.9,
+    "loopLagMaxMs": 17.9,
+    "redisCpuPctMax": 1.8,
+    "redisMemMbMax": 1.2
+  },
+  "loadGenerator": {
+    "cpuPctAvg": 12.2,
+    "cpuPctMax": 23.2
+  },
+  "warnings": [],
+  "artilleryExitCodes": [
+    0
+  ]
+}

@@ -289,23 +289,23 @@ function cdf(run) {
 
 // ---- charts -------------------------------------------------------------------------
 const scen = ["ramp", "burst", "sustained"];
-const variants = [...new Set(runs.map((r) => r.variant))].filter(
-  (v) => v === "baseline" || v === "fixed",
-);
+// Series shown in the comparison charts, in fixed palette order.
+const VARIANTS = [
+  { v: "baseline", name: "Laptop: baseline (MD-2 as built)", short: "Laptop baseline", slot: 2 },
+  { v: "fixed", name: "Laptop: fixed (50 ms vote coalescing)", short: "Laptop fixed", slot: 1 },
+  { v: "vmpin", name: "Target VM: fixed", short: "Target VM", slot: 3 },
+];
+const variants = VARIANTS.filter(({ v }) => runs.some((r) => r.variant === v));
 if (variants.length) {
   barChart({
     file: "p95-by-scenario.svg",
     title: "Delivery latency p95 by scenario",
     subtitle: "Median of 3 runs; send -> broadcast received at every client",
     yLabel: "p95 latency (ms)",
-    seriesDefs: variants.map((v) =>
-      v === "baseline"
-        ? { name: "Baseline (MD-2 as built)", slot: 2 }
-        : { name: "Fixed (50 ms vote coalescing)", slot: 1 },
-    ),
+    seriesDefs: variants,
     groups: scen.map((sc) => ({
       name: sc,
-      values: variants.map((v) =>
+      values: variants.map(({ v }) =>
         median(ofGroup(`${v}-${sc}`).map((r) => r.summary.latency.delivery_ms.p95)),
       ),
     })),
@@ -314,12 +314,12 @@ if (variants.length) {
   });
 }
 
-const bBurst = medianRun("baseline-burst");
-const fBurst = medianRun("fixed-burst");
-const burstRuns = [
-  bBurst && { r: bBurst, name: "Baseline", slot: 2 },
-  fBurst && { r: fBurst, name: "Fixed", slot: 1 },
-].filter(Boolean);
+const burstRuns = variants
+  .map(({ v, short, slot }) => {
+    const r = medianRun(`${v}-burst`);
+    return r && { r, name: short, slot };
+  })
+  .filter(Boolean);
 if (burstRuns.length) {
   lineChart({
     file: "burst-latency-cdf.svg",
@@ -371,11 +371,8 @@ if (burstRuns.length) {
 const cpuPct = (m, p, dt) =>
   (100 * (m.process_cpu_seconds_total - p.process_cpu_seconds_total)) / dt;
 function compare(scenario, file, title, subtitle, xLabel, yLabel, fn, t0Of, extra = {}) {
-  const sers = [
-    ["baseline", "Baseline", 2],
-    ["fixed", "Fixed", 1],
-  ]
-    .map(([v, name, slot]) => {
+  const sers = variants
+    .map(({ v, short: name, slot }) => {
       const r = medianRun(`${v}-${scenario}`);
       return (
         r && {
