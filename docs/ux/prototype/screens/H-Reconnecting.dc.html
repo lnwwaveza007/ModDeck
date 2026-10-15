@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>Presenter reconnecting</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.app{min-height:900px;display:flex;flex-direction:column;background:#f1f5f9;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:15px;line-height:24px}
+.app *{box-sizing:border-box}
+.app h1,.app h2,.app h3,.app p{margin:0}
+.btn{height:52px;border-radius:8px;border:0;font:inherit;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 22px;white-space:nowrap}
+.btn-off{background:#e2e8f0;color:#475569}
+.card{background:#ffffff;border:1px solid #e2e8f0;border-radius:12px}
+.stat{display:flex;align-items:center;gap:6px;height:32px;padding:0 10px;border-radius:8px;background:#f1f5f9;font-size:14px;font-weight:600}
+.spin{width:20px;height:20px;border-radius:50%;border:3px solid #fde68a;border-top-color:#92400e;animation:sp .9s linear infinite;flex:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.spin{animation:none}}
+</style>
+</helmet>
+<div class="app">
+  <div role="status" aria-live="polite" style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 12px 16px; background: #fef3c7; border-bottom: 1px solid #f59e0b; color: #92400e">
+    <span class="spin" aria-hidden="true"></span>
+    <b style="font-size: 15px">ขาดการเชื่อมต่อ กำลังเชื่อมต่อใหม่…</b>
+    <span style="font-size: 14px; flex: 1 1 320px">เซสชันยังสดอยู่ นักศึกษาตอบ ถาม และส่งรีแอคชันได้ตามปกติ ปุ่มควบคุมจะใช้ได้เมื่อเชื่อมต่อกลับมา</span>
+    <button style="height: 40px; padding: 0 14px; border-radius: 8px; border: 1px solid #b45309; background: #ffffff; color: #92400e; font: inherit; font-size: 14px; font-weight: 600">ลองตอนนี้</button>
+  </div>
+  <header style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; padding: 10px 16px; background: #ffffff; border-bottom: 1px solid #e2e8f0">
+    <span style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 999px; background: #e2e8f0; color: #334155; font-size: 13px; font-weight: 700">ออฟไลน์</span>
+    <h1 style="font-size: 16px; line-height: 24px; font-weight: 600; flex: 1 1 200px">INT365 · บทที่ 4 Reactive Forms</h1>
+    <span class="stat" style="font-family: 'IBM Plex Mono', monospace; color: #b02f0b; background: #fff4ee">PIN 482 914</span>
+    <span class="stat" style="color: #475569">87 คน · อัปเดตล่าสุด 14 วินาทีที่แล้ว</span>
+  </header>
+
+  <div style="flex: 1; display: flex; flex-wrap: wrap; gap: 16px; padding: 16px; align-items: flex-start">
+    <main style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 16px; opacity: 0.6">
+      <div class="card" style="aspect-ratio: 16 / 9; max-height: 480px; padding: 28px 32px; display: flex; flex-direction: column; gap: 14px">
+        <span style="font-size: 12px; font-weight: 600; color: #475569">Live Poll · สไลด์ 6 / 20</span>
+        <h2 style="font-size: 26px; line-height: 36px; font-weight: 700">ภาษาโปรแกรมไหนที่คุณใช้บ่อยที่สุด?</h2>
+      </div>
+      <section class="card" style="padding: 16px 20px; display: flex; align-items: center; flex-wrap: wrap; gap: 12px">
+        <h2 style="font-size: 16px; line-height: 24px; font-weight: 600; flex: 1">Live Poll · กำลังเปิดโหวต</h2>
+        <button class="btn btn-off" disabled>ปิดโหวต</button>
+        <button class="btn btn-off" disabled>แสดงผล</button>
+        <button class="btn btn-off" disabled>ถัดไป</button>
+      </section>
+    </main>
+    <aside class="card" style="flex: 1 1 340px; max-width: 440px; padding: 16px 18px; opacity: 0.6">
+      <h2 style="font-size: 16px; line-height: 24px; font-weight: 600">ถาม-ตอบ</h2>
+      <p style="font-size: 14px; color: #475569; margin-top: 8px">แสดงข้อมูลล่าสุดก่อนหลุด</p>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>R2 Team mode leaderboard</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.scr{width:1280px;height:720px;box-sizing:border-box;position:relative;overflow:hidden;background:#ffffff;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif}
+.scr *{box-sizing:border-box}
+.scr h1,.scr h2,.scr p{margin:0}
+.join{position:absolute;right:24px;top:20px;display:flex;align-items:center;gap:10px;height:40px;padding:0 14px;border-radius:10px;background:#0f172a;color:#ffffff;font-size:16px}
+.join b{font-family:'IBM Plex Mono',monospace;font-size:20px;letter-spacing:.06em;color:#fb7448}
+.team{display:grid;grid-template-columns:64px 240px minmax(0,1fr) 180px;gap:20px;align-items:center;padding:16px 20px;border-radius:16px;border:2px solid #e2e8f0}
+.sym{width:56px;height:56px;border-radius:14px;display:grid;place-items:center;font-weight:700;font-size:26px;color:#ffffff}
+.track{height:36px;border-radius:8px;background:#f1f5f9;overflow:hidden}
+.streak{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:999px;background:#fffbeb;border:1px solid #f59e0b;color:#92400e;font-size:18px;font-weight:700}
+</style>
+</helmet>
+<div class="scr">
+  <div style="position: absolute; inset: 0; padding: 64px 96px 48px; display: flex; flex-direction: column; gap: 28px">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 20px; font-weight: 600; color: #475569">โหมดทีม · หลังข้อ 3 จาก 5</span>
+      <h1 style="font-size: 52px; line-height: 66px; font-weight: 700">คะแนนทีม</h1>
+    </div>
+    <div role="list" style="display: flex; flex-direction: column; gap: 16px">
+      <div class="team" role="listitem" style="border-color: #d63a0e; background: #fff4ee; gap: 20px; padding-right: 50px; padding-left: 20px">
+        <span class="sym" style="background: #4f46e5">A</span>
+        <div><b style="font-size: 30px; line-height: 40px">ทีมแอลฟา</b><p style="font-size: 16px; color: #475569">12 คน · ตอบถูก 83%</p></div>
+        <span class="track"><span style="display: block; height: 100%; width: 100%; background: #4f46e5"></span></span>
+        <div style="text-align: right; width: 221px; position: static; height: 77px; display: block"><b style="font-size: 34px; line-height: 42px; font-variant-numeric: tabular-nums">38,420</b><br><span class="streak">× 1.5 ถูกติดต่อกัน 3 ข้อ</span></div>
+      </div>
+      <div class="team" role="listitem" style="padding-right: 50px">
+        <span class="sym" style="background: #0891b2">B</span>
+        <div><b style="font-size: 30px; line-height: 40px">ทีมบีตา</b><p style="font-size: 16px; color: #475569">11 คน · ตอบถูก 74%</p></div>
+        <span class="track"><span style="display: block; height: 100%; width: 83%; background: #0891b2"></span></span>
+        <div style="text-align: right"><b style="font-size: 34px; line-height: 42px; font-variant-numeric: tabular-nums">31,900</b><br><span class="streak" style="background: #f1f5f9; border-color: #e2e8f0; color: #475569">× 1.2 · 2 ข้อ</span></div>
+      </div>
+      <div class="team" role="listitem" style="padding-right: 50px">
+        <span class="sym" style="background: #b45309">C</span>
+        <div><b style="font-size: 30px; line-height: 40px">ทีมแกมมา</b><p style="font-size: 16px; color: #475569">12 คน · ตอบถูก 61%</p></div>
+        <span class="track"><span style="display: block; height: 100%; width: 70%; background: #b45309"></span></span>
+        <div style="text-align: right"><b style="font-size: 34px; line-height: 42px; font-variant-numeric: tabular-nums">26,870</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="join"><span>moddeck.kmutt.ac.th</span><b>482 914</b></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

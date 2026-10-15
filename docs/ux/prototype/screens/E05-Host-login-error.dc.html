@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>E05 Host sign-in failed</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.app{min-height:900px;display:grid;place-items:center;padding:24px;background:#fff4ee;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:15px;line-height:24px}
+.app *{box-sizing:border-box}
+.app h1,.app p{margin:0}
+.btn{height:52px;border-radius:8px;font:inherit;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:0 20px}
+</style>
+</helmet>
+<div class="app">
+  <div role="alert" style="width: min(440px, 100%); background: #ffffff; border-radius: 20px; border: 1px solid #ffcab3; padding: 40px 36px; display: flex; flex-direction: column; gap: 20px">
+    <div style="width: 56px; height: 56px; border-radius: 14px; background: #fff1f2; display: grid; place-items: center">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#be123c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <h1 style="font-size: 24px; line-height: 34px; font-weight: 700">เข้าสู่ระบบไม่สำเร็จ</h1>
+      <p style="color: #475569">ระบบ KMUTT SSO ตอบกลับช้าเกินไป<br>โปรดลองเข้าสู่ระบบอีกครั้ง</p>
+    </div>
+    <button class="btn" style="border: 0; background: #d63a0e; color: #ffffff">ลองอีกครั้ง</button>
+    <p style="font-size: 13px; line-height: 20px; color: #475569">ถ้ายังเข้าไม่ได้ ? <u>ติดต่อผู้ดูแลระบบ</u></p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

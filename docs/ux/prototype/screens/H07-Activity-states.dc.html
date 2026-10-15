@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>H07 Activity control states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.sheet{width:1440px;height:900px;box-sizing:border-box;padding:40px;background:#f1f5f9;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:15px;line-height:24px;display:flex;flex-direction:column;gap:20px}
+.sheet *{box-sizing:border-box}
+.sheet h1,.sheet h2,.sheet p{margin:0}
+.btn{height:44px;border-radius:8px;border:0;font:inherit;font-size:14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 14px;white-space:nowrap}
+.btn-p{background:#d63a0e;color:#ffffff}
+.btn-s{background:#ffffff;color:#0f172a;border:1px solid #cbd5e1}
+.btn-g{background:transparent;color:#334155}
+.kbd{font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:16px;padding:0 5px;border-radius:4px;border:1px solid #cbd5e1;background:#f8fafc;color:#334155}
+.kbd-d{background:#b02f0b;border-color:#fb7448;color:#ffffff}
+.card{background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.st{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:13px;font-weight:600}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.t{font-size:15px;line-height:24px;font-weight:600}
+.d{font-size:13px;line-height:20px;color:#475569}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.col{display:flex;flex-direction:column;gap:12px}
+.colh{font-size:13px;font-weight:600;color:#475569}
+</style>
+</helmet>
+<div class="sheet">
+  <h1 style="font-size: 24px; line-height: 34px; font-weight: 700">การ์ดควบคุมกิจกรรม · ทุกสถานะ</h1>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; flex: 1">
+    <div class="col">
+      <span class="colh">Live Poll</span>
+      <div class="card">
+        <span class="st" style="align-self: flex-start; background: #f1f5f9; color: #334155">ร่าง · ยังไม่เริ่ม</span>
+        <span class="t">ภาษาโปรแกรมไหนที่คุณใช้บ่อยที่สุด?</span>
+        <div class="acts"><button class="btn btn-p">เริ่มโหวต <span class="kbd kbd-d">Space</span></button></div>
+      </div>
+      <div class="card">
+        <span class="st" style="align-self: flex-start; background: #d1fae5; color: #065f46"><span class="dot" style="background: #059669"></span>กำลังเปิดโหวต</span>
+        <span class="t">ตอบแล้ว 64 จาก 87 คนออนไลน์</span>
+        <div class="acts"><button class="btn btn-s">ปิดโหวต <span class="kbd">Space</span></button><button class="btn btn-p">แสดงผล <span class="kbd kbd-d">S</span></button></div>
+      </div>
+      <div class="card">
+        <span class="st" style="align-self: flex-start; background: #fef3c7; color: #92400e">ปิดโหวต · ซ่อนผล</span>
+        <span class="t">87 คำตอบ</span>
+        <div class="acts"><button class="btn btn-p">แสดงผล <span class="kbd kbd-d">S</span></button><button class="btn btn-s">เปิดโหวตอีกครั้ง</button></div>
+      </div>
+      <div class="card">
+        <span class="st" style="align-self: flex-start; background: #e0e7ff; color: #3730a3">แสดงผลอยู่</span>
+        <span class="t">87 คำตอบ</span>
+        <div class="acts"><button class="btn btn-s">ซ่อนผล <span class="kbd">S</span></button><button class="btn btn-s">เปิดโหวตอีกครั้ง</button></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="colh">Word Cloud</span>
+      <div class="card">
+        <span class="st" style="align-self: flex-start; background: #f1f5f9; color: #334155">ร่าง · ยังไม่เริ่ม</span>
+        <span class="t">นึกถึงคำไหนเมื่อพูดถึง Reactive Forms?</span>
+        <div class="acts"><button class="btn btn-p">เริ่มรับคำตอบ <span class="kbd kbd-d">Space</span></button></div>
+      </div>
+      <div class="card">
+        <span class="st" style="align-self: flex-start; background: #d1fae5; color: #065f46"><span class="dot" style="background: #059669"></span>กำลังรับคำตอบ</span>
+        <span class="t">98 คำ จาก 52 คน</span>
+        <div class="acts"><button class="btn btn-s">ปิดรับ <span class="kbd">Space</span></button><button class="btn btn-p">แสดงผล <span class="kbd kbd-d">S</span></button></div>
+      </div>
+      <div class="card">
+        <span class="st" style="align-self: flex-start; background: #e0e7ff; color: #3730a3">แสดงผลอยู่</span>
+        <span class="t">142 คำ จาก 71 คน</span>
+        <div class="acts"><button class="btn btn-s">ซ่อนผล <span class="kbd">S</span></button><button class="btn btn-s">เปิดรับอีกครั้ง</button><button class="btn btn-g">ซ่อนคำ…</button></div>
+      </div>
+      <div class="card" style="border: 1px dashed #94a3b8">
+        <span class="t">ซ่อนคำ</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <span style="display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 6px 0 12px; border-radius: 999px; background: #f1f5f9; font-size: 14px">validation <button aria-label="ซ่อนคำ validation" style="width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: #475569; display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span>
+          <span style="display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 999px; background: #fff1f2; color: #9f1239; font-size: 14px; text-decoration: line-through">คำไม่สุภาพ</span>
+        </div>
+        <span class="d">คำที่ซ่อนหายจากจอและมือถือทันที</span>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="colh">สไลด์เนื้อหา และสถานะพิเศษ</span>
+      <div class="card">
+        <span class="st" style="align-self: flex-start; background: #f1f5f9; color: #334155">สไลด์เนื้อหา</span>
+        <span class="t">FormGroup คืออะไร</span>
+        <span class="d">กิจกรรมถัดไป: สไลด์ 6 Live Poll</span>
+        <div class="acts"><button class="btn btn-s">ไปกิจกรรมถัดไป</button></div>
+      </div>
+      <div class="card">
+        <span class="st" style="align-self: flex-start; background: #d1fae5; color: #065f46"><span class="dot" style="background: #059669"></span>เปิดโหวตอีกครั้ง</span>
+        <span class="t">87 คำตอบเดิม + 6 ใหม่</span>
+        <span class="d">คำตอบหลังเปิดอีกครั้งถูกติดป้าย "after reopen" ในไฟล์ส่งออก</span>
+        <div class="acts"><button class="btn btn-s">ปิดโหวต</button><button class="btn btn-p">แสดงผล</button></div>
+      </div>
+      <div class="card">
+        <span class="st" style="align-self: flex-start; background: #f1f5f9; color: #334155">ไม่มีคำตอบ</span>
+        <span class="t">0 คำตอบ</span>
+        <span class="d">แสดงผลได้ กราฟจะเป็น 0 ทุกข้อ</span>
+        <div class="acts"><button class="btn btn-s">เปิดโหวตอีกครั้ง</button><button class="btn btn-p">แสดงผล</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

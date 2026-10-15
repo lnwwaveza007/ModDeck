@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>E04 KMUTT sign-in failed</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.ph{width:390px;height:844px;box-sizing:border-box;display:flex;flex-direction:column;background:#ffffff;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:16px;line-height:26px;overflow:hidden}
+.ph *{box-sizing:border-box}
+.ph h1,.ph p{margin:0}
+.btn{height:52px;border-radius:8px;font:inherit;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:0 20px}
+.btn-p{background:#d63a0e;color:#ffffff;border:0}
+.btn-s{background:#ffffff;color:#0f172a;border:1px solid #cbd5e1}
+</style>
+</helmet>
+<div class="ph">
+  <div role="alert" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 32px 24px; text-align: center">
+    <div style="width: 96px; height: 96px; border-radius: 24px; background: #fff1f2; display: grid; place-items: center">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#be123c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"></path><path d="M9.5 9.5l5 5M14.5 9.5l-5 5"></path></svg>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <h1 style="font-size: 24px; line-height: 34px; font-weight: 700">เข้าสู่ระบบด้วย KMUTT ไม่สำเร็จ</h1>
+      <p style="font-size: 16px; color: #475569"><span style="font-size: 15px; text-align: start">ระบบ KMUTT SSO ตอบกลับช้าเกินไป<br></span>เข้าร่วมแบบ <u>Guest</u>?</p>
+    </div>
+  </div>
+  <div style="padding: 0 20px 32px; display: flex; flex-direction: column; gap: 10px">
+    <button class="btn btn-p">ลองเข้าสู่ระบบอีกครั้ง</button>
+    <button class="btn btn-s">เข้าร่วมแบบ Guest</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>P08 Math slide</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;family=STIX+Two+Text:ital,wght@0,400;1,400&amp;display=swap">
+<style>
+body{margin:0}
+.scr{width:1280px;height:720px;box-sizing:border-box;position:relative;overflow:hidden;background:#ffffff;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif}
+.scr *{box-sizing:border-box}
+.scr h1,.scr h2,.scr p{margin:0}
+.join{position:absolute;right:24px;top:20px;display:flex;align-items:center;gap:10px;height:40px;padding:0 14px;border-radius:10px;background:#0f172a;color:#ffffff;font-size:16px}
+.join b{font-family:'IBM Plex Mono',monospace;font-size:20px;letter-spacing:.06em;color:#fb7448}
+.m{font-family:'STIX Two Text',serif;color:#0f172a;display:inline-flex;align-items:center;gap:14px;white-space:nowrap}
+.m i{font-style:italic}
+.lim{display:inline-flex;flex-direction:column;align-items:center;line-height:1}
+.lim small{font-size:.38em;line-height:1.2}
+.frac{display:inline-flex;flex-direction:column;align-items:center;line-height:1.15}
+.frac > span{padding:0 10px}
+.frac > span:first-child{border-bottom:3px solid #0f172a;padding-bottom:6px}
+.frac > span:last-child{padding-top:6px}
+sup{font-size:.6em}
+</style>
+</helmet>
+<div class="scr">
+  <div style="position: absolute; inset: 0; padding: 80px 96px 56px; display: flex; flex-direction: column; gap: 36px">
+    <h1 style="font-size: 52px; line-height: 68px; font-weight: 700">ผลรวมอนุกรมเรขาคณิต</h1>
+
+    <div role="math" aria-label="ผลรวมของ r ยกกำลัง k เมื่อ k เท่ากับ 0 ถึง n ลบ 1 เท่ากับ 1 ลบ r ยกกำลัง n ส่วน 1 ลบ r" style="align-self: center; padding: 36px 56px; border-radius: 20px; background: #f8fafc; border: 1px solid #e2e8f0">
+      <span class="m" style="font-size: 64px">
+        <span class="lim"><small><i>n</i> − 1</small><span style="font-size: 1.4em">∑</span><small><i>k</i> = 0</small></span>
+        <span><i>r</i><sup><i>k</i></sup></span>
+        <span>=</span>
+        <span class="frac"><span>1 − <i>r</i><sup><i>n</i></sup></span><span>1 − <i>r</i></span></span>
+        <span style="font-size: 0.55em; color: #475569; margin-left: 16px">,&#8195;<i>r</i> ≠ 1</span>
+      </span>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 24px; font-size: 28px; line-height: 40px; color: #334155">
+      <span style="font-weight: 600; color: #0f172a">ตัวอย่าง</span>
+      <span class="m" role="math" aria-label="ผลรวมของ 2 ยกกำลัง k เมื่อ k เท่ากับ 0 ถึง 9 เท่ากับ 2 ยกกำลัง 10 ลบ 1 เท่ากับ 1023" style="font-size: 40px; gap: 10px">
+        <span class="lim"><small>9</small><span style="font-size: 1.3em">∑</span><small><i>k</i>=0</small></span>
+        <span>2<sup><i>k</i></sup> = 2<sup>10</sup> − 1 = 1023</span>
+      </span>
+    </div>
+    <span style="margin-top: auto; font-size: 18px; color: #475569">5 / 20</span>
+  </div>
+  <div class="join"><span>moddeck.kmutt.ac.th</span><b>482 914</b></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

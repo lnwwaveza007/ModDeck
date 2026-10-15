@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>P01 Projector lobby</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.scr{width:1280px;height:720px;box-sizing:border-box;position:relative;overflow:hidden;background:#ffffff;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif}
+.scr *{box-sizing:border-box}
+.scr h1,.scr h2,.scr p{margin:0}
+.step{display:flex;align-items:center;gap:16px;font-size:24px;line-height:34px}
+.step b{width:44px;height:44px;border-radius:50%;background:#0f172a;color:#ffffff;display:grid;place-items:center;font-size:20px;flex:none}
+</style>
+</helmet>
+<div class="scr">
+  <div style="position: absolute; inset: 0; display: flex">
+    <div style="flex: 1; padding: 64px 72px; display: flex; flex-direction: column; gap: 40px">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 20px; font-weight: 600; color: #475569">INT365 Software Engineering</span>
+        <h1 style="font-size: 48px; line-height: 62px; font-weight: 700">บทที่ 4: Reactive Forms</h1>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 20px">
+        <div class="step"><b>1</b><span>เปิด <b style="all: unset; font-weight: 700">moddeck.kmutt.ac.th</b> บนมือถือ</span></div>
+        <div class="step"><b>2</b><span>ใส่ PIN</span></div>
+      </div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 128px; line-height: 140px; font-weight: 600; letter-spacing: 0.06em; color: #b02f0b">482 914</div>
+      <div style="margin-top: auto; display: flex; align-items: center; gap: 12px; font-size: 24px; color: #334155">
+        <span style="width: 14px; height: 14px; border-radius: 50%; background: #059669"></span>
+        <b style="font-size: 32px; color: #0f172a; font-variant-numeric: tabular-nums">87</b> คนเข้าร่วมแล้ว
+      </div>
+    </div>
+    <div style="width: 460px; background: #fff4ee; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px">
+      <div role="img" aria-label="QR code ไปที่ moddeck.kmutt.ac.th/j/482914" style="width: 320px; height: 320px; border-radius: 20px; background: #ffffff; border: 2px dashed #fda482; display: grid; place-items: center; font-size: 20px; color: #8c2810">[QR CODE]</div>
+      <span style="font-size: 22px; line-height: 32px; color: #334155">หรือสแกนด้วยกล้องมือถือ</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

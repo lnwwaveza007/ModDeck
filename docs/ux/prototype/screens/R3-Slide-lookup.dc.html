@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>R3 AI slide lookup</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.app{min-height:900px;display:flex;flex-direction:column;background:#f1f5f9;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:15px;line-height:24px}
+.app *{box-sizing:border-box}
+.app h1,.app h2,.app h3,.app p{margin:0}
+.btn{height:40px;border-radius:8px;border:0;font:inherit;font-size:14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 14px;white-space:nowrap}
+.btn-p{background:#d63a0e;color:#ffffff}
+.btn-s{background:#ffffff;color:#0f172a;border:1px solid #cbd5e1}
+.btn-g{background:transparent;color:#334155}
+.card{background:#ffffff;border:1px solid #e2e8f0;border-radius:12px}
+.ai{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:999px;background:#ede9fe;color:#5b21b6;font-size:12px;font-weight:700}
+.kbd{font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:16px;padding:0 5px;border-radius:4px;border:1px solid #cbd5e1;background:#f8fafc;color:#334155}
+.cand{display:flex;gap:12px;padding:10px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff}
+.cthumb{width:132px;aspect-ratio:16/9;border-radius:6px;background:#ffffff;border:1px solid #cbd5e1;padding:8px;font-size:10px;line-height:14px;display:flex;flex-direction:column;gap:3px;flex:none;overflow:hidden}
+.ln{height:4px;border-radius:2px;background:#cbd5e1}
+</style>
+</helmet>
+<div class="app">
+  <header style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; padding: 10px 16px; background: #ffffff; border-bottom: 1px solid #e2e8f0">
+    <span style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 999px; background: #e11d48; color: #ffffff; font-size: 13px; font-weight: 700"><span style="width: 8px; height: 8px; border-radius: 50%; background: #ffffff"></span>LIVE</span>
+    <h1 style="font-size: 16px; line-height: 24px; font-weight: 600; flex: 1 1 200px">INT365 · บทที่ 4 Reactive Forms</h1>
+    <span style="font-size: 14px; color: #475569">กำลังแสดงสไลด์ 7 / 20</span>
+  </header>
+
+  <div style="flex: 1; display: flex; flex-wrap: wrap; gap: 16px; padding: 16px; align-items: flex-start">
+    <main style="flex: 999 1 460px; min-width: 0; display: flex; flex-direction: column; gap: 16px; opacity: 0.85">
+      <div class="card" style="aspect-ratio: 16 / 9; padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; box-shadow: inset 0 0 0 3px #fa4616">
+        <span style="font-size: 12px; font-weight: 600; color: #475569">กำลังแสดงบนจอ · สไลด์ 7</span>
+        <h2 style="font-size: 22px; line-height: 32px; font-weight: 700">Word Cloud: นึกถึงคำไหนเมื่อพูดถึง Reactive Forms?</h2>
+      </div>
+    </main>
+
+    <aside aria-label="ถาม-ตอบ" class="card" style="flex: 1 1 520px; max-width: 600px; padding: 16px 18px; display: flex; flex-direction: column; gap: 14px">
+      <h2 style="font-size: 17px; line-height: 26px; font-weight: 600">ถาม-ตอบ</h2>
+
+      <div style="padding: 14px; border-radius: 10px; border: 2px solid #7c3aed; background: #faf5ff; display: flex; flex-direction: column; gap: 12px">
+        <div>
+          <p style="font-size: 15px; line-height: 24px">อาจารย์คะ <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; background: #ffffff; padding: 0 4px; border-radius: 4px">Validators.pattern</code> ต่างจาก <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; background: #ffffff; padding: 0 4px; border-radius: 4px">Validators.email</code> ยังไงคะ?</p>
+          <span style="font-size: 12px; color: #475569">▲ 9 · ไม่ระบุชื่อ · 1 นาที</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+          <span class="ai">AI แนะนำสไลด์</span>
+          <span style="font-size: 13px; color: #475569">พบ 3 หน้าที่เกี่ยวข้องในเด็คนี้</span>
+        </div>
+
+        <div class="cand" style="border-color: #7c3aed">
+          <span class="cthumb"><b>Validators</b><span class="ln" style="width: 80%"></span><span class="ln" style="width: 60%"></span></span>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+            <div style="display: flex; align-items: baseline; gap: 8px"><b style="font-size: 14px">สไลด์ 9 · Built-in Validators</b><span style="font-size: 12px; color: #5b21b6; font-weight: 600">ตรงที่สุด 92%</span></div>
+            <span style="font-size: 13px; line-height: 20px; color: #475569">…<mark style="background: #ede9fe; color: #0f172a">pattern</mark> ใช้ regex ตรวจรูปแบบ ส่วน <mark style="background: #ede9fe; color: #0f172a">email</mark> ตรวจรูปแบบอีเมลในตัว…</span>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap">
+              <button class="btn btn-p" style="height: 34px; font-size: 13px">ไปสไลด์นี้ <span class="kbd" style="background: #b02f0b; border-color: #fb7448; color: #ffffff">1</span></button>
+              <button class="btn btn-s" style="height: 34px; font-size: 13px">แสดงบนจอโดยไม่ย้าย</button>
+            </div>
+          </div>
+        </div>
+        <div class="cand">
+          <span class="cthumb"><b>Custom validator</b><span class="ln" style="width: 70%"></span></span>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+            <div style="display: flex; align-items: baseline; gap: 8px"><b style="font-size: 14px">สไลด์ 12 · Custom Validator</b><span style="font-size: 12px; color: #475569">74%</span></div>
+            <div style="display: flex; gap: 6px"><button class="btn btn-s" style="height: 34px; font-size: 13px">ไปสไลด์นี้ <span class="kbd">2</span></button></div>
+          </div>
+        </div>
+        <div class="cand">
+          <span class="cthumb"><b>Error messages</b><span class="ln" style="width: 55%"></span></span>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+            <div style="display: flex; align-items: baseline; gap: 8px"><b style="font-size: 14px">สไลด์ 14 · Error messages</b><span style="font-size: 12px; color: #475569">61%</span></div>
+            <div style="display: flex; gap: 6px"><button class="btn btn-s" style="height: 34px; font-size: 13px">ไปสไลด์นี้ <span class="kbd">3</span></button></div>
+          </div>
+        </div>
+        <p style="font-size: 12px; line-height: 18px; color: #475569">กด "ไปสไลด์นี้" แล้วระบบจดจำสไลด์เดิมไว้ กลับมาที่สไลด์ 7 ได้ในคลิกเดียว</p>
+      </div>
+
+      <div style="padding: 14px; border-radius: 10px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 6px">
+        <p style="font-size: 15px; line-height: 24px">Template-driven กับ Reactive Forms ควรเลือกแบบไหนในโปรเจกต์กลุ่ม?</p>
+        <span style="font-size: 12px; color: #475569">▲ 24 · ไม่ระบุชื่อ · 8 นาที</span>
+        <button class="btn btn-g" style="align-self: flex-start; height: 34px; color: #5b21b6"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.4L12 15l-1.8-4.6L5.5 9l4.7-1.4z"></path></svg>ค้นหาสไลด์ที่เกี่ยวข้อง</button>
+      </div>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

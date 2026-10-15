@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>H00 Host sign-in</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a.pl{text-decoration:none;cursor:pointer}
+.app{min-height:900px;display:flex;flex-direction:column;background:#fff4ee;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:15px;line-height:24px}
+.app *{box-sizing:border-box}
+.app h1,.app h2,.app p{margin:0}
+.btn{height:52px;border-radius:8px;border:0;font:inherit;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:0 20px;background:#d63a0e;color:#ffffff}
+a{color:#b02f0b}
+</style>
+</helmet>
+<div class="app">
+  <header style="display: flex; justify-content: flex-end; padding: 16px 24px">
+    <button style="height: 44px; padding: 0 12px; border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 600; color: #334155">ไทย · EN</button>
+  </header>
+  <main style="flex: 1; display: grid; place-items: center; padding: 24px">
+    <div style="width: min(440px, 100%); background: #ffffff; border-radius: 20px; border: 1px solid #ffcab3; padding: 40px 36px; display: flex; flex-direction: column; gap: 24px; box-shadow: 0 2px 4px -2px rgb(15 23 42 / 0.1), 0 4px 6px -1px rgb(15 23 42 / 0.1)">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span style="width: 44px; height: 44px; border-radius: 12px; background: #fa4616; display: grid; place-items: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"></rect><path d="M8 21h8"></path></svg></span>
+        <b style="font-size: 24px; letter-spacing: -0.01em">ModDeck</b>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <h1 style="font-size: 26px; line-height: 36px; font-weight: 700">เข้าสู่ระบบสำหรับผู้สอน</h1>
+        <p style="color: #475569">ใช้บัญชี KMUTT ของคุณ ผู้สอนและนักศึกษาที่มีบัญชีสร้างเด็คและเปิดเซสชันได้</p>
+      </div>
+      <a data-hot="" href="H01-Decks.dc.html" class="btn pl"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"></path></svg>เข้าสู่ระบบด้วย KMUTT</a>
+      <p style="font-size: 14px; line-height: 22px; color: #475569; text-align: center">เป็นผู้เข้าร่วม? ไม่ต้องเข้าสู่ระบบ <a data-hot="" href="Main.dc.html">ใส่ PIN เพื่อเข้าห้องเรียน</a></p>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

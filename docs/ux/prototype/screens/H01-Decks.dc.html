@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>H01 My decks</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a.pl{text-decoration:none;cursor:pointer}
+.app{min-height:900px;display:flex;flex-direction:column;background:#f8fafc;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:15px;line-height:24px;position:relative}
+.app *{box-sizing:border-box}
+.app h1,.app h2,.app h3,.app p{margin:0}
+.btn{height:44px;border-radius:8px;border:0;font:inherit;font-size:15px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 16px;white-space:nowrap}
+.btn-p{background:#d63a0e;color:#ffffff}
+.btn-s{background:#ffffff;color:#0f172a;border:1px solid #cbd5e1}
+.nav a{display:inline-flex;align-items:center;height:64px;padding:0 4px;font-weight:500;color:#334155;text-decoration:none;border-bottom:3px solid transparent}
+.nav a.on{color:#0f172a;font-weight:600;border-bottom-color:#fa4616}
+.deck{display:flex;flex-direction:column;border-radius:12px;background:#ffffff;border:1px solid #e2e8f0;overflow:hidden}
+.th{aspect-ratio:16/9;background:#f1f5f9;border-bottom:1px solid #e2e8f0;padding:16px;display:flex;flex-direction:column;justify-content:flex-end;gap:4px}
+.th b{font-size:16px;line-height:22px}
+.meta{padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.meta span{font-size:13px;line-height:20px;color:#475569}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:14px;line-height:22px;font-weight:600}
+.inp{height:48px;border:1px solid #cbd5e1;border-radius:8px;padding:0 14px;font:inherit;font-size:16px;color:#0f172a;background:#ffffff;width:100%}
+</style>
+</helmet>
+<div class="app">
+  <header style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px 28px; padding: 0 24px; background: #ffffff; border-bottom: 1px solid #e2e8f0">
+    <div style="display: flex; align-items: center; gap: 10px; height: 64px">
+      <span style="width: 32px; height: 32px; border-radius: 8px; background: #fa4616; display: grid; place-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"></rect><path d="M8 21h8"></path></svg></span>
+      <b style="font-size: 18px">ModDeck</b>
+    </div>
+    <nav class="nav" aria-label="หลัก" style="display: flex; gap: 24px; flex: 1">
+      <a href="#" class="on" aria-current="page">เด็คของฉัน</a>
+      <a data-hot="" href="H12-History.dc.html">ประวัติเซสชัน</a>
+    </nav>
+    <button aria-label="บัญชี: ผศ.ดร.สมชาย ใจดี" style="width: 40px; height: 40px; border-radius: 50%; border: 0; background: #ffe6da; color: #8c2810; font: inherit; font-weight: 700">สม</button>
+  </header>
+
+  <main style="width: 100%; max-width: 1200px; margin: 0 auto; padding: 32px 24px; display: flex; flex-direction: column; gap: 24px">
+    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 16px">
+      <h1 style="flex: 1; font-size: 30px; line-height: 40px; font-weight: 700">เด็คของฉัน</h1>
+      <label style="position: relative; display: flex; align-items: center">
+        <span style="position: absolute; left: 12px; display: flex; color: #475569"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg></span>
+        <input class="inp" placeholder="ค้นหาเด็ค" aria-label="ค้นหาเด็ค" style="width: 260px; height: 44px; padding-left: 38px">
+      </label>
+      <button data-hot="" class="btn btn-p" onClick="{{openDlg}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>เด็คใหม่</button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px">
+      <article class="deck" style="box-shadow: inset 0 0 0 2px #e11d48">
+        <div class="th" style="background: #fff4ee"><span style="align-self: flex-start; margin-bottom: auto; display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0px 8px; border-radius: 999px; background: rgb(225, 29, 72); color: rgb(255, 255, 255); font-size: 12px; font-weight: 700"><span style="width: 6px; height: 6px; border-radius: 50%; background: rgb(255, 255, 255)"></span>สด</span><b>บทที่ 4: Reactive Forms</b></div>
+        <div class="meta"><a data-hot="" href="H02-Editor.dc.html" class="pl" style="font-size: 15px; font-weight: 700; color: #0f172a">INT365 · บทที่ 4 Reactive Forms</a><span>20 สไลด์ · PIN 482 914 · 87 คน</span><a data-hot="" href="H05-Presenter.dc.html" style="margin-top: 6px; font-size: 14px; font-weight: 600; color: #b02f0b">กลับไปคุมเซสชัน →</a></div>
+      </article>
+      <article class="deck">
+        <div class="th"><b>บทที่ 3: Template Syntax</b></div>
+        <div class="meta"><b style="font-size: 15px">INT365 · บทที่ 3 Template Syntax</b><span>18 สไลด์ · แก้ไข 6 วันก่อน · 2 เซสชัน</span></div>
+      </article>
+      <article class="deck">
+        <div class="th"><b>Signal and Data Bandwidth</b></div>
+        <div class="meta"><b style="font-size: 15px">INT319 · W08 Bandwidth</b><span>32 สไลด์ (PDF) · แก้ไข 1 สัปดาห์ก่อน</span></div>
+      </article>
+      <article class="deck">
+        <div class="th"><b>Cables</b></div>
+        <div class="meta"><b style="font-size: 15px">INT319 · W09 Cables</b><span>24 สไลด์ (PDF) · ยังไม่เคยใช้</span></div>
+      </article>
+    </div>
+  </main>
+
+  <sc-if value="{{dlg}}" hint-placeholder-val="{{ false }}">
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgb(15 23 42 / 0.45)"></div>
+  <div role="dialog" aria-modal="true" aria-labelledby="nd-t" style="position: absolute; left: 50%; top: 140px; transform: translateX(-50%); width: min(480px, calc(100% - 32px)); background: #ffffff; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 20px 40px -12px rgb(15 23 42 / 0.35)">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <h2 id="nd-t" style="font-size: 20px; line-height: 30px; font-weight: 700">เด็คใหม่</h2>
+      <button data-hot="" aria-label="ปิด" onClick="{{closeDlg}}" style="width: 40px; height: 40px; border: 0; background: transparent; border-radius: 8px; display: grid; place-items: center; color: #334155"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    </div>
+    <div class="field"><label for="dn">ชื่อเด็ค</label><input id="dn" class="inp" value="บทที่ 5: Routing" style="border: 2px solid #fa4616; outline: 4px solid #ffe6da"></div>
+    <div class="field"><label for="dc">รหัสวิชา (ไม่บังคับ)</label><input id="dc" class="inp" value="INT365"></div>
+    <div class="field">
+      <label>เริ่มจาก</label>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <button aria-pressed="true" style="min-height: 72px; border-radius: 10px; border: 2px solid #fa4616; background: #fff4ee; font: inherit; font-size: 15px; font-weight: 600; color: #0f172a">เด็คว่าง</button>
+        <button aria-pressed="false" style="min-height: 72px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; font: inherit; font-size: 15px; font-weight: 600; color: #0f172a">นำเข้า PDF</button>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: flex-end; gap: 10px">
+      <button data-hot="" class="btn btn-s" onClick="{{closeDlg}}">ยกเลิก</button>
+      <a data-hot="" href="H03-Add-slide.dc.html" class="btn btn-p pl">สร้างเด็ค</a>
+    </div>
+  </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dialog":{"editor":"enum","options":["closed","open"],"default":"closed"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { dlg: null };
+  }
+  renderVals() {
+    const dlg = this.state.dlg ?? (this.props.dialog ?? 'closed') === 'open';
+    return {
+      dlg: dlg,
+      openDlg: () => this.setState({ dlg: true }),
+      closeDlg: () => this.setState({ dlg: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

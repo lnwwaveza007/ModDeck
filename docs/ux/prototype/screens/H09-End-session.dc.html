@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>H09 End session and host away</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a.pl{text-decoration:none;cursor:pointer}
+.app{min-height:900px;padding:40px 24px;background:#f1f5f9;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:15px;line-height:24px;display:flex;flex-direction:column;gap:24px}
+.app *{box-sizing:border-box}
+.app h1,.app h2,.app h3,.app p{margin:0}
+.btn{height:52px;border-radius:8px;border:0;font:inherit;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 20px;white-space:nowrap}
+.btn-p{background:#d63a0e;color:#ffffff}
+.btn-s{background:#ffffff;color:#0f172a;border:1px solid #cbd5e1}
+.card{background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:16px}
+.cap{font-size:13px;font-weight:600;color:#475569}
+</style>
+</helmet>
+<div class="app">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 24px; max-width: 1360px; width: 100%; margin: 0 auto">
+    <section class="card" aria-label="กดค้างเพื่อจบเซสชัน">
+      <span class="cap">1 · กดค้าง 2 วินาที</span>
+      <h2 style="font-size: 20px; line-height: 30px; font-weight: 700">จบเซสชัน</h2>
+      <p style="color: #334155">ปล่อยมือก่อนครบ 2 วินาทีเพื่อยกเลิก</p>
+      <button class="btn" style="position: relative; overflow: hidden; background: #ffffff; color: #be123c; border: 2px solid #e11d48; width: 100%">
+        <span aria-hidden="true" style="position: absolute; left: 0; top: 0; bottom: 0; width: 62%; background: #ffe4e6"></span>
+        <span style="position: relative; display: inline-flex; align-items: center; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>กดค้างไว้… 1.2 วินาที</span>
+      </button>
+    </section>
+
+    <section class="card" aria-label="จบแล้ว เลิกทำได้">
+      <span class="cap">2 · จบแล้ว เลิกทำได้ 60 วินาที</span>
+      <div role="status" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 12px; background: #0f172a; color: #ffffff">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M5 12l5 5L20 7"></path></svg>
+        <div style="flex: 1; display: flex; flex-direction: column">
+          <b>จบเซสชันแล้ว</b>
+          <span style="font-size: 13px; color: #cbd5e1">เลิกทำได้อีก <span style="font-variant-numeric: tabular-nums">0:52</span></span>
+        </div>
+        <a data-hot="" href="H05-Presenter.dc.html" class="pl" style="height: 40px; padding: 0 14px; border-radius: 8px; border: 1px solid #fb7448; background: transparent; color: #fdba74; font: inherit; font-weight: 600; display: inline-flex; align-items: center">เลิกทำ</a>
+      </div>
+      <p style="color: #334155">นักศึกษาเห็น "จบคลาสแล้ว" โปรเจกเตอร์แสดงการ์ดจบ ถ้ากดเลิกทำ ทุกคนกลับเข้าเซสชันเดิม</p>
+      <a data-hot="" href="H13-Results.dc.html" class="btn btn-p pl" style="align-self: flex-start">ดูผลเซสชัน</a>
+    </section>
+
+    <section class="card" aria-label="ผู้สอนหลุด">
+      <span class="cap">3 · ผู้สอนหลุด (เปิดหน้าใหม่)</span>
+      <div style="display: flex; gap: 12px; padding: 14px 16px; border-radius: 12px; background: #fffbeb; border: 1px solid #f59e0b; color: #92400e">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 2px"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <b>เซสชันยังสดอยู่ · คุณไม่ได้คุมมา 1:24 นาที</b>
+          <span style="font-size: 14px">นักศึกษายังตอบและถามได้ ผู้ช่วยสอนรับช่วงได้หลัง 2 นาที เซสชันจบเองถ้าไม่มีใครคุม 30 นาที</span>
+        </div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px">
+        <a data-hot="" href="H05-Presenter.dc.html" class="btn btn-p pl">กลับไปคุมเซสชัน</a>
+        <button class="btn btn-s">เปิดจอโปรเจกเตอร์ใหม่</button>
+      </div>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

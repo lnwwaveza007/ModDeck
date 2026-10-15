@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>R3 AI synonym merge</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.app{min-height:900px;display:flex;flex-direction:column;background:#f1f5f9;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:15px;line-height:24px}
+.app *{box-sizing:border-box}
+.app h1,.app h2,.app h3,.app p{margin:0}
+.btn{height:40px;border-radius:8px;border:0;font:inherit;font-size:14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 14px;white-space:nowrap}
+.btn-p{background:#d63a0e;color:#ffffff}
+.btn-s{background:#ffffff;color:#0f172a;border:1px solid #cbd5e1}
+.btn-g{background:transparent;color:#334155}
+.card{background:#ffffff;border:1px solid #e2e8f0;border-radius:12px}
+.ai{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:999px;background:#ede9fe;color:#5b21b6;font-size:12px;font-weight:700}
+.chip{display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:999px;background:#f1f5f9;border:1px solid #e2e8f0;font-size:14px}
+.chip b{margin-left:6px;color:#475569;font-variant-numeric:tabular-nums}
+.grp{display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:12px;background:#ffffff;border:1px solid #ddd6fe}
+.cloud{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px 18px;padding:16px}
+.cloud span{font-weight:600;line-height:1.2}
+</style>
+</helmet>
+<div class="app">
+  <header style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; padding: 10px 16px; background: #ffffff; border-bottom: 1px solid #e2e8f0">
+    <span style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 999px; background: #e11d48; color: #ffffff; font-size: 13px; font-weight: 700"><span style="width: 8px; height: 8px; border-radius: 50%; background: #ffffff"></span>LIVE</span>
+    <h1 style="font-size: 16px; line-height: 24px; font-weight: 600; flex: 1 1 200px">INT365 · บทที่ 4 Reactive Forms</h1>
+  </header>
+
+  <div style="flex: 1; display: flex; flex-wrap: wrap; gap: 16px; padding: 16px; align-items: flex-start">
+    <main style="flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px">
+        <span style="display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px; background: #e0e7ff; color: #3730a3; font-size: 13px; font-weight: 600">Word Cloud · แสดงผลอยู่</span>
+        <h2 style="font-size: 16px; line-height: 24px; font-weight: 600; flex: 1">142 คำ จาก 71 คน · 38 คำไม่ซ้ำ</h2>
+        <button class="btn btn-s">ซ่อนคำ…</button>
+      </div>
+      <div class="card">
+        <p style="padding: 14px 16px 0; font-size: 12px; font-weight: 600; color: #475569">ตัวอย่างบนจอหลังรวมคำ</p>
+        <div class="cloud" style="height: 225px"><span style="font-size: 20px; color: rgb(51, 65, 85)"><br></span>
+          
+          <span style="font-size: 34px; color: rgb(14, 116, 144)">Observable<br><span style="color: rgb(51, 65, 85); font-size: 20px">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;async<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span><b style="color: rgb(15, 23, 42); font-size: 14px; background-color: rgb(236, 253, 245)">rxjs</b><span style="color: rgb(15, 23, 42); font-size: 14px; font-weight: 400; background-color: rgb(236, 253, 245)"></span></span>
+          <span style="font-size: 54px; color: rgb(67, 56, 202)">validation</span><span style="color: rgb(77, 124, 15); font-size: 26px">ตรวจสอบข้อมูล<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: rgb(180, 83, 9); font-size: 40px">ฟอร์ม</span></span><font color="#b45309"><br></font>
+          
+        </div>
+      </div>
+    </main>
+
+    <aside aria-label="รวมคำพ้องความหมาย" style="flex: 1 1 420px; max-width: 480px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <h2 style="font-size: 17px; line-height: 26px; font-weight: 600; flex: 1">รวมคำที่ความหมายเดียวกัน</h2>
+        <span class="ai">AI แนะนำ</span>
+      </div>
+      <p style="font-size: 13px; line-height: 20px; color: #475569">เฉพาะบนจอและผลสรุป คำที่นักศึกษาส่งไม่เปลี่ยน ยกเลิกการรวมได้ทุกเมื่อ</p>
+
+      <article class="grp">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+          <span class="chip">validation<b>14</b></span><span class="chip">validate<b>9</b></span><span class="chip">ตรวจสอบข้อมูล<b>8</b></span><span class="chip">การตรวจสอบ<b>5</b></span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 14px">
+          แสดงเป็น <span style="height: 32px; padding: 0 12px; border-radius: 8px; border: 2px solid #7c3aed; background: #ffffff; display: inline-flex; align-items: center; font-weight: 600">validation</span> <span style="color: #475569">36 ครั้ง</span>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap">
+          <button class="btn btn-p" style="height: 36px">รวมคำ</button>
+          <button class="btn btn-s" style="height: 36px">เลือกคำที่รวมเอง</button>
+          <button class="btn btn-g" style="height: 36px">ไม่รวม</button>
+        </div>
+      </article>
+
+      <article class="grp">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+          <span class="chip">form<b>6</b></span><span class="chip">ฟอร์ม<b>8</b></span><span class="chip">แบบฟอร์ม<b>3</b></span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 14px">
+          แสดงเป็น <span style="height: 32px; padding: 0 12px; border-radius: 8px; border: 2px solid #7c3aed; background: #ffffff; display: inline-flex; align-items: center; font-weight: 600">ฟอร์ม</span> <span style="color: #475569">17 ครั้ง</span>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap">
+          <button class="btn btn-p" style="height: 36px">รวมคำ</button>
+          <button class="btn btn-s" style="height: 36px">เลือกคำที่รวมเอง</button>
+          <button class="btn btn-g" style="height: 36px">ไม่รวม</button>
+        </div>
+      </article>
+
+      <article class="grp" style="border-color: #6ee7b7; background: #ecfdf5">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+          <span style="font-size: 14px; flex: 1"><b>RxJS</b> รวมกับ <b>rxjs</b> (6 ครั้ง)</span>
+          <button class="btn btn-g" style="height: 34px">ยกเลิกการรวม</button>
+        </div>
+      </article>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

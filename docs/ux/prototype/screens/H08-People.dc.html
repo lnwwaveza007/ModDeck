@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>H08 People drawer and co-host invite</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.app{min-height:900px;display:flex;flex-direction:column;background:#f1f5f9;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:15px;line-height:24px;position:relative;overflow:hidden}
+.app *{box-sizing:border-box}
+.app h1,.app h2,.app h3,.app p{margin:0}
+.btn{height:40px;border-radius:8px;border:0;font:inherit;font-size:14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 14px;white-space:nowrap}
+.btn-p{background:#d63a0e;color:#ffffff}
+.btn-s{background:#ffffff;color:#0f172a;border:1px solid #cbd5e1}
+.inp{height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 12px;font:inherit;font-size:14px;color:#0f172a;background:#ffffff;width:100%}
+.p{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #e2e8f0}
+.av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;flex:none}
+.p b{font-size:15px;line-height:22px;font-weight:600}
+.p small{display:block;font-size:12px;line-height:18px;color:#475569}
+.tag{height:22px;padding:0 8px;border-radius:999px;font-size:12px;line-height:22px;font-weight:600;flex:none}
+.ic{width:36px;height:36px;border:0;background:transparent;border-radius:6px;display:grid;place-items:center;color:#475569;padding:0;flex:none}
+.menu button{display:flex;width:100%;height:40px;align-items:center;gap:10px;padding:0 12px;border:0;background:transparent;font:inherit;font-size:14px;color:#0f172a;text-align:left;border-radius:6px}
+</style>
+</helmet>
+<div class="app">
+  <header style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: #ffffff; border-bottom: 1px solid #e2e8f0">
+    <span style="height: 28px; padding: 0 10px; border-radius: 999px; background: #e11d48; color: #ffffff; font-size: 13px; line-height: 28px; font-weight: 700">LIVE</span>
+    <h1 style="font-size: 16px; line-height: 24px; font-weight: 600; flex: 1">INT365 · บทที่ 4 Reactive Forms</h1>
+  </header>
+  <div style="flex: 1; padding: 16px; display: flex; gap: 16px">
+    <div style="flex: 2; border-radius: 12px; background: #ffffff; border: 1px solid #e2e8f0"></div>
+    <div style="flex: 1; border-radius: 12px; background: #ffffff; border: 1px solid #e2e8f0"></div>
+  </div>
+
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgb(15 23 42 / 0.45)"></div>
+  <aside role="dialog" aria-modal="true" aria-labelledby="pp-t" style="position: absolute; top: 0; right: 1px; bottom: 0; width: min(460px, 100%); background: #ffffff; display: flex; flex-direction: column; box-shadow: -20px 0 40px -12px rgb(15 23 42 / 0.3)">
+    <div style="display: flex; align-items: center; gap: 8px; padding: 16px 20px; border-bottom: 1px solid #e2e8f0">
+      <div style="flex: 1">
+        <h2 id="pp-t" style="font-size: 20px; line-height: 30px; font-weight: 700">ผู้เข้าร่วม</h2>
+        <p style="font-size: 13px; line-height: 20px; color: #475569">87 ออนไลน์ · 3 ออฟไลน์ · เต็มแล้วปฏิเสธ 0 คน</p>
+      </div>
+      <button aria-label="ปิด" class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    </div>
+
+    <div style="flex: 1; overflow: hidden; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px">
+      <section style="padding: 14px; border-radius: 12px; background: #fff4ee; border: 1px solid #ffcab3; display: flex; flex-direction: column; gap: 10px">
+        <h3 style="font-size: 15px; line-height: 22px; font-weight: 600">ผู้ช่วยสอน (Co-host) · 0/1</h3>
+        <p style="font-size: 13px; line-height: 20px; color: #334155">จัดการถาม-ตอบ และรับช่วงเซสชันได้ถ้าคุณหลุดเกิน 2 นาที ต้องเข้าสู่ระบบด้วย KMUTT</p>
+        <div style="display: flex; gap: 8px">
+          <label for="ch" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">อีเมล KMUTT ของผู้ช่วย</label>
+          <input id="ch" class="inp" placeholder="ชื่อหรืออีเมล @kmutt.ac.th">
+          <button class="btn btn-p">เชิญ</button>
+        </div>
+        <button class="btn btn-s" style="align-self: flex-start"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"></path></svg>คัดลอกลิงก์เชิญ</button>
+      </section>
+
+      <input class="inp" placeholder="ค้นหาผู้เข้าร่วม" aria-label="ค้นหาผู้เข้าร่วม">
+
+      <div style="position: relative">
+        <div class="p"><span class="av" style="background: #e0e7ff; color: #3730a3">ภท</span><div style="flex: 1"><b>ภัทร์ทัศน์ จ.</b><small>65130500xxx</small></div><span class="tag" style="background: #f1f5f9; color: #334155">KMUTT</span><button class="ic" aria-label="ตัวเลือกสำหรับ ภัทร์ทัศน์"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></button></div>
+        <div class="p"><span class="av" style="background: #ffe6da; color: #8c2810">พ</span><div style="flex: 1"><b>พลอย</b><small>Guest</small></div><span class="tag" style="background: #fffbeb; color: #92400e">Guest</span><button class="ic" aria-label="ตัวเลือกสำหรับ พลอย"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></button></div>
+        <div class="p" style="background: #f8fafc; margin: 0 -8px; padding: 10px 8px; border-radius: 8px"><span class="av" style="background: #fce7f3; color: #9d174d">อ</span><div style="flex: 1"><b>อาจารย์ใหญ่</b><small>Guest</small></div><span class="tag" style="background: #fffbeb; color: #92400e">Guest</span><button class="ic" aria-label="ตัวเลือกสำหรับ อาจารย์ใหญ่" aria-expanded="true" style="background: #e2e8f0"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></button></div>
+        <div class="menu" role="menu" style="position: absolute; right: 0; top: 168px; width: 240px; padding: 6px; border-radius: 10px; background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 8px 24px -6px rgb(15 23 42 / 0.25); z-index: 1">
+          <button role="menuitem">เปลี่ยนชื่อเป็น "Guest 17"</button>
+          <button role="menuitem" style="color: #be123c">นำออกจากเซสชัน</button>
+        </div>
+        <div class="p"><span class="av" style="background: #d1fae5; color: #065f46">ต</span><div style="flex: 1"><b>ต้นกล้า</b><small>Guest</small></div><span class="tag" style="background: #fffbeb; color: #92400e">Guest</span><button class="ic" aria-label="ตัวเลือกสำหรับ ต้นกล้า"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></button></div>
+        <div class="p" style="opacity: 0.75"><span class="av" style="background: #f1f5f9; color: #475569">อภ</span><div style="flex: 1"><b>อภิวิชญ์ พ.</b><small>ออฟไลน์ 4 นาที · ที่นั่งเก็บไว้ 11 นาที</small></div><span class="tag" style="background: #f1f5f9; color: #334155">KMUTT</span><button class="ic" aria-label="ตัวเลือกสำหรับ อภิวิชญ์"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></button></div>
+      </div>
+    </div>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

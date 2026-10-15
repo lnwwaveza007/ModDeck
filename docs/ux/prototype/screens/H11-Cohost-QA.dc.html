@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>H11 Co-host Q&amp;A</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.app{min-height:900px;display:flex;flex-direction:column;background:#f8fafc;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:15px;line-height:24px}
+.app *{box-sizing:border-box}
+.app h1,.app h2,.app h3,.app p{margin:0}
+.btn{height:40px;border-radius:8px;border:0;font:inherit;font-size:14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 14px;white-space:nowrap}
+.btn-p{background:#d63a0e;color:#ffffff}
+.btn-s{background:#ffffff;color:#0f172a;border:1px solid #cbd5e1}
+.btn-g{background:transparent;color:#334155}
+.seg{display:flex;padding:4px;border-radius:10px;background:#e2e8f0}
+.seg button{height:36px;padding:0 14px;border:0;border-radius:8px;background:transparent;font:inherit;font-size:14px;font-weight:500;color:#334155}
+.seg .on{background:#ffffff;color:#0f172a;font-weight:600;box-shadow:0 1px 3px 0 rgb(15 23 42 / .1)}
+.q{display:flex;gap:16px;padding:16px 18px;border-radius:12px;background:#ffffff;border:1px solid #e2e8f0}
+.vote{width:56px;flex:none;display:flex;flex-direction:column;align-items:center;font-weight:700;color:#334155}
+.qa{display:flex;flex-wrap:wrap;gap:6px}
+.qa .btn{height:36px;font-size:13px;padding:0 12px}
+</style>
+</helmet>
+<div class="app">
+  <header style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; padding: 10px 24px; background: #ffffff; border-bottom: 1px solid #e2e8f0">
+    <span style="width: 32px; height: 32px; border-radius: 8px; background: #fa4616; display: grid; place-items: center; flex: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"></rect><path d="M8 21h8"></path></svg></span>
+    <h1 style="font-size: 16px; line-height: 24px; font-weight: 600; flex: 1 1 240px">INT365 · บทที่ 4 Reactive Forms</h1>
+    <span style="height: 28px; padding: 0 10px; border-radius: 999px; background: #e0e7ff; color: #3730a3; font-size: 13px; line-height: 28px; font-weight: 600">ผู้ช่วยสอน · จัดการถาม-ตอบ</span>
+    <span style="font-size: 14px; color: #475569">87 ออนไลน์ · สไลด์ 7/20</span>
+  </header>
+
+  <div role="alert" style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 12px 24px; background: #fffbeb; border-bottom: 1px solid #f59e0b; color: #92400e">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+    <span style="flex: 1 1 320px"><b>ผู้สอนหลุดมา 2:10 นาที</b> · คุณรับช่วงเป็นเจ้าของเซสชันนี้ได้ แล้วเปิดจอโปรเจกเตอร์บนเครื่องของคุณ</span>
+    <a data-hot="" href="H05-Presenter.dc.html" class="btn btn-p" style="text-decoration: none">รับช่วงเซสชันนี้</a>
+  </div>
+
+  <main style="width: 100%; max-width: 960px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px">
+      <h2 style="font-size: 24px; line-height: 34px; font-weight: 700; flex: 1">ถาม-ตอบ</h2>
+      <div class="seg" role="tablist" aria-label="กรองคำถาม">
+        <button data-hot="" class="{{t.open.cls}}" role="tab" aria-selected="{{t.open.sel}}" onClick="{{t.open.pick}}">ยังไม่ตอบ ({{nOpen}})</button>
+        <button data-hot="" class="{{t.ans.cls}}" role="tab" aria-selected="{{t.ans.sel}}" onClick="{{t.ans.pick}}">ตอบแล้ว ({{nAns}})</button>
+        <button data-hot="" class="{{t.hid.cls}}" role="tab" aria-selected="{{t.hid.sel}}" onClick="{{t.hid.pick}}">ซ่อน ({{nHid}})</button>
+      </div>
+      <button data-hot="" class="btn btn-s" onClick="{{toggleClosed}}">{{closeLabel}}</button>
+    </div>
+
+    <sc-if value="{{closed}}" hint-placeholder-val="{{ false }}"><p role="status" style="padding: 10px 14px; border-radius: 8px; background: #f1f5f9; font-size: 14px; color: #334155">ปิดรับคำถามแล้ว ผู้เข้าร่วมถามเพิ่มไม่ได้</p></sc-if>
+    <sc-if value="{{note}}" hint-placeholder-val="{{ false }}"><p role="status" style="padding: 10px 14px; border-radius: 8px; background: #ecfdf5; font-size: 14px; color: #065f46">{{note}}</p></sc-if>
+    <sc-for list="{{qs}}" as="q" hint-placeholder-count="3">
+    <article class="q" style="{{q.cardStyle}}">
+      <div class="vote"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"></path></svg>{{q.votes}}</div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 8px">
+        <sc-if value="{{q.on}}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; font-weight: 600; color: #8c2810">แสดงบนจออยู่</span></sc-if>
+        <p style="font-size: 16px; line-height: 26px">{{q.lead}}<sc-if value="{{q.hasCode}}" hint-placeholder-val="{{ false }}"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; background: #ffffff; padding: 0 4px; border-radius: 4px">{{q.code}}</code></sc-if>{{q.tail}}</p>
+        <span style="font-size: 13px; color: #475569">{{q.meta}}<sc-if value="{{q.merged}}" hint-placeholder-val="{{ false }}"> · <b style="color: #334155">+2 คำถามซ้ำรวมไว้</b></sc-if></span>
+        <div class="qa">
+          <sc-if value="{{q.isOpen}}" hint-placeholder-val="{{ true }}">
+            <sc-if value="{{q.on}}" hint-placeholder-val="{{ false }}">
+              <button data-hot="" class="btn btn-p" onClick="{{q.answer}}">ตอบแล้ว</button>
+              <button data-hot="" class="btn btn-s" onClick="{{q.unshow}}">เอาออกจากจอ</button>
+              <button data-hot="" class="btn btn-g" onClick="{{q.hide}}">ซ่อน</button>
+            </sc-if>
+            <sc-if value="{{q.off}}" hint-placeholder-val="{{ true }}">
+              <button data-hot="" class="btn btn-s" onClick="{{q.show}}">แสดงบนจอ</button>
+              <button data-hot="" class="btn btn-s" onClick="{{q.answer}}">ตอบแล้ว</button>
+              <button data-hot="" class="btn btn-g" onClick="{{q.hide}}">ซ่อน</button>
+            </sc-if>
+            <a data-hot="" href="R2-QA-clusters.dc.html" class="btn btn-g" style="text-decoration: none">ซ้ำกับ…</a>
+            <sc-if value="{{q.canRemove}}" hint-placeholder-val="{{ false }}"><button data-hot="" class="btn btn-g" style="color: #be123c" onClick="{{q.remove}}">นำผู้ส่งออก</button></sc-if>
+          </sc-if>
+          <sc-if value="{{q.canRestore}}" hint-placeholder-val="{{ false }}"><button data-hot="" class="btn btn-s" onClick="{{q.restore}}">ย้อนกลับเป็นยังไม่ตอบ</button></sc-if>
+        </div>
+      </div>
+    </article>
+    </sc-for>
+    <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}"><p style="padding: 32px 0; text-align: center; font-size: 15px; color: #475569">{{emptyText}}</p></sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    // status per question: open | ans | hid | gone
+    this.state = { tab: 'open', onScreen: 'q1', closed: false, note: '', status: {} };
+  }
+  renderVals() {
+    const base = [
+      { id: 'q1', lead: 'ทำไม ', code: 'valueChanges', tail: ' ถึงยิงทุกครั้งที่พิมพ์ ต้องใช้ debounce ไหมครับ?', votes: 24, meta: 'ไม่ระบุชื่อ · 3 นาที', merged: false, canRemove: false, st: 'open' },
+      { id: 'q2', lead: 'Template-driven กับ Reactive Forms ควรเลือกแบบไหนในโปรเจกต์กลุ่ม?', code: '', tail: '', votes: 9, meta: 'ไม่ระบุชื่อ · 8 นาที', merged: true, canRemove: true, st: 'open' },
+      { id: 'q3', lead: 'อาจารย์จะเปิดสไลด์ย้อนหลังให้ดาวน์โหลดไหมคะ?', code: '', tail: '', votes: 3, meta: 'ไม่ระบุชื่อ · 1 นาที', merged: false, canRemove: false, st: 'open' },
+      { id: 'a1', lead: 'ใช้ ngModel กับ formControl ร่วมกันได้ไหมครับ?', code: '', tail: '', votes: 7, meta: 'พลอย · 19 นาที', merged: false, canRemove: false, st: 'ans' },
+      { id: 'a2', lead: 'Async validator ต้อง return อะไร?', code: '', tail: '', votes: 6, meta: 'ไม่ระบุชื่อ · 25 นาที', merged: false, canRemove: false, st: 'ans' },
+      { id: 'a3', lead: 'ข้อสอบครอบคลุมบทนี้ไหมคะ?', code: '', tail: '', votes: 5, meta: 'ภัทร์ทัศน์ · 31 นาที', merged: false, canRemove: false, st: 'ans' },
+      { id: 'a4', lead: 'ขอตัวอย่างโค้ด FormArray หน่อยครับ', code: '', tail: '', votes: 4, meta: 'ไม่ระบุชื่อ · 38 นาที', merged: false, canRemove: false, st: 'ans' },
+      { id: 'h1', lead: 'เสียงเบาไปหน่อยค่ะ', code: '', tail: '', votes: 2, meta: 'ไม่ระบุชื่อ · 52 นาที', merged: false, canRemove: false, st: 'hid' }
+    ];
+    const st = this.state;
+    const cur = (q) => st.status[q.id] || q.st;
+    const set = (id, v, extra) => {
+      const status = Object.assign({}, st.status);
+      status[id] = v;
+      const patch = Object.assign({ status: status, note: '' }, extra || {});
+      if (st.onScreen === id && v !== 'open') patch.onScreen = null;
+      this.setState(patch);
+    };
+    const count = (k) => base.filter((q) => cur(q) === k).length;
+    const shown = base.filter((q) => cur(q) === st.tab);
+    const qs = shown.map((q) => {
+      const on = st.onScreen === q.id;
+      const open = st.tab === 'open';
+      return Object.assign({}, q, {
+        on: on,
+        off: !on,
+        isOpen: open,
+        hasCode: !!q.code,
+        canRestore: !open,
+        cardStyle: on ? 'border: 2px solid #fa4616; background: #fff4ee' : '',
+        show: () => this.setState({ onScreen: q.id, note: '' }),
+        unshow: () => this.setState({ onScreen: null, note: '' }),
+        answer: () => set(q.id, 'ans'),
+        hide: () => set(q.id, 'hid'),
+        remove: () => set(q.id, 'gone', { note: 'นำผู้ส่งออกจากเซสชันแล้ว คำถามของเขาถูกลบ' }),
+        restore: () => set(q.id, 'open')
+      });
+    });
+    const mk = (k) => ({ cls: st.tab === k ? 'on' : '', sel: st.tab === k ? 'true' : 'false', pick: () => this.setState({ tab: k, note: '' }) });
+    return {
+      t: { open: mk('open'), ans: mk('ans'), hid: mk('hid') },
+      qs: qs,
+      empty: qs.length === 0,
+      emptyText: st.tab === 'open' ? 'ไม่มีคำถามที่ยังไม่ตอบ' : st.tab === 'ans' ? 'ยังไม่มีคำถามที่ตอบแล้ว' : 'ไม่มีคำถามที่ซ่อน',
+      nOpen: count('open'),
+      nAns: count('ans'),
+      nHid: count('hid'),
+      closed: st.closed,
+      closeLabel: st.closed ? 'เปิดรับคำถาม' : 'ปิดรับคำถาม',
+      toggleClosed: () => this.setState({ closed: !st.closed }),
+      note: st.note
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>R2 Projector leaderboard</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.scr{width:1280px;height:720px;box-sizing:border-box;position:relative;overflow:hidden;background:#ffffff;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif}
+.scr *{box-sizing:border-box}
+.scr h1,.scr p{margin:0}
+.join{position:absolute;right:24px;top:20px;display:flex;align-items:center;gap:10px;height:40px;padding:0 14px;border-radius:10px;background:#0f172a;color:#ffffff;font-size:16px}
+.join b{font-family:'IBM Plex Mono',monospace;font-size:20px;letter-spacing:.06em;color:#fb7448}
+.row{display:grid;grid-template-columns:72px 280px minmax(0,1fr) 150px;align-items:center;gap:20px;font-size:32px;line-height:44px}
+.rk{width:56px;height:56px;border-radius:14px;display:grid;place-items:center;font-weight:700;font-size:28px;background:#f1f5f9}
+.track{height:44px;border-radius:8px;background:#f1f5f9;overflow:hidden}
+.pts{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+</style>
+</helmet>
+<div class="scr">
+  <div style="position: absolute; inset: 0; padding: 64px 96px 48px; display: flex; flex-direction: column; gap: 28px">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 20px; font-weight: 600; color: #475569">Live Quiz · อันดับหลังข้อ 3 จาก 5</span>
+      <h1 style="font-size: 52px; line-height: 66px; font-weight: 700">อันดับคะแนน</h1>
+    </div>
+    <div role="list" aria-label="อันดับ 5 อันดับแรก" style="display: flex; flex-direction: column; gap: 16px">
+      <div class="row" role="listitem"><span class="rk" style="background: #fef3c7; color: #92400e">1</span><b>ณัฐ</b><span class="track"><span style="display: block; height: 100%; width: 100%; background: #d63a0e"></span></span><span class="pts">3,420</span></div>
+      <div class="row" role="listitem"><span class="rk" style="background: #e2e8f0">2</span><b>มะปราง</b><span class="track"><span style="display: block; height: 100%; width: 89%; background: #b02f0b"></span></span><span class="pts">3,050</span></div>
+      <div class="row" role="listitem"><span class="rk" style="background: #ffe6da; color: #8c2810">3</span><b>ต้นกล้า</b><span class="track"><span style="display: block; height: 100%; width: 82%; background: #8c2810"></span></span><span class="pts">2,790</span></div>
+      <div class="row" role="listitem"><span class="rk">4</span><b>พลอย</b><span class="track"><span style="display: block; height: 100%; width: 77%; background: #475569"></span></span><span class="pts">2,640</span></div>
+      <div class="row" role="listitem"><span class="rk">5</span><b>Guest 12</b><span class="track"><span style="display: block; height: 100%; width: 73%; background: #475569"></span></span><span class="pts">2,510</span></div>
+    </div>
+  </div>
+  <div class="join"><span>moddeck.kmutt.ac.th</span><b>482 914</b></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

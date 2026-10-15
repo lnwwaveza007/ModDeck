@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>H04b Session settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a.pl{text-decoration:none;cursor:pointer}
+.app{min-height:900px;display:flex;flex-direction:column;background:#f8fafc;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:15px;line-height:24px;position:relative;overflow:hidden}
+.app *{box-sizing:border-box}
+.app h1,.app h2,.app h3,.app p{margin:0}
+.btn{height:44px;border-radius:8px;border:0;font:inherit;font-size:15px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 16px;white-space:nowrap}
+.btn-p{background:#d63a0e;color:#ffffff}
+.btn-s{background:#ffffff;color:#0f172a;border:1px solid #cbd5e1}
+.row{display:flex;align-items:flex-start;gap:16px;padding:16px 0;border-top:1px solid #e2e8f0}
+.row div{flex:1;display:flex;flex-direction:column;gap:2px}
+.row b{font-size:15px;line-height:24px;font-weight:600}
+.row span{font-size:13px;line-height:20px;color:#475569}
+.sw{width:44px;height:26px;border-radius:999px;border:0;padding:3px;display:flex;flex:none;margin-top:2px}
+.sw i{width:20px;height:20px;border-radius:50%;background:#ffffff}
+.on{background:#d63a0e;justify-content:flex-end}
+.off{background:#94a3b8;justify-content:flex-start}
+h3{font-size:13px;line-height:20px;font-weight:600;color:#475569;margin-top:12px !important}
+</style>
+</helmet>
+<div class="app">
+  <header style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: #ffffff; border-bottom: 1px solid #e2e8f0">
+    <span style="width: 32px; height: 32px; border-radius: 8px; background: #fa4616; flex: none"></span>
+    <h1 style="font-size: 16px; line-height: 24px; font-weight: 600; flex: 1">INT365 · บทที่ 4 Reactive Forms</h1>
+  </header>
+  <div style="flex: 1; display: flex">
+    <div style="flex: 0 0 200px; background: #ffffff; border-right: 1px solid #e2e8f0"></div>
+    <div style="flex: 1; padding: 24px"><div style="max-width: 820px; aspect-ratio: 16 / 9; border-radius: 12px; background: #ffffff; border: 1px solid #e2e8f0"></div></div>
+  </div>
+
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgb(15 23 42 / 0.45)"></div>
+  <aside role="dialog" aria-modal="true" aria-labelledby="st-t" style="position: absolute; top: 0; right: 0; bottom: 0; width: min(460px, 100%); background: #ffffff; display: flex; flex-direction: column; box-shadow: -20px 0 40px -12px rgb(15 23 42 / 0.3)">
+    <div style="display: flex; align-items: center; gap: 8px; padding: 16px 20px; border-bottom: 1px solid #e2e8f0">
+      <div style="flex: 1">
+        <h2 id="st-t" style="font-size: 20px; line-height: 30px; font-weight: 700">ตั้งค่าเซสชัน</h2>
+        <p style="font-size: 13px; line-height: 20px; color: #475569">จำไว้กับเด็คนี้ และคัดลอกไปทุกเซสชันใหม่</p>
+      </div>
+      <a data-hot="" href="H02-Editor.dc.html" class="pl" aria-label="ปิด" style="width: 40px; height: 40px; border: 0; background: transparent; border-radius: 8px; display: grid; place-items: center; color: #334155"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+    </div>
+
+    <div style="flex: 1; overflow: auto; padding: 4px 20px 20px">
+      <h3>ผู้เข้าร่วม</h3>
+      <div class="row"><div><b>บังคับเข้าสู่ระบบด้วย KMUTT</b><span>ซ่อนตัวเลือก Guest ใช้เมื่อต้องการให้คะแนนการมีส่วนร่วมด้วยรหัสนักศึกษา</span></div><button class="sw off" role="switch" aria-checked="false" aria-label="บังคับเข้าสู่ระบบด้วย KMUTT"><i></i></button></div>
+
+      <h3>ถาม-ตอบ</h3>
+      <div class="row"><div><b>เปิดถาม-ตอบเมื่อเริ่มเซสชัน</b><span>ปิดหรือเปิดได้ระหว่างสอน</span></div><button class="sw on" role="switch" aria-checked="true" aria-label="เปิดถาม-ตอบเมื่อเริ่มเซสชัน"><i></i></button></div>
+      <div class="row"><div><b>อนุญาตถามแบบไม่ระบุชื่อ</b><span>ค่าเริ่มต้นของนักศึกษาคือไม่ระบุชื่อ</span></div><button class="sw on" role="switch" aria-checked="true" aria-label="อนุญาตถามแบบไม่ระบุชื่อ"><i></i></button></div>
+
+      <h3>กิจกรรม</h3>
+      <div class="row"><div><b>เริ่มกิจกรรมอัตโนมัติ</b><span>เปิดโหวตทันทีเมื่อถึงสไลด์กิจกรรม ถ้าปิด ต้องกดเริ่มเอง</span></div><button class="sw off" role="switch" aria-checked="false" aria-label="เริ่มกิจกรรมอัตโนมัติ"><i></i></button></div>
+      <div class="row"><div><b>แสดงผลสดระหว่างโหวต</b><span>จอโปรเจกเตอร์แสดงกราฟขณะยังเปิดโหวต</span></div><button class="sw off" role="switch" aria-checked="false" aria-label="แสดงผลสดระหว่างโหวต"><i></i></button></div>
+
+      <h3>รีแอคชัน</h3>
+      <div class="row"><div><b>เปิดรีแอคชันเมื่อเริ่มเซสชัน</b><span>ลอยที่มุมขวาล่างของจอ กด R เพื่อเปิดหรือปิดระหว่างสอน</span></div><button class="sw off" role="switch" aria-checked="false" aria-label="เปิดรีแอคชันเมื่อเริ่มเซสชัน"><i></i></button></div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px; border-top: 1px solid #e2e8f0">
+      <a data-hot="" href="H02-Editor.dc.html" class="btn btn-s pl">ยกเลิก</a>
+      <a data-hot="" href="H02-Editor.dc.html" class="btn btn-p pl">บันทึก</a>
+    </div>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

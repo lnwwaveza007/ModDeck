@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>S03 Choose identity</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.ph{width:390px;height:844px;box-sizing:border-box;display:flex;flex-direction:column;background:#ffffff;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:16px;line-height:26px;position:relative;overflow:hidden}
+.ph *{box-sizing:border-box}
+.ph h1,.ph h2,.ph h3,.ph p{margin:0}
+.btn{height:52px;border-radius:8px;border:0;font:inherit;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:0 20px}
+.btn-p{background:#d63a0e;color:#ffffff}
+.btn-s{background:#ffffff;color:#0f172a;border:1px solid #cbd5e1}
+.ib{height:44px;border:0;background:transparent;border-radius:8px;display:flex;align-items:center;gap:6px;color:#334155;padding:0 12px;font:inherit;font-size:14px;font-weight:600}
+a{color:#b02f0b}a:hover{color:#8c2810}
+a.pl{text-decoration:none;cursor:pointer}
+</style>
+</helmet>
+<div class="ph">
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 8px">
+    <a data-hot="" href="Main.dc.html" class="ib pl" aria-label="กลับไปใส่ PIN">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+    </a>
+    <button class="ib" aria-label="เปลี่ยนภาษา">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"></path></svg>
+      ไทย · EN
+    </button>
+  </div>
+
+  <div style="flex: 1; padding: 16px 20px 24px; display: flex; flex-direction: column; gap: 32px">
+    <div style="display: flex; flex-direction: column; gap: 16px; padding: 20px; border-radius: 16px; background: #fff4ee; border: 1px solid #ffcab3">
+      <span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 999px; background: #ffffff; font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; color: #b02f0b">PIN 482 914</span>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <h1 style="font-size: 24px; line-height: 34px; font-weight: 700">INT365 Software Engineering</h1>
+        <p style="font-size: 15px; line-height: 24px; color: #334155">บทที่ 4: Reactive Forms · ผศ.ดร.สมชาย ใจดี</p>
+      </div>
+      <p style="font-size: 14px; line-height: 22px; color: #334155; display: flex; align-items: center; gap: 8px">
+        <span style="width: 8px; height: 8px; border-radius: 50%; background: #059669"></span>
+        กำลังสด · ผู้เข้าร่วม 87 คน
+      </p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <h2 style="font-size: 18px; line-height: 28px; font-weight: 600">เข้าร่วมในชื่อ</h2>
+      <a data-hot="" href="S06-Waiting.dc.html" class="btn btn-p pl">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"></path></svg>
+        เข้าสู่ระบบด้วยบัญชี KMUTT
+      </a>
+      <a data-hot="" href="S04-Nickname.dc.html" class="btn btn-s pl">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"></path></svg>
+        เข้าร่วมแบบ Guest (ตั้งชื่อเล่น)
+      </a>
+    </div>
+
+    <div style="display: flex; gap: 12px; padding: 16px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 2px"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+      <p style="font-size: 14px; line-height: 22px; color: #334155">ถ้าเข้าด้วย KMUTT คำตอบ Poll จะบันทึกพร้อมรหัสนักศึกษา คำถามที่ส่งแบบไม่ระบุชื่อจะไม่แสดงชื่อคุณให้ใครเห็น</p>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>S15 Ask with name and preview</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a.pl{text-decoration:none;cursor:pointer}
+.ph{width:390px;height:844px;box-sizing:border-box;display:flex;flex-direction:column;background:#ffffff;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:16px;line-height:26px;position:relative;overflow:hidden}
+.ph *{box-sizing:border-box}
+.ph h1,.ph h2,.ph h3,.ph p,.ph pre{margin:0}
+.ib{width:44px;height:44px;border:0;background:transparent;border-radius:8px;display:grid;place-items:center;color:#334155;padding:0;flex:none}
+.sw{width:52px;height:32px;border-radius:999px;border:0;padding:3px;display:flex;flex:none}
+.sw i{width:26px;height:26px;border-radius:50%;background:#ffffff;box-shadow:0 1px 2px rgb(15 23 42 / .2)}
+.seg{display:flex;padding:4px;border-radius:10px;background:#e2e8f0}
+.seg button{flex:1;height:36px;border:0;border-radius:8px;background:transparent;font:inherit;font-size:14px;font-weight:500;color:#334155}
+.seg .on{background:#ffffff;color:#0f172a;font-weight:600;box-shadow:0 1px 3px 0 rgb(15 23 42 / .1)}
+pre{font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:21px;padding:12px 14px;border-radius:8px;background:#0f172a;color:#e2e8f0;overflow:hidden}
+.kw{color:#c4b5fd}.str{color:#86efac}.fn{color:#67e8f9}.num{color:#fdba74}.cm{color:#94a3b8}
+</style>
+</helmet>
+<div class="ph">
+  <div style="display: flex; align-items: center; gap: 4px; padding: 8px 8px 8px 4px; border-bottom: 1px solid #e2e8f0; min-height: 64px">
+    <a data-hot="" href="S13-QA-list.dc.html" class="ib pl" aria-label="ปิด"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+    <h1 style="flex: 1; font-size: 18px; line-height: 28px; font-weight: 600">ถามคำถาม</h1>
+    <a data-hot="" href="S13-QA-list.dc.html" class="pl" style="height: 40px; padding: 0 16px; border: 0; border-radius: 8px; background: #d63a0e; color: #ffffff; font: inherit; font-size: 15px; font-weight: 600; display: flex; align-items: center">ส่ง</a>
+  </div>
+
+  <div style="flex: 1; min-height: 0; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0">
+      <div style="flex: 1; display: flex; flex-direction: column">
+        <label for="anon2" style="font-size: 16px; line-height: 24px; font-weight: 600">ถามแบบไม่ระบุชื่อ</label>
+        <span style="font-size: 13px; line-height: 20px; color: #475569">ปิดอยู่ · ทุกคนเห็นชื่อคุณ</span>
+      </div>
+      <button id="anon2" class="sw" role="switch" aria-checked="false" style="background: #94a3b8; justify-content: flex-start"><i></i></button>
+    </div>
+
+    <div class="seg" role="tablist" aria-label="โหมด">
+      <a data-hot="" href="S14-Ask-anon.dc.html" class="pl" role="tab" aria-selected="false" style="flex: 1; height: 36px; border-radius: 8px; font-size: 14px; font-weight: 500; color: #334155; display: grid; place-items: center">เขียน</a>
+      <button class="on" role="tab" aria-selected="true">ดูตัวอย่าง</button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0">
+      <p style="font-size: 16px; line-height: 26px">โค้ดนี้ทำไม error ว่า control ไม่มีครับ?</p>
+      <pre><span class="kw">this</span>.form = <span class="kw">new</span> <span class="fn">FormGroup</span>({
+  email: <span class="kw">new</span> <span class="fn">FormControl</span>(<span class="str">''</span>),
+});
+<span class="kw">this</span>.form.<span class="fn">get</span>(<span class="str">'mail'</span>)?.<span class="fn">setValue</span>(<span class="str">'a@b.c'</span>);</pre>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 20px; color: #475569"><b style="color: #0f172a">พลอย</b><span>· ตัวอย่างก่อนส่ง</span></div>
+    </div>
+
+    <p role="status" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 10px; background: #fffbeb; border: 1px solid #f59e0b; font-size: 15px; line-height: 24px; color: #92400e">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+      <span>คุณจะแสดงเป็น: <b>พลอย</b> · ทุกคนเห็นชื่อนี้ รวมถึงจอหน้าห้อง</span>
+    </p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

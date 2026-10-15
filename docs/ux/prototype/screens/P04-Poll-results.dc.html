@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>P04 Projector poll results</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.scr{width:1280px;height:720px;box-sizing:border-box;position:relative;overflow:hidden;background:#ffffff;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif}
+.scr *{box-sizing:border-box}
+.scr h1,.scr h2,.scr p{margin:0}
+.join{position:absolute;right:24px;top:20px;display:flex;align-items:center;gap:10px;height:40px;padding:0 14px;border-radius:10px;background:#0f172a;color:#ffffff;font-size:16px}
+.join b{font-family:'IBM Plex Mono',monospace;font-size:20px;letter-spacing:.06em;color:#fb7448}
+.row{display:grid;grid-template-columns:260px minmax(0,1fr) 200px;align-items:center;gap:20px}
+.lbl{display:flex;align-items:center;gap:14px;font-size:30px;line-height:40px;font-weight:500}
+.key{width:48px;height:48px;border-radius:10px;display:grid;place-items:center;font-weight:700;font-size:24px;flex:none;color:#0f172a}
+.track{height:56px;border-radius:8px;background:#f1f5f9;overflow:hidden}
+.bar{height:100%;border-radius:8px}
+.val{display:flex;align-items:baseline;gap:10px;font-variant-numeric:tabular-nums}
+.val b{font-size:40px;line-height:48px}
+.val span{font-size:20px;color:#475569}
+</style>
+</helmet>
+<div class="scr">
+  <div style="position: absolute; inset: 0; padding: 72px 96px 56px; display: flex; flex-direction: column; gap: 40px">
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <span style="font-size: 20px; font-weight: 600; color: #475569">ผลโหวต · 87 คำตอบ</span>
+      <h1 style="font-size: 48px; line-height: 64px; font-weight: 700; max-width: 960px">ภาษาโปรแกรมไหนที่คุณใช้บ่อยที่สุด?</h1>
+    </div>
+    <div role="img" aria-label="Python 46%, JavaScript 28%, Java 17%, C++ 9%" style="display: flex; flex-direction: column; gap: 22px">
+      <div class="row"><span class="lbl"><span class="key" style="border: 3px solid #4f46e5">A</span>Python</span><span class="track"><span class="bar" style="display: block; width: 100%; background: #4f46e5"></span></span><span class="val"><b>46%</b><span>40 คน</span></span></div>
+      <div class="row"><span class="lbl"><span class="key" style="border: 3px solid #0891b2">B</span>JavaScript</span><span class="track"><span class="bar" style="display: block; width: 61%; background: #0891b2"></span></span><span class="val"><b>28%</b><span>24 คน</span></span></div>
+      <div class="row"><span class="lbl"><span class="key" style="border: 3px solid #d97706">C</span>Java</span><span class="track"><span class="bar" style="display: block; width: 37%; background: #d97706"></span></span><span class="val"><b>17%</b><span>15 คน</span></span></div>
+      <div class="row"><span class="lbl"><span class="key" style="border: 3px solid #db2777">D</span>C++</span><span class="track"><span class="bar" style="display: block; width: 20%; background: #db2777"></span></span><span class="val"><b>9%</b><span>8 คน</span></span></div>
+    </div>
+  </div>
+  <div class="join"><span>moddeck.kmutt.ac.th</span><b>482 914</b></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

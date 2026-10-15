@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>H03 Add slide and PDF import</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;family=STIX+Two+Text:ital@0;1&amp;display=swap">
+<style>
+body{margin:0}
+a.pl{text-decoration:none;cursor:pointer}
+.app{min-height:900px;display:flex;flex-direction:column;background:#f8fafc;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:15px;line-height:24px}
+.app *{box-sizing:border-box}
+.app h1,.app h2,.app h3,.app p{margin:0}
+.btn{height:40px;border-radius:8px;border:0;font:inherit;font-size:14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 14px;white-space:nowrap}
+.btn-p{background:#d63a0e;color:#ffffff}
+.btn-s{background:#ffffff;color:#0f172a;border:1px solid #cbd5e1}
+.btn-g{background:transparent;color:#334155}
+.thumb{display:flex;gap:8px;align-items:flex-start;padding:6px;border-radius:10px;border:0;background:transparent;font:inherit;text-align:left;width:100%}
+.thumb b{width:20px;font-size:12px;line-height:18px;color:#475569;font-weight:600;text-align:right;flex:none}
+.tb{flex:1;aspect-ratio:16/9;border-radius:6px;background:#ffffff;border:1px solid #e2e8f0;display:flex;flex-direction:column;justify-content:center;gap:4px;padding:8px;font-size:10px;line-height:14px;color:#334155;overflow:hidden}
+.ln{height:4px;border-radius:2px;background:#cbd5e1}
+.type{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;font:inherit;text-align:left;color:#0f172a;min-height:88px}
+.type svg{color:#b02f0b}
+.type b{font-size:14px;line-height:20px}
+.type span{font-size:12px;line-height:18px;color:#475569}
+.prog{height:8px;border-radius:4px;background:#f1f5f9;overflow:hidden}
+</style>
+</helmet>
+<div class="app">
+  <header style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 10px 16px; background: #ffffff; border-bottom: 1px solid #e2e8f0">
+    <a data-hot="" href="H01-Decks.dc.html" aria-label="กลับไปเด็คของฉัน" style="width: 32px; height: 32px; border-radius: 8px; background: #fa4616; display: grid; place-items: center; flex: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"></rect><path d="M8 21h8"></path></svg></a>
+    <div style="display: flex; flex-direction: column; flex: 1 1 240px">
+      <h1 style="font-size: 16px; line-height: 24px; font-weight: 600">INT365 · บทที่ 5 Routing</h1>
+      <span style="font-size: 12px; line-height: 18px; color: #475569">กำลังบันทึก… · 6 สไลด์</span>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px">
+      
+      <button class="btn btn-s"><span style="color: rgb(51, 65, 85)">ตั้งค่าเซสชัน</span></button><button class="btn btn-s">ดูตัวอย่าง</button>
+      <button class="btn btn-p">เริ่มเซสชัน</button>
+    </div>
+  </header>
+
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+    <nav aria-label="สไลด์" style="flex: 0 0 200px; background: #ffffff; border-right: 1px solid #e2e8f0; padding: 12px 8px; display: flex; flex-direction: column; gap: 2px">
+      <button class="thumb"><b>1</b><span class="tb"><span style="font-weight: 600">Routing</span><span class="ln" style="width: 60%"></span></span></button>
+      <button class="thumb" aria-current="true" style="background: #fff4ee; box-shadow: inset 0 0 0 2px #fa4616"><b style="color: #b02f0b">2</b><span class="tb"><span style="font-weight: 600">RouterModule</span><span class="ln" style="width: 80%"></span><span class="ln" style="width: 50%"></span></span></button>
+      <button class="thumb"><b>3</b><span class="tb" style="color: #475569">PDF หน้า 1</span></button>
+      <button class="thumb"><b>4</b><span class="tb" style="color: #475569">PDF หน้า 2</span></button>
+      <button class="thumb"><b>5</b><span class="tb" style="color: #475569">PDF หน้า 3</span></button>
+      <button class="thumb"><b>6</b><span class="tb" style="color: #475569">PDF หน้า 4</span></button>
+    </nav>
+
+    <main style="flex: 999 1 520px; min-width: 0; padding: 24px; display: flex; flex-direction: column; gap: 16px; align-items: center">
+      <div style="width: 100%; max-width: 820px; aspect-ratio: 16 / 9; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 40px 48px; display: flex; flex-direction: column; gap: 20px">
+        <h2 style="font-size: 34px; line-height: 46px; font-weight: 700">RouterModule</h2>
+        <p style="font-size: 20px; line-height: 32px; color: #334155">กำหนดเส้นทางด้วย <code style="font-family: 'IBM Plex Mono', monospace; background: #f1f5f9; padding: 0 6px; border-radius: 4px">RouterModule.forRoot(routes)</code></p>
+      </div>
+
+      <section aria-label="นำเข้า PDF" style="width: 100%; max-width: 820px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span style="width: 40px; height: 40px; border-radius: 8px; background: #fff1f2; color: #be123c; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">PDF</span>
+          <div style="flex: 1; display: flex; flex-direction: column">
+            <b style="font-size: 15px">Lecture5-Routing.pdf</b>
+            <span style="font-size: 13px; color: #475569">กำลังแปลงหน้า 12 จาก 30</span>
+          </div>
+          <button class="btn btn-g">ยกเลิก</button>
+        </div>
+        <div class="prog" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" aria-label="ความคืบหน้านำเข้า PDF"><div style="width: 40%; height: 100%; background: #d63a0e"></div></div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: #fff1f2; border: 1px solid #fecdd3">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#be123c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+          <span style="flex: 1; font-size: 14px; color: #9f1239">แปลงหน้า 7 ไม่สำเร็จ (ไฟล์ภาพเสีย) · หน้าอื่นเพิ่มตามปกติ</span>
+          <button class="btn btn-s" style="height: 34px; font-size: 13px">ลองหน้า 7 ใหม่</button>
+        </div>
+      </section>
+    </main>
+
+    <aside aria-label="เพิ่มสไลด์" style="flex: 1 1 320px; max-width: 380px; background: #ffffff; border-left: 1px solid #e2e8f0; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <h2 style="font-size: 17px; line-height: 26px; font-weight: 600">เพิ่มสไลด์</h2>
+        <button aria-label="ปิด" class="btn btn-g" style="width: 40px; padding: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+      </div>
+      <span style="font-size: 13px; font-weight: 600; color: #475569">เนื้อหา</span>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <button class="type"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"></path></svg><b>ข้อความ</b><span>หัวข้อและบูลเล็ต</span></button>
+        <button class="type"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6l-6 6 6 6M16 6l6 6-6 6"></path></svg><b>โค้ด</b><span>ไฮไลต์ภาษา</span></button>
+        <button class="type"><span style="font-family: 'STIX Two Text', serif; font-size: 22px; line-height: 22px; color: #b02f0b">∑</span><b>คณิตศาสตร์</b><span>เขียนด้วย LaTeX</span></button>
+        <button class="type"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 15l-5-5L5 21"></path></svg><b>รูปภาพ</b><span>PNG, JPG</span></button>
+      </div>
+      <span style="font-size: 13px; font-weight: 600; color: #475569">กิจกรรม</span>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <button class="type"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg><b>Live Poll</b><span>เลือกตอบ 2–6 ข้อ</span></button>
+        <button class="type"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 18a4 4 0 0 1 0-8 5 5 0 0 1 9.6-1.5A4 4 0 1 1 17 18z"></path></svg><b>Word Cloud</b><span>คำตอบสั้น ๆ</span></button>
+      </div>
+      <button class="btn btn-s" style="height: 52px; border-style: dashed; margin-top: 4px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"></path></svg>นำเข้า PDF</button>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

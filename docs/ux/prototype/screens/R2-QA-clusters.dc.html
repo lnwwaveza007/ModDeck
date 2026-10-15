@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>R2 AI Q&amp;A clustering</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.app{min-height:900px;display:flex;flex-direction:column;background:#f1f5f9;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:15px;line-height:24px}
+.app *{box-sizing:border-box}
+.app h1,.app h2,.app h3,.app p{margin:0}
+.btn{height:36px;border-radius:8px;border:0;font:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 12px;white-space:nowrap}
+.btn-p{background:#d63a0e;color:#ffffff}
+.btn-s{background:#ffffff;color:#0f172a;border:1px solid #cbd5e1}
+.btn-g{background:transparent;color:#334155}
+.card{background:#ffffff;border:1px solid #e2e8f0;border-radius:12px}
+.ai{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:999px;background:#ede9fe;color:#5b21b6;font-size:12px;font-weight:700}
+.seg{display:flex;padding:4px;border-radius:10px;background:#f1f5f9}
+.seg button{flex:1;height:34px;border:0;border-radius:8px;background:transparent;font:inherit;font-size:13px;font-weight:500;color:#334155}
+.seg .on{background:#ffffff;color:#0f172a;font-weight:600;box-shadow:0 1px 3px 0 rgb(15 23 42 / .1)}
+.cluster{border-radius:12px;border:1px solid #ddd6fe;background:#faf5ff;display:flex;flex-direction:column}
+.cl-h{display:flex;align-items:flex-start;gap:12px;padding:14px 16px}
+.cnt{flex:none;width:56px;padding:8px 0;border-radius:10px;background:#ffffff;border:1px solid #ddd6fe;display:flex;flex-direction:column;align-items:center;color:#5b21b6;font-weight:700;font-size:20px;line-height:24px}
+.cnt small{font-size:11px;font-weight:600;color:#475569}
+.mem{padding:10px 16px 10px 84px;border-top:1px solid #ede9fe;font-size:14px;line-height:22px;color:#334155;display:flex;gap:8px;justify-content:space-between}
+.mem span{font-size:12px;color:#475569;white-space:nowrap}
+.single{display:flex;gap:12px;padding:14px 16px;border-radius:12px;background:#ffffff;border:1px solid #e2e8f0}
+</style>
+</helmet>
+<div class="app">
+  <header style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; padding: 10px 16px; background: #ffffff; border-bottom: 1px solid #e2e8f0">
+    <span style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 999px; background: #e11d48; color: #ffffff; font-size: 13px; font-weight: 700"><span style="width: 8px; height: 8px; border-radius: 50%; background: #ffffff"></span>LIVE</span>
+    <h1 style="font-size: 16px; line-height: 24px; font-weight: 600; flex: 1 1 200px">INT365 · บทที่ 4 Reactive Forms</h1>
+    <span style="font-size: 14px; color: #475569">87 ออนไลน์ · ถาม-ตอบ 23 ข้อ</span>
+  </header>
+
+  <main style="width: 100%; max-width: 920px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px">
+      <h2 style="font-size: 24px; line-height: 34px; font-weight: 700; flex: 1">ถาม-ตอบ</h2>
+      <span class="ai">AI จัดกลุ่มคำถามที่ซ้ำกัน</span>
+      <button class="btn btn-s" style="height: 40px">ดูแบบไม่จัดกลุ่ม</button>
+    </div>
+    <div class="seg" role="tablist" style="max-width: 460px" aria-label="เรียงตาม">
+      <button class="on" role="tab" aria-selected="true">จำนวนคนสงสัย</button>
+      <button role="tab" aria-selected="false">ล่าสุด</button>
+      <button role="tab" aria-selected="false">ตอบแล้ว</button>
+    </div>
+
+    <article class="cluster">
+      <div class="cl-h">
+        <div class="cnt">12<small>คน</small></div>
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+          <b style="font-size: 16px; line-height: 26px">debounce กับ <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; background: #ffffff; padding: 0 4px; border-radius: 4px">valueChanges</code> ต้องใช้ไหม</b>
+          <span style="font-size: 13px; color: #475569">รวม 4 คำถามที่ความหมายใกล้กัน · คำถามหลักมีโหวตมากที่สุด</span>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap">
+            <button class="btn btn-p">แสดงบนจอ</button>
+            <button class="btn btn-s">ตอบแล้วทั้งกลุ่ม</button>
+            <button class="btn btn-g">แยกกลุ่ม</button>
+          </div>
+        </div>
+      </div>
+      <div class="mem"><p style="font-size: 14px">ทำไม valueChanges ถึงยิงทุกครั้งที่พิมพ์ ต้องใช้ debounce ไหมครับ?</p><span>▲ 7 · คำถามหลัก</span></div>
+      <div class="mem"><p style="font-size: 14px">ช่อง search พิมพ์แล้วยิง API รัว ๆ แก้ยังไง</p><span>▲ 3</span></div>
+      <div class="mem"><p style="font-size: 14px">debounceTime ต้อง import จากไหน</p><span>▲ 1</span></div>
+      <div class="mem"><p style="font-size: 14px">Observable ของ input ยิงเยอะเกินไปไหมคะ</p><span>▲ 1 · <a href="#" style="color: #b02f0b">ไม่ใช่เรื่องเดียวกัน?</a></span></div>
+    </article>
+
+    <article class="cluster">
+      <div class="cl-h">
+        <div class="cnt">5<small>คน</small></div>
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+          <b style="font-size: 16px; line-height: 26px">สไลด์ย้อนหลังและไฟล์ให้ดาวน์โหลด</b>
+          <span style="font-size: 13px; color: #475569">รวม 2 คำถาม</span>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap">
+            <button class="btn btn-s">แสดงบนจอ</button>
+            <button class="btn btn-s">ตอบแล้วทั้งกลุ่ม</button>
+            <button class="btn btn-g">แยกกลุ่ม</button>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="single">
+      <span style="flex: none; width: 56px; text-align: center; font-weight: 700; color: #334155">▲ 2</span>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 6px">
+        <p style="font-size: 15px; line-height: 24px">Template-driven กับ Reactive Forms ควรเลือกแบบไหนในโปรเจกต์กลุ่ม?</p>
+        <span style="font-size: 12px; color: #475569">ไม่มีคำถามใกล้เคียง</span>
+      </div>
+      <button class="btn btn-s" style="align-self: flex-start">แสดงบนจอ</button>
+    </article>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

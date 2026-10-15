@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>P02 Content slide with reactions</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.scr{width:1280px;height:720px;box-sizing:border-box;position:relative;overflow:hidden;background:#ffffff;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif}
+.scr *{box-sizing:border-box}
+.scr h1,.scr h2,.scr p,.scr ul{margin:0}
+.join{position:absolute;right:24px;top:20px;display:flex;align-items:center;gap:10px;height:40px;padding:0 14px;border-radius:10px;background:#0f172a;color:#ffffff;font-size:16px}
+.join b{font-family:'IBM Plex Mono',monospace;font-size:20px;letter-spacing:.06em;color:#fb7448}
+.emo{position:absolute;font-size:44px;line-height:1}
+li{font-size:32px;line-height:48px;padding-left:8px}
+li::marker{color:#fa4616}
+code{font-family:'IBM Plex Mono',monospace;font-size:28px;background:#f1f5f9;padding:0 8px;border-radius:6px}
+</style>
+</helmet>
+<div class="scr">
+  <div style="position: absolute; inset: 0; padding: 80px 96px 64px; display: flex; flex-direction: column; gap: 36px">
+    <h1 style="font-size: 56px; line-height: 72px; font-weight: 700">FormGroup คืออะไร</h1>
+    <ul style="display: flex; flex-direction: column; gap: 14px; padding-left: 36px">
+      <li>รวมหลาย <code>FormControl</code> เป็นก้อนเดียว</li>
+      <li>เช็ก <code>valid</code> ได้ทั้งฟอร์มในครั้งเดียว</li>
+      <li>ค่าออกมาเป็น object ตามชื่อ field</li>
+    </ul>
+    <span style="margin-top: auto; font-size: 18px; color: #475569">5 / 20</span>
+  </div>
+
+  <div class="join"><span>moddeck.kmutt.ac.th</span><b>482 914</b></div>
+
+  <div aria-hidden="true" style="opacity: 0.6">
+    <span class="emo" style="right: 72px; bottom: 80px">👏</span>
+    <span class="emo" style="right: 132px; bottom: 170px; opacity: 0.85">👍</span>
+    <span class="emo" style="right: 60px; bottom: 260px; opacity: 0.7">😮</span>
+    <span class="emo" style="right: 118px; bottom: 350px; opacity: 0.5">❤️</span>
+    <span class="emo" style="right: 78px; bottom: 440px; opacity: 0.3">👏</span>
+    <span class="emo" style="right: 140px; bottom: 520px; opacity: 0.15">😂</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

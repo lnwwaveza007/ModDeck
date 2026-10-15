@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>R2 Session analysis</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.app{min-height:900px;display:flex;flex-direction:column;background:#f8fafc;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:15px;line-height:24px}
+.app *{box-sizing:border-box}
+.app h1,.app h2,.app h3,.app p{margin:0}
+.btn{height:44px;border-radius:8px;border:0;font:inherit;font-size:15px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 16px;white-space:nowrap}
+.btn-s{background:#ffffff;color:#0f172a;border:1px solid #cbd5e1}
+.card{background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px}
+.kpi b{display:block;font-size:30px;line-height:38px;font-variant-numeric:tabular-nums}
+.kpi span{font-size:13px;color:#475569}
+.hm{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px}
+.cell{aspect-ratio:1.5;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;line-height:16px;font-weight:600}
+.cell small{font-size:11px;font-weight:500}
+.legend{display:flex;align-items:center;gap:8px;font-size:12px;color:#475569}
+.legend i{width:20px;height:12px;border-radius:3px;display:inline-block}
+.gap{display:flex;gap:12px;padding:12px 0;border-top:1px solid #e2e8f0}
+.pct{flex:none;width:64px;font-weight:700;font-variant-numeric:tabular-nums}
+</style>
+</helmet>
+<div class="app">
+  <header style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px 28px; padding: 0 24px; background: #ffffff; border-bottom: 1px solid #e2e8f0">
+    <div style="display: flex; align-items: center; gap: 10px; height: 64px"><span style="width: 32px; height: 32px; border-radius: 8px; background: #fa4616"></span><b style="font-size: 18px">ModDeck</b></div>
+  </header>
+
+  <main style="width: 100%; max-width: 1200px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 18px">
+    <a href="#" style="font-size: 14px; color: #b02f0b; text-decoration: none">← ผลเซสชัน</a>
+    <div style="display: flex; align-items: flex-start; flex-wrap: wrap; gap: 16px">
+      <div style="flex: 1 1 400px">
+        <h1 style="font-size: 28px; line-height: 38px; font-weight: 700">วิเคราะห์เซสชัน</h1>
+        <p style="color: #475569">INT365 · บทที่ 4 Reactive Forms · 14 ต.ค. 2569 · 87 คน</p>
+      </div>
+      <button class="btn btn-s">ส่งออกเป็น PDF</button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px">
+      <div class="card kpi"><b>74%</b><span>ตอบอย่างน้อย 1 กิจกรรม</span></div>
+      <div class="card kpi"><b>68%</b><span>ตอบถูกเฉลี่ย (Quiz)</span></div>
+      <div class="card kpi"><b>23</b><span>คำถามใน Q&amp;A · 5 กลุ่มซ้ำ</span></div>
+      <div class="card kpi"><b>41 นาที</b><span>ความยาวเซสชัน</span></div>
+    </div>
+
+    <section class="card" aria-label="ความสนใจรายสไลด์" style="display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px">
+        <h2 style="font-size: 18px; line-height: 28px; font-weight: 600; flex: 1">การมีส่วนร่วมรายสไลด์</h2>
+        <div class="legend">น้อย <i style="background: #fff4ee"></i><i style="background: #fda482"></i><i style="background: #fa4616"></i><i style="background: #8c2810"></i> มาก</div>
+      </div>
+      <div class="hm" role="img" aria-label="แผนที่ความร้อน 20 สไลด์ สไลด์ 6, 7 และ 15 มีส่วนร่วมสูงสุด สไลด์ 9 ต่ำสุด">
+        <div class="cell" style="background: #fff4ee; color: #3e0e05">1<small>3%</small></div>
+        <div class="cell" style="background: #fff4ee; color: #3e0e05">2<small>4%</small></div>
+        <div class="cell" style="background: #ffe6da; color: #3e0e05">3<small>8%</small></div>
+        <div class="cell" style="background: #ffe6da; color: #3e0e05">4<small>9%</small></div>
+        <div class="cell" style="background: #ffcab3; color: #3e0e05">5<small>14%</small></div>
+        <div class="cell" style="background: #8c2810; color: #ffffff">6<small>96%</small></div>
+        <div class="cell" style="background: #b02f0b; color: #ffffff">7<small>82%</small></div>
+        <div class="cell" style="background: #ffcab3; color: #3e0e05">8<small>12%</small></div>
+        <div class="cell" style="background: #ffe6da; color: #3e0e05;outline: 2px solid #be123c">9<small>6%</small></div>
+        <div class="cell" style="background: #fff4ee; color: #3e0e05">10<small>4%</small></div>
+        <div class="cell" style="background: #ffe6da; color: #3e0e05">11<small>7%</small></div>
+        <div class="cell" style="background: #fda482; color: #3e0e05">12<small>31%</small></div>
+        <div class="cell" style="background: #ffcab3; color: #3e0e05">13<small>18%</small></div>
+        <div class="cell" style="background: #fff4ee; color: #3e0e05">14<small>5%</small></div>
+        <div class="cell" style="background: #8c2810; color: #ffffff">15<small>91%</small></div>
+        <div class="cell" style="background: #ffe6da; color: #3e0e05">16<small>9%</small></div>
+        <div class="cell" style="background: #ffcab3; color: #3e0e05">17<small>15%</small></div>
+        <div class="cell" style="background: #fff4ee; color: #3e0e05">18<small>3%</small></div>
+        <div class="cell" style="background: #ffe6da; color: #3e0e05">19<small>6%</small></div>
+        <div class="cell" style="background: #fff4ee; color: #3e0e05">20<small>2%</small></div>
+      </div>
+      <p style="font-size: 13px; color: #475569">เปอร์เซ็นต์ = ผู้เข้าร่วมที่ตอบ ถามหรือส่งรีแอคชันขณะแสดงสไลด์นั้น ขอบแดง = ต่ำกว่าที่คาด</p>
+    </section>
+
+    <section class="card" aria-label="จุดที่ควรทบทวน">
+      <h2 style="font-size: 18px; line-height: 28px; font-weight: 600; margin-bottom: 6px">จุดที่ผู้เรียนยังไม่เข้าใจ</h2>
+      <div class="gap"><span class="pct" style="color: #be123c">41%</span><div style="flex: 1"><b>สไลด์ 15 · Quiz: Observable คืออะไร</b><p style="font-size: 14px; color: #475569">ตอบถูกเพียง 41% ส่วนใหญ่เลือก B (Promise) · 5 คำถามใน Q&amp;A เกี่ยวข้อง</p></div></div>
+      <div class="gap"><span class="pct" style="color: #b45309">58%</span><div style="flex: 1"><b>สไลด์ 6 · Live Poll: forRoot ใช้ที่ไหน</b><p style="font-size: 14px; color: #475569">คำตอบแตกเป็น 3 ตัวเลือกใกล้เคียงกัน ควรอธิบายซ้ำ</p></div></div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

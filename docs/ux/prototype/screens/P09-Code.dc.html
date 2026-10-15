@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>P09 Code slide</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.scr{width:1280px;height:720px;box-sizing:border-box;position:relative;overflow:hidden;background:#ffffff;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif}
+.scr *{box-sizing:border-box}
+.scr h1,.scr h2,.scr p,.scr pre{margin:0}
+.join{position:absolute;right:24px;top:20px;display:flex;align-items:center;gap:10px;height:40px;padding:0 14px;border-radius:10px;background:#0f172a;color:#ffffff;font-size:16px}
+.join b{font-family:'IBM Plex Mono',monospace;font-size:20px;letter-spacing:.06em;color:#fb7448}
+.code{font-family:'IBM Plex Mono',monospace;font-size:26px;line-height:42px;border-radius:16px;background:#f8fafc;border:1px solid #e2e8f0;overflow:hidden}
+.ln{display:flex;padding:0 28px 0 0;white-space:pre}
+.ln i{width:64px;flex:none;text-align:right;padding-right:24px;font-style:normal;color:#64748b}
+.ln.hl{background:#fff4ee;box-shadow:inset 6px 0 0 #fa4616}
+.kw{color:#6d28d9}.str{color:#047857}.fn{color:#0e7490}.num{color:#b45309}.cm{color:#64748b;font-style:italic}.ty{color:#be185d}
+</style>
+</helmet>
+<div class="scr">
+  <div style="position: absolute; inset: 0; padding: 72px 96px 56px; display: flex; flex-direction: column; gap: 28px">
+    <div style="display: flex; align-items: baseline; gap: 20px">
+      <h1 style="font-size: 48px; line-height: 64px; font-weight: 700">สร้าง FormGroup</h1>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 18px; color: #475569">signup.component.ts</span>
+    </div>
+    <div class="code" role="figure" aria-label="โค้ด TypeScript 7 บรรทัด บรรทัดที่ 4 ถูกเน้น">
+      <div style="padding: 18px 0">
+        <div class="ln"><i>1</i><span><span class="kw">export class</span> <span class="ty">SignupComponent</span> {</span></div>
+        <div class="ln"><i>2</i><span>  form = <span class="kw">new</span> <span class="fn">FormGroup</span>({</span></div>
+        <div class="ln"><i>3</i><span>    email: <span class="kw">new</span> <span class="fn">FormControl</span>(<span class="str">''</span>, <span class="ty">Validators</span>.email),</span></div>
+        <div class="ln hl"><i>4</i><span>    age: <span class="kw">new</span> <span class="fn">FormControl</span>(<span class="num">18</span>, <span class="ty">Validators</span>.<span class="fn">min</span>(<span class="num">15</span>)),</span></div>
+        <div class="ln"><i>5</i><span>  });</span></div>
+        <div class="ln"><i>6</i><span>  <span class="cm">// form.valid เป็น false ถ้า field ใดไม่ผ่าน</span></span></div>
+        <div class="ln"><i>7</i><span>}</span></div>
+      </div>
+    </div>
+    <span style="margin-top: auto; font-size: 18px; color: #475569">4 / 20</span>
+  </div>
+  <div class="join"><span>moddeck.kmutt.ac.th</span><b>482 914</b></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

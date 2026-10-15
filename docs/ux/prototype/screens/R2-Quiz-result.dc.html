@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>R2 Quiz student result</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.ph{width:390px;height:844px;box-sizing:border-box;display:flex;flex-direction:column;background:#ecfdf5;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:16px;line-height:26px;position:relative;overflow:hidden}
+.ph *{box-sizing:border-box}
+.ph h1,.ph h2,.ph p{margin:0}
+.row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;background:#ffffff;border:1px solid #e2e8f0;font-size:15px}
+.rk{width:28px;font-weight:700;color:#475569;font-variant-numeric:tabular-nums}
+</style>
+</helmet>
+<div class="ph">
+  <div role="status" style="padding: 36px 20px 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center">
+    <div style="width: 84px; height: 84px; border-radius: 50%; background: #059669; display: grid; place-items: center">
+      <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+    </div>
+    <h1 style="font-size: 28px; line-height: 38px; font-weight: 700; color: #065f46">ถูกต้อง</h1>
+    <p style="font-size: 17px; color: #065f46">+ 870 คะแนน · ตอบใน 4 วินาที</p>
+  </div>
+
+  <div style="padding: 0 16px; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; gap: 10px">
+      <div style="flex: 1; padding: 14px; border-radius: 12px; background: #ffffff; text-align: center"><b style="font-size: 26px; line-height: 34px; font-variant-numeric: tabular-nums">2,640</b><br><span style="font-size: 13px; color: #475569">คะแนนรวม</span></div>
+      <div style="flex: 1; padding: 14px; border-radius: 12px; background: #ffffff; text-align: center"><b style="font-size: 26px; line-height: 34px">#4</b><br><span style="font-size: 13px; color: #475569">อันดับ (เพิ่ม ▲ 2)</span></div>
+    </div>
+    <p style="font-size: 13px; font-weight: 600; color: #475569; margin-top: 8px">อันดับใกล้คุณ</p>
+    <div class="row"><span class="rk">3</span><span style="flex: 1">ต้นกล้า</span><b style="font-variant-numeric: tabular-nums">2,790</b></div>
+    <div class="row" style="border: 2px solid #059669"><span class="rk" style="color: #065f46">4</span><span style="flex: 1; font-weight: 700">พลอย (คุณ)</span><b style="font-variant-numeric: tabular-nums">2,640</b></div>
+    <div class="row"><span class="rk">5</span><span style="flex: 1">Guest 12</span><b style="font-variant-numeric: tabular-nums">2,510</b></div>
+  </div>
+
+  <p style="margin-top: auto; padding: 16px; text-align: center; font-size: 14px; color: #475569">รอข้อถัดไป · ดูที่จอหน้าห้อง</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>P05 Projector word cloud</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.scr{width:1280px;height:720px;box-sizing:border-box;position:relative;overflow:hidden;background:#ffffff;color:#0f172a;font-family:'IBM Plex Sans Thai',system-ui,sans-serif}
+.scr *{box-sizing:border-box}
+.scr h1,.scr h2,.scr p{margin:0}
+.join{position:absolute;right:24px;top:20px;display:flex;align-items:center;gap:10px;height:40px;padding:0 14px;border-radius:10px;background:#0f172a;color:#ffffff;font-size:16px}
+.join b{font-family:'IBM Plex Mono',monospace;font-size:20px;letter-spacing:.06em;color:#fb7448}
+.cloud{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 32px}
+.cloud span{font-weight:600;line-height:1.15}
+</style>
+</helmet>
+<div class="scr">
+  <div style="position: absolute; inset: 0; padding: 72px 96px 56px; display: flex; flex-direction: column; gap: 24px">
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <span style="font-size: 20px; font-weight: 600; color: #475569">Word Cloud · 142 คำ จาก 71 คน</span>
+      <h1 style="font-size: 44px; line-height: 58px; font-weight: 700; max-width: 960px">นึกถึงคำไหนเมื่อพูดถึง Reactive Forms?</h1>
+    </div>
+    <div class="cloud" role="img" aria-label="validation 31, FormGroup 22, Observable 15, ตรวจสอบข้อมูล 11, ฟอร์ม 8 และคำอื่น" style="flex: 1">
+      <span style="font-size: 30px; color: #334155">async</span>
+      <span style="font-size: 56px; color: #0e7490">Observable</span>
+      <span style="font-size: 26px; color: #475569">ngModel</span>
+      <span style="font-size: 36px; color: #be185d">ฟอร์ม</span>
+      <span style="font-size: 104px; color: #4338ca">validation</span>
+      <span style="font-size: 28px; color: #475569">RxJS</span>
+      <span style="font-size: 76px; color: #b45309">FormGroup</span>
+      <span style="font-size: 26px; color: #475569">Angular</span>
+      <span style="font-size: 46px; color: #4d7c0f">ตรวจสอบข้อมูล</span>
+      <span style="font-size: 32px; color: #6d28d9">valueChanges</span>
+      <span style="font-size: 26px; color: #475569">ยาก</span>
+      <span style="font-size: 28px; color: #334155">FormControl</span>
+      <span style="font-size: 24px; color: #475569">submit</span>
+    </div>
+  </div>
+  <div class="join"><span>moddeck.kmutt.ac.th</span><b>482 914</b></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
