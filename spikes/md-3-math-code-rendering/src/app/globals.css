@@ -1,0 +1,221 @@
+@import "katex/dist/katex.min.css";
+@import "prismjs/themes/prism.css";
+
+:root {
+  color-scheme: light;
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --ink: #0f172a;
+  --muted: #475569;
+  --line: #cbd5e1;
+  --primary: #d63a0e;
+  --ok: #047857;
+  --warn: #b45309;
+  --phone: 390px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family:
+    "IBM Plex Sans Thai",
+    "Segoe UI",
+    sans-serif;
+}
+
+body {
+  line-height: 1.5;
+}
+
+code,
+pre,
+.katex {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+.hero h1 {
+  margin: 0 0 8px;
+  font-size: 1.75rem;
+}
+
+.lede {
+  color: var(--muted);
+  margin: 0 0 16px;
+  max-width: 70ch;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+label {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+input[type="text"] {
+  flex: 1;
+  min-width: 220px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+}
+
+button,
+.tab {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+
+button.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.tab[aria-pressed="true"] {
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.status {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.875rem;
+}
+
+.status.ok {
+  color: var(--ok);
+}
+
+.status.warn {
+  color: var(--warn);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.metric {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.metric b {
+  display: block;
+  font-size: 1.25rem;
+}
+
+.checklist {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.stage {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.stage.phone {
+  max-width: var(--phone);
+  margin-inline: auto;
+  min-height: 640px;
+  box-shadow: 0 12px 32px rgb(15 23 42 / 0.12);
+}
+
+.stage.projector {
+  min-height: 540px;
+}
+
+.stage.projector .katex {
+  font-size: 1.55em;
+}
+
+.stage.projector pre,
+.stage.projector .shiki {
+  font-size: 1.05rem;
+}
+
+.block {
+  margin: 0 0 28px;
+}
+
+.block h2 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.math {
+  overflow-x: auto;
+  padding: 8px 0;
+}
+
+pre,
+.shiki {
+  margin: 0;
+  overflow: auto;
+  max-height: 420px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #f8fafc;
+}
+
+.stage.phone pre,
+.stage.phone .shiki {
+  max-height: 280px;
+  font-size: 0.8rem;
+}
+
+.empty {
+  color: var(--muted);
+}
+
+.note {
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin-top: 12px;
+}
