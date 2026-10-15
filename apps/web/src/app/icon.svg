@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="ModDeck">
+  <rect width="512" height="512" rx="112" fill="#fa4616"/>
+  <!-- back cards: the deck -->
+  <rect x="112" y="92" width="288" height="216" rx="32" fill="#ffffff" opacity="0.35" transform="rotate(-8 256 200)"/>
+  <rect x="112" y="92" width="288" height="216" rx="32" fill="#ffffff" opacity="0.6" transform="rotate(-4 256 200)"/>
+  <!-- front card: the slide -->
+  <rect x="112" y="116" width="288" height="216" rx="32" fill="#ffffff"/>
+  <!-- live poll bars: the interaction -->
+  <rect x="160" y="248" width="40" height="52" rx="10" fill="#fda482"/>
+  <rect x="236" y="196" width="40" height="104" rx="10" fill="#fa4616"/>
+  <rect x="312" y="224" width="40" height="76" rx="10" fill="#fb7448"/>
+  <!-- chat bubble tail: the audience -->
+  <path d="M176 332 L176 392 L236 332 Z" fill="#ffffff"/>
+</svg>
