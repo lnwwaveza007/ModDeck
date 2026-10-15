@@ -1,0 +1,24 @@
+{
+  "name": "spike-md-21-powerpoint-canva-add-in",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "certs": "office-addin-dev-certs install",
+    "start": "node server.mjs",
+    "test:smoke": "node test-smoke.mjs",
+    "validate": "office-addin-manifest validate manifest.xml",
+    "sideload": "office-addin-debugging start manifest.xml desktop --app powerpoint --no-debug --dev-server-port 3021",
+    "unload": "office-addin-debugging stop manifest.xml"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "office-addin-debugging": "^6.0.3",
+    "office-addin-dev-certs": "^2.0.3",
+    "office-addin-manifest": "^2.0.3",
+    "socket.io-client": "^4.8.1"
+  }
+}
