@@ -125,7 +125,10 @@ export function LabClient() {
   const onMessage = useCallback(
     (event: MessageEvent<string>) => {
       try {
-        const message = JSON.parse(event.data) as { type?: string; clients?: number } & Partial<SlidePayload>;
+        const message = JSON.parse(event.data) as {
+          type?: string;
+          clients?: number;
+        } & Partial<SlidePayload>;
         if (message.type === "hello" || message.type === "presence" || message.type === "ack") {
           if (typeof message.clients === "number") {
             setClients(message.clients);
@@ -151,7 +154,9 @@ export function LabClient() {
     socket.addEventListener("close", () => setStatus("Disconnected"));
     socket.addEventListener("error", () => {
       setStatus("Error");
-      setError("WebSocket failed. Start the mock server: pnpm --filter spike-md-3-math-code-rendering start:ws");
+      setError(
+        "WebSocket failed. Start the mock server: pnpm --filter spike-md-3-math-code-rendering start:ws",
+      );
     });
     socket.addEventListener("message", onMessage);
   }, [onMessage, wsUrl]);
@@ -190,7 +195,9 @@ export function LabClient() {
     () => [
       `KaTeX drew ${payload?.math.length ?? 0} formulas (need 5).`,
       `Python block is ${metrics.pythonLines} lines (need 50+).`,
-      payload ? "Content was applied through the same render path used for the WebSocket payload." : "No payload yet.",
+      payload
+        ? "Content was applied through the same render path used for the WebSocket payload."
+        : "No payload yet.",
     ],
     [metrics.pythonLines, payload],
   );
@@ -225,17 +232,37 @@ export function LabClient() {
 
         <div className="row" style={{ marginTop: 12 }}>
           <span>Screen</span>
-          <button type="button" className="tab" aria-pressed={view === "projector"} onClick={() => setView("projector")}>
+          <button
+            type="button"
+            className="tab"
+            aria-pressed={view === "projector"}
+            onClick={() => setView("projector")}
+          >
             Projector
           </button>
-          <button type="button" className="tab" aria-pressed={view === "phone"} onClick={() => setView("phone")}>
+          <button
+            type="button"
+            className="tab"
+            aria-pressed={view === "phone"}
+            onClick={() => setView("phone")}
+          >
             Student phone
           </button>
           <span>Code engine</span>
-          <button type="button" className="tab" aria-pressed={engine === "shiki"} onClick={() => setEngine("shiki")}>
+          <button
+            type="button"
+            className="tab"
+            aria-pressed={engine === "shiki"}
+            onClick={() => setEngine("shiki")}
+          >
             Shiki
           </button>
-          <button type="button" className="tab" aria-pressed={engine === "prism"} onClick={() => setEngine("prism")}>
+          <button
+            type="button"
+            className="tab"
+            aria-pressed={engine === "prism"}
+            onClick={() => setEngine("prism")}
+          >
             PrismJS
           </button>
         </div>
@@ -267,7 +294,9 @@ export function LabClient() {
 
       <section className={`stage ${view}`} aria-label={`${view} preview`}>
         {!payload ? (
-          <p className="empty">Nothing rendered yet. Press “Render locally” or connect and send the payload.</p>
+          <p className="empty">
+            Nothing rendered yet. Press “Render locally” or connect and send the payload.
+          </p>
         ) : (
           <>
             <p className="note">
@@ -300,8 +329,9 @@ export function LabClient() {
         )}
       </section>
       <p className="note">
-        From a phone on the same Wi-Fi, open this page using the laptop LAN IP (not localhost), connect to{" "}
-        <code>ws://&lt;lan-ip&gt;:4010</code>, then send the payload from any connected tab.
+        From a phone on the same Wi-Fi, open this page using the laptop LAN IP (not localhost),
+        connect to <code>ws://&lt;lan-ip&gt;:4010</code>, then send the payload from any connected
+        tab.
       </p>
     </>
   );
