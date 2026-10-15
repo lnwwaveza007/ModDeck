@@ -1,14 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="ModDeck">
-  <rect width="512" height="512" rx="112" fill="#fa4616"/>
-  <!-- back cards: the deck -->
-  <rect x="112" y="92" width="288" height="216" rx="32" fill="#ffffff" opacity="0.35" transform="rotate(-8 256 200)"/>
-  <rect x="112" y="92" width="288" height="216" rx="32" fill="#ffffff" opacity="0.6" transform="rotate(-4 256 200)"/>
-  <!-- front card: the slide -->
-  <rect x="112" y="116" width="288" height="216" rx="32" fill="#ffffff"/>
-  <!-- live poll bars: the interaction -->
-  <rect x="160" y="248" width="40" height="52" rx="10" fill="#fda482"/>
-  <rect x="236" y="196" width="40" height="104" rx="10" fill="#fa4616"/>
-  <rect x="312" y="224" width="40" height="76" rx="10" fill="#fb7448"/>
-  <!-- chat bubble tail: the audience -->
-  <path d="M176 332 L176 392 L236 332 Z" fill="#ffffff"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fb7448"/>
+      <stop offset="1" stop-color="#d63a0e"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- deck: stacked cards behind -->
+  <rect x="112" y="112" width="288" height="232" rx="56" fill="#ffffff" opacity="0.25" transform="rotate(12 256 228)"/>
+  <rect x="112" y="112" width="288" height="232" rx="56" fill="#ffffff" opacity="0.5" transform="rotate(6 256 228)"/>
+  <!-- front card as speech bubble: live Q&A -->
+  <rect x="112" y="112" width="288" height="232" rx="56" fill="#ffffff"/>
+  <path d="M158 336 L158 408 L230 344 Z" fill="#ffffff"/>
+  <!-- M monogram -->
+  <path d="M184 292 L184 188 L256 262 L328 188 L328 292" fill="none" stroke="#fa4616" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
