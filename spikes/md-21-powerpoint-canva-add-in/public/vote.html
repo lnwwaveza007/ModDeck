@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ModDeck vote</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --ink: #1b1f24;
+        --muted: #5b6470;
+        --bar: #2f5bd3;
+        --ok: #1f8a4c;
+        --bad: #c0392b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 20px 16px;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: system-ui, sans-serif;
+      }
+      h1 {
+        font-size: 22px;
+        line-height: 1.3;
+      }
+      .pin {
+        color: var(--muted);
+      }
+      #options {
+        display: grid;
+        gap: 12px;
+        margin-top: 16px;
+      }
+      #options button {
+        font: inherit;
+        font-size: 18px;
+        text-align: left;
+        padding: 16px;
+        border: 2px solid var(--bar);
+        border-radius: 10px;
+        background: #fff;
+        color: var(--ink);
+      }
+      #options button:active {
+        background: #e8eefc;
+      }
+      #options button:disabled {
+        opacity: 0.5;
+      }
+      #msg {
+        margin-top: 16px;
+        min-height: 1.5em;
+      }
+      .ok {
+        color: var(--ok);
+      }
+      .bad {
+        color: var(--bad);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="pin">PIN <strong id="pin"></strong></div>
+    <h1 id="question">Loading…</h1>
+    <div id="options"></div>
+    <p id="msg" role="status"></p>
+    <script>
+      // Demo vote page. One vote per page load; refresh to vote again.
+      const pin = new URLSearchParams(location.search).get("pin") ?? "";
+      const msg = (text, cls = "") => {
+        const el = document.getElementById("msg");
+        el.textContent = text;
+        el.className = cls;
+      };
+      document.getElementById("pin").textContent = pin;
+
+      fetch(`/api/polls/${encodeURIComponent(pin)}`)
+        .then((res) =>
+          res.json().then((body) => (res.ok ? body : Promise.reject(new Error(body.message)))),
+        )
+        .then((poll) => {
+          document.getElementById("question").textContent = poll.question;
+          const socket = io();
+          socket.on("connect", () => socket.emit("join", { pin, nickname: "phone" }));
+          socket.on("error", ({ message }) => msg(message, "bad"));
+          const box = document.getElementById("options");
+          for (const [key, text] of Object.entries(poll.options)) {
+            const button = document.createElement("button");
+            button.textContent = `${key}. ${text}`;
+            button.addEventListener("click", () => {
+              socket.emit("vote", { pin, option: key });
+              box.querySelectorAll("button").forEach((b) => (b.disabled = true));
+              msg(`Voted ${key}. Look at the slide!`, "ok");
+            });
+            box.append(button);
+          }
+        })
+        .catch((err) => {
+          document.getElementById("question").textContent = "Poll not found";
+          msg(err.message, "bad");
+        });
+    </script>
+  </body>
+</html>

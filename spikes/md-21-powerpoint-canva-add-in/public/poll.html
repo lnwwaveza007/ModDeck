@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ModDeck poll</title>
+    <script>
+      window.mdMarks = { html: performance.now() };
+    </script>
+    <link rel="stylesheet" href="/poll.css" />
+    <!-- Office.js. Outside Office, Office.onReady still resolves (host is null). -->
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <script>
+      window.mdMarks.officeJs = performance.now();
+    </script>
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    <!-- A fixed 1600x900 stage scaled to the add-in frame, so it never scrolls. -->
+    <div id="stage">
+      <section id="poll" class="poll" data-state="loading">
+        <header>
+          <span class="brand">ModDeck</span>
+          <span id="status" class="status">Connecting</span>
+        </header>
+        <h1 id="question">Loading poll…</h1>
+        <div class="body">
+          <div id="bars" class="bars"></div>
+          <aside class="join">
+            <div class="join-title">Scan to vote</div>
+            <div id="qr" class="qr"></div>
+            <div class="pin-label">PIN</div>
+            <div id="pin" class="pin"></div>
+            <div id="vote-url" class="url"></div>
+          </aside>
+        </div>
+        <footer>
+          <span><strong id="total">0</strong> votes</span>
+          <button id="change" type="button" class="link" hidden>Change poll</button>
+        </footer>
+      </section>
+
+      <!-- Shown only in edit view when the slide has no poll yet. -->
+      <form id="setup" class="setup" hidden>
+        <span class="brand">ModDeck</span>
+        <h1>Show a poll on this slide</h1>
+        <label for="pin-input">Session PIN</label>
+        <div class="setup-row">
+          <input
+            id="pin-input"
+            inputmode="numeric"
+            pattern="\d{6}"
+            maxlength="6"
+            placeholder="123456"
+            autocomplete="off"
+            required
+          />
+          <button type="submit">Show poll</button>
+        </div>
+        <p id="setup-error" class="error" role="alert"></p>
+      </form>
+    </div>
+
+    <script src="/poll.js"></script>
+  </body>
+</html>
