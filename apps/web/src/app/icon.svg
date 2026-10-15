@@ -1,20 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="ModDeck">
   <rect width="512" height="512" rx="112" fill="#fa4616"/>
-  <!-- legs and antennae (side view) -->
-  <g fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M240 250 L212 305 L186 380"/>
-    <path d="M266 256 L274 315 L262 390"/>
-    <path d="M292 250 L328 305 L356 380"/>
-    <path d="M388 182 Q400 125 448 112"/>
-    <path d="M372 178 Q372 135 412 100"/>
-  </g>
-  <!-- ant body: abdomen, thorax, head -->
-  <ellipse cx="140" cy="240" rx="74" ry="58" fill="#ffffff"/>
-  <ellipse cx="265" cy="228" rx="48" ry="34" fill="#ffffff"/>
-  <circle cx="372" cy="218" r="42" fill="#ffffff"/>
-  <circle cx="388" cy="208" r="9" fill="#fa4616"/>
-  <!-- live poll bars on abdomen -->
-  <rect x="100" y="244" width="22" height="28" rx="6" fill="#fda482"/>
-  <rect x="131" y="220" width="22" height="52" rx="6" fill="#fa4616"/>
-  <rect x="162" y="234" width="22" height="38" rx="6" fill="#fb7448"/>
+  <!-- back cards: the deck -->
+  <rect x="112" y="92" width="288" height="216" rx="32" fill="#ffffff" opacity="0.35" transform="rotate(-8 256 200)"/>
+  <rect x="112" y="92" width="288" height="216" rx="32" fill="#ffffff" opacity="0.6" transform="rotate(-4 256 200)"/>
+  <!-- front card: the slide -->
+  <rect x="112" y="116" width="288" height="216" rx="32" fill="#ffffff"/>
+  <!-- live poll bars: the interaction -->
+  <rect x="160" y="248" width="40" height="52" rx="10" fill="#fda482"/>
+  <rect x="236" y="196" width="40" height="104" rx="10" fill="#fa4616"/>
+  <rect x="312" y="224" width="40" height="76" rx="10" fill="#fb7448"/>
+  <!-- chat bubble tail: the audience -->
+  <path d="M176 332 L176 392 L236 332 Z" fill="#ffffff"/>
 </svg>
