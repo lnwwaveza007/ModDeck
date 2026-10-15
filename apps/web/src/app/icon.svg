@@ -12,6 +12,16 @@
   <!-- front card as speech bubble: live Q&A -->
   <rect x="112" y="112" width="288" height="232" rx="56" fill="#ffffff"/>
   <path d="M158 336 L158 408 L230 344 Z" fill="#ffffff"/>
-  <!-- M monogram -->
-  <path d="M184 292 L184 188 L256 262 L328 188 L328 292" fill="none" stroke="#fa4616" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- ant (มด = mod): three round body parts, antennae, legs -->
+  <g fill="none" stroke="#fa4616" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M238 250 L222 284 L204 306"/>
+    <path d="M254 256 L256 290 L252 312"/>
+    <path d="M272 250 L290 284 L308 306"/>
+    <path d="M322 192 Q330 158 360 148"/>
+    <path d="M304 190 Q298 164 320 144"/>
+  </g>
+  <circle cx="178" cy="236" r="48" fill="#fa4616"/>
+  <circle cx="252" cy="226" r="30" fill="#fa4616"/>
+  <circle cx="312" cy="214" r="28" fill="#fa4616"/>
+  <circle cx="322" cy="208" r="6" fill="#ffffff"/>
 </svg>
