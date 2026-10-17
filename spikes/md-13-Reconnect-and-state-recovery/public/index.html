@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MD-13 Reconnect spike</title>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        margin: 24px;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+      h1 {
+        font-size: 1.35rem;
+      }
+      .row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 10px;
+        padding: 16px;
+        min-width: 280px;
+        flex: 1;
+      }
+      label {
+        display: block;
+        font-size: 0.8rem;
+        color: #94a3b8;
+        margin: 8px 0 4px;
+      }
+      input,
+      select {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #475569;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+      button {
+        margin: 8px 8px 0 0;
+        padding: 8px 12px;
+        border: 0;
+        border-radius: 6px;
+        background: #2563eb;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button.danger {
+        background: #dc2626;
+      }
+      .status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+      }
+      .on {
+        background: #166534;
+      }
+      .off {
+        background: #7f1d1d;
+      }
+      .wait {
+        background: #854d0e;
+      }
+      pre {
+        background: #020617;
+        padding: 12px;
+        border-radius: 8px;
+        overflow: auto;
+        font-size: 0.8rem;
+      }
+      .opts button {
+        display: block;
+        width: 100%;
+        margin: 6px 0 0;
+        text-align: left;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>MD-13 · Reconnect and state recovery</h1>
+    <p>
+      Connection: <span id="conn" class="status off">offline</span> · Guest cookie is stored as
+      <code>md13_session</code> and cleared when the session ends.
+    </p>
+    <div class="row">
+      <section class="card">
+        <h2>Host</h2>
+        <button id="create">Create session</button>
+        <button id="question">Show next question</button>
+        <button id="end" class="danger">End session</button>
+        <p>PIN: <strong id="pin">—</strong></p>
+      </section>
+      <section class="card">
+        <h2>Student</h2>
+        <label>PIN</label>
+        <input id="joinPin" maxlength="6" placeholder="6-digit PIN" />
+        <label>Nickname</label>
+        <input id="nick" value="Guest" />
+        <label>Login type</label>
+        <select id="loginType">
+          <option value="guest">guest (cookie cleared at session end)</option>
+          <option value="sso">sso (cookie kept)</option>
+        </select>
+        <button id="join">Join / resume</button>
+        <button id="offline">Simulate drop (disconnect, no auto-retry)</button>
+        <button id="online">Reconnect now</button>
+        <div class="opts" id="opts"></div>
+      </section>
+      <section class="card">
+        <h2>Restored state</h2>
+        <p>You: <span id="you">—</span></p>
+        <p>Last seq: <span id="seq">0</span></p>
+        <p>Queued offline answers: <span id="queue">0</span></p>
+        <pre id="log"></pre>
+      </section>
+    </div>
+    <script>
+      const COOKIE = "md13_session";
+      const logEl = document.getElementById("log");
+      const connEl = document.getElementById("conn");
+      let sessionId = null;
+      let pin = null;
+      let token = readCookie();
+      let lastSeq = token?.lastSeq ?? 0;
+      let you = null;
+      let question = null;
+      let queue = [];
+      let socket = io({ autoConnect: true, reconnection: true });
+
+      function readCookie() {
+        const match = document.cookie
+          .split(";")
+          .map((s) => s.trim())
+          .find((s) => s.startsWith(COOKIE + "="));
+        if (!match) return null;
+        try {
+          return JSON.parse(decodeURIComponent(match.slice(COOKIE.length + 1)));
+        } catch {
+          return null;
+        }
+      }
+
+      function writeCookie(payload) {
+        if (!payload) {
+          document.cookie = COOKIE + "=; Path=/; Max-Age=0; SameSite=Lax";
+          token = null;
+          return;
+        }
+        token = payload;
+        lastSeq = payload.lastSeq ?? lastSeq;
+        document.cookie =
+          COOKIE +
+          "=" +
+          encodeURIComponent(JSON.stringify(payload)) +
+          "; Path=/; Max-Age=28800; SameSite=Lax";
+      }
+
+      function setConn(kind, label) {
+        connEl.className = "status " + kind;
+        connEl.textContent = label;
+      }
+
+      function render() {
+        document.getElementById("pin").textContent = pin ?? "—";
+        document.getElementById("seq").textContent = String(lastSeq);
+        document.getElementById("queue").textContent = String(queue.length);
+        document.getElementById("you").textContent = you
+          ? `${you.nickname} · ${you.team} · score ${you.score}`
+          : "—";
+        const opts = document.getElementById("opts");
+        opts.innerHTML = "";
+        if (question) {
+          const h = document.createElement("p");
+          h.textContent = question.text;
+          opts.appendChild(h);
+          for (const option of question.options) {
+            const b = document.createElement("button");
+            b.textContent = option;
+            b.onclick = () => submit(option);
+            opts.appendChild(b);
+          }
+        }
+      }
+
+      function note(msg, data) {
+        logEl.textContent =
+          `[${new Date().toISOString()}] ${msg}\n` +
+          (data ? JSON.stringify(data, null, 2) + "\n" : "") +
+          logEl.textContent;
+      }
+
+      function applySync(sync) {
+        if (sync.token) writeCookie(sync.token);
+        lastSeq = sync.lastSeq ?? lastSeq;
+        you = sync.you;
+        pin = sync.snapshot?.pin ?? pin;
+        sessionId = sync.sessionId ?? sessionId;
+        if (sync.snapshot?.question) question = sync.snapshot.question;
+        for (const event of sync.missed ?? []) applyEvent(event, true);
+        render();
+      }
+
+      function applyEvent(event, fromReplay = false) {
+        lastSeq = Math.max(lastSeq, event.seq);
+        if (token) writeCookie({ ...token, lastSeq });
+        if (event.type === "question_shown") question = event.payload.question;
+        if (event.type === "answer_accepted" && you && event.payload.userId === you.userId) {
+          you = { ...you, score: event.payload.score, team: event.payload.team };
+        }
+        if (event.type === "session_ended") {
+          question = null;
+          if ((token?.loginType ?? you?.loginType) === "guest") writeCookie(null);
+        }
+        if (!fromReplay) note(event.type, event);
+        render();
+      }
+
+      async function submit(option) {
+        const answerId = crypto.randomUUID();
+        const payload = { token: token?.token, questionId: question.id, option, answerId };
+        if (!socket.connected) {
+          queue.push(payload);
+          render();
+          note("queued offline", payload);
+          return;
+        }
+        await sendAnswer(payload);
+      }
+
+      function sendAnswer(payload) {
+        return new Promise((resolve) => {
+          socket.emit("answer", payload, (ack) => {
+            note(ack.duplicate ? "answer duplicate (idempotent)" : "answer ack", ack);
+            if (ack.ok) {
+              lastSeq = ack.lastSeq ?? lastSeq;
+              you = { ...you, score: ack.score, team: ack.team, answers: ack.answers };
+              if (token) writeCookie({ ...token, lastSeq });
+            }
+            render();
+            resolve(ack);
+          });
+        });
+      }
+
+      async function flushQueue() {
+        const pending = queue.splice(0);
+        for (const payload of pending) await sendAnswer(payload);
+        render();
+      }
+
+      socket.on("connect", () => {
+        setConn("on", "connected");
+        const cookie = readCookie();
+        if (cookie?.token) {
+          socket.emit("hello", { token: cookie.token, lastSeq: cookie.lastSeq ?? 0 }, (ack) => {
+            if (ack?.ok) {
+              applySync(ack);
+              flushQueue();
+              note("reconnect handshake", { missed: ack.missed?.length, score: ack.you?.score });
+            } else {
+              note("hello failed", ack);
+              if (ack?.clearGuestCookie) writeCookie(null);
+            }
+          });
+        }
+      });
+      socket.on("disconnect", () => setConn("off", "disconnected"));
+      socket.on("reconnect_attempt", () => setConn("wait", "reconnecting…"));
+      socket.on("joined", (msg) => {
+        applySync(msg);
+        note("joined", msg.you);
+      });
+      socket.on("sync", (msg) => {
+        applySync(msg);
+        flushQueue();
+      });
+      socket.on("event", (event) => applyEvent(event));
+      socket.on("session_ended", (msg) => {
+        note("session ended", msg);
+        if ((token?.loginType ?? you?.loginType) === "guest") writeCookie(null);
+      });
+
+      document.getElementById("create").onclick = async () => {
+        const res = await fetch("/api/sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        });
+        const data = await res.json();
+        sessionId = data.sessionId;
+        pin = data.pin;
+        document.getElementById("joinPin").value = pin;
+        render();
+        note("session created", data);
+      };
+      document.getElementById("question").onclick = async () => {
+        const res = await fetch(`/api/sessions/${sessionId}/questions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: "Which protocol restores missed events?",
+            options: ["seq + snapshot", "only polling", "full page reload", "email"],
+          }),
+        });
+        note("question", await res.json());
+      };
+      document.getElementById("end").onclick = async () => {
+        await fetch(`/api/sessions/${sessionId}/end`, { method: "POST" });
+      };
+      document.getElementById("join").onclick = () => {
+        socket.emit("join", {
+          pin: document.getElementById("joinPin").value,
+          nickname: document.getElementById("nick").value,
+          loginType: document.getElementById("loginType").value,
+          token: readCookie()?.token,
+        });
+      };
+      document.getElementById("offline").onclick = () => {
+        socket.io.reconnection(false);
+        socket.disconnect();
+        setConn("off", "wifi off (simulated)");
+      };
+      document.getElementById("online").onclick = () => {
+        socket.io.reconnection(true);
+        socket.connect();
+      };
+
+      render();
+    </script>
+  </body>
+</html>
