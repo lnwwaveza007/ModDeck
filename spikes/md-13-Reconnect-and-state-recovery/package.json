@@ -1,0 +1,16 @@
+{
+  "name": "spike-md-13-reconnect-and-state-recovery",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test --test-concurrency=1 test/reconnect.test.mjs"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.4"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.4"
+  }
+}
