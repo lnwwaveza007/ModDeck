@@ -27,7 +27,7 @@ The design builds on the spike results in [`spikes/`](../../spikes) and the UX d
 | --- | --- | --- | --- | --- |
 | **Local** | feature branches | Daily development on each member's machine | Developer PC / laptop with Docker Desktop | `docker compose up` ([`docker-compose.yml`](../../docker-compose.yml)): `web`, `api`, `postgres`, `redis`. Source mounted, hot reload |
 | **CI** | every PR | Format, lint, unit and e2e tests | GitHub Actions, GitHub-hosted runner (`ubuntu-latest`) | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) |
-| **Dev** | `dev` | Integration: test merged work before it goes to production | Same campus VM `CP26SSA2` | Second Docker Compose project (`docker compose -p moddeck-dev`) with its own `nginx`, `web`, `api`, `worker`, `postgres`, `redis` and volumes. Public port 8443. Deployed automatically after each merge to `dev` |
+| **Dev** | `dev` | Integration: test merged work before it goes to production | Same campus VM `CP26SSA2` | Second Docker Compose project (`docker compose -p moddeck-dev`) with its own `nginx`, `web`, `api`, `postgres`, `redis` and volumes. Public port 8443. Deployed automatically after each merge to `dev` |
 | **Production** | `main` | Real classes | Campus VM `CP26SSA2`: 4 vCPU, 7.2 GiB RAM + 4 GiB swap, Ubuntu. Reachable from the internet | Docker Compose. Images are built on the VM. A self-hosted runner deploys after each merge |
 
 - The two long-lived branches follow [CONTRIBUTING.md](../../CONTRIBUTING.md): `main` is production only, `dev` collects work in progress. The `dev` branch does not exist on GitHub yet.
@@ -35,7 +35,7 @@ The design builds on the spike results in [`spikes/`](../../spikes) and the UX d
 
 ### 1.2 Architecture diagram
 
-**Style: modular monolith.** One NestJS `api` holds all business modules (§3.2). Heavy background work runs in a separate `worker` container built from the same code base. This is not a microservice system: both share one database and one Redis.
+**Style: modular monolith.** One NestJS `api` holds all business modules (§3.2). PDF import also runs inside `api`, as a background job in a Node worker thread so the Socket.IO event loop is not blocked. The host uploads the PDF from the browser (frontend); there is no separate worker container. This is not a microservice system.
 
 R1 runs **one** `api` instance: MD-8 showed one instance serves a 300-student room at p95 ≤ 73.5 ms with the API under 26% of one core. The Socket.IO Redis adapter (MD-2) lets us add `api` instances later without code changes.
 
@@ -57,14 +57,13 @@ flowchart LR
         Nginx["nginx<br/>reverse proxy, TLS (self-signed)<br/>:443 HTTPS / WSS<br/>:80 redirect to 443"]
         Web["web<br/>Next.js 16<br/>:3000"]
         Api["api<br/>NestJS 11 modular monolith<br/>REST + Socket.IO 4.8 gateway<br/>:4000"]
-        Worker["worker<br/>PDF import job (pdf.js)<br/>no port"]
         PG[("postgres<br/>PostgreSQL 17 + pgvector<br/>:5432")]
-        Redis[("redis 7<br/>Pub/Sub, live state, job queue<br/>AOF everysec<br/>:6379")]
+        Redis[("redis 7<br/>Pub/Sub, live state<br/>AOF everysec<br/>:6379")]
         Files[("Docker volume<br/>slide images (WebP)")]
         Runner["GitHub Actions<br/>self-hosted runner<br/>(host process)"]
         Prom["prometheus :9090<br/>(future)"]
         Graf["grafana :3000<br/>(future)"]
-        DevStack["Dev stack (Compose project moddeck-dev)<br/>own nginx :8443, web, api, worker,<br/>postgres, redis, volumes"]
+        DevStack["Dev stack (Compose project moddeck-dev)<br/>own nginx :8443, web, api,<br/>postgres, redis, volumes"]
     end
 
     Phone -->|"HTTPS + WSS"| Nginx
@@ -81,10 +80,7 @@ flowchart LR
     Api -->|"HTTPS token exchange"| Entra
     Api -->|"PostgreSQL protocol (TCP)"| PG
     Api -->|"RESP (TCP)"| Redis
-    Api -->|"read images"| Files
-    Worker -->|"RESP: take job, publish progress"| Redis
-    Worker -->|"PostgreSQL protocol"| PG
-    Worker -->|"write images"| Files
+    Api -->|"read and write images"| Files
     Api -.->|"HTTPS (R2–R3)"| Gemini
 
     Runner -->|"HTTPS long poll (outbound only)"| GitHub
@@ -96,7 +92,7 @@ flowchart LR
     Graf -.->|"HTTP PromQL"| Prom
 ```
 
-Arrow = direction of the request. Dashed arrow = not used in R1: a browser redirect, a later release, or the future monitoring stack. The runner rebuilds and restarts every app container (`web`, `api`, `worker`); the diagram shows one arrow to keep it readable.
+Arrow = direction of the request. Dashed arrow = not used in R1: a browser redirect, a later release, or the future monitoring stack. The runner rebuilds and restarts every app container (`web`, `api`); the diagram shows one arrow to keep it readable.
 
 ### 1.3 Containers and services
 
@@ -105,10 +101,9 @@ Arrow = direction of the request. Dashed arrow = not used in R1: a browser redir
 | `nginx` | nginx | Reverse proxy, TLS end (self-signed certificate in R1), WebSocket upgrade | 443, 80 | Internet | HTTPS, WSS | Config draft: [`spikes/md-8-load-test/nginx/nginx.conf`](../../spikes/md-8-load-test/nginx/nginx.conf) |
 | `web` | `node:22-alpine` | Next.js 16 (App Router), React 19, Tailwind 4 | 3000 | `nginx` only | HTTP | [`apps/web`](../../apps/web) |
 | `api` | `node:22-alpine` | NestJS 11 modular monolith: REST API + Socket.IO gateway + `/metrics` | 4000 | `nginx`, `web` | HTTP, WebSocket | [`apps/api`](../../apps/api), MD-2, MD-8 |
-| `worker` | `node:22` (same repo as `api`) | Background jobs from the Redis queue: PDF import in R1. Embedding and AI Suggestion jobs in R2–R3 | — | none (pulls jobs) | RESP | MD-14 §6: import must be a background job (7–14 s per 50 slides) |
-| `postgres` | `pgvector/pgvector:pg17` | Main database. pgvector is installed now for R2 | 5432 | `api`, `worker` | PostgreSQL wire (TCP) | [`docker/postgres/init.sql`](../../docker/postgres/init.sql) |
-| `redis` | `redis:7-alpine` | Socket.IO adapter (Pub/Sub), live counters, answer dedup, flush stream, job queue | 6379 | `api`, `worker` | RESP (TCP) | MD-2, MD-9. MD-9 §7: production must run `--appendonly yes --appendfsync everysec` |
-| volume `slides` | Docker volume on the VM | Slide images (WebP, 1920 px, about 75–90 KB per slide) | — | `api` (read), `worker` (write) | file system | MD-14 §6 |
+| `postgres` | `pgvector/pgvector:pg17` | Main database. pgvector is installed now for R2 | 5432 | `api` | PostgreSQL wire (TCP) | [`docker/postgres/init.sql`](../../docker/postgres/init.sql) |
+| `redis` | `redis:7-alpine` | Socket.IO adapter (Pub/Sub), live counters, answer dedup, flush stream | 6379 | `api` | RESP (TCP) | MD-2, MD-9. MD-9 §7: production must run `--appendonly yes --appendfsync everysec` |
+| volume `slides` | Docker volume on the VM | Slide images (WebP, 1920 px, about 75–90 KB per slide) | — | `api` (read and write) | file system | MD-14 §6 |
 | `prometheus` *(future)* | `prom/prometheus:v3.15.0` | Scrapes `api` metrics: connections, fan-out packets/s, event-loop lag | 9090 | internal | HTTP | MD-8 §11. Not deployed in R1 |
 | `grafana` *(future)* | `grafana/grafana:13.2.3` | Dashboards | 3000 | team only | HTTP | MD-8 monitoring. Not deployed in R1 |
 | dev stack | Same images, built from branch `dev` | Full copy of the stack above for the dev environment. Separate containers, network, database, Redis and volumes, so dev data never mixes with production | nginx 443 → host 8443 | Team | HTTPS, WSS | Team decision |
@@ -173,6 +168,7 @@ Notes:
 | Database backup | None | Losing the VM disk or the `pgdata` volume loses all decks, sessions and results | Accepted for R1. Add a backup plan before real classes depend on the data |
 | Monitoring | Not deployed | No early warning for connection count, fan-out or event-loop lag | Prometheus and Grafana are drawn as future containers (§1.2); MD-8 has a working setup |
 | Single host | One VM, one `api` | A VM or Docker failure stops every session | Redis AOF + reconnect protocol (MD-9, MD-13) limit data loss on a restart |
+| PDF import inside `api` | Same container as live rooms | A large import uses CPU and can slow a live class | Run import in a worker thread, allow one import at a time, keep the 150-page and 50 MB limits |
 | Dev and production share the VM | Both stacks on 4 vCPU, 7.2 GiB RAM | A heavy dev task (load test, large PDF import, image build) slows a live class | Set `cpus` and `mem_limit` on dev containers. Do not run load tests on dev during class hours. Image builds also run on this VM |
 
 ---
@@ -393,7 +389,8 @@ flowchart TB
     QA --> Live
     React --> Live
     Session --> Live
-    Import -->|"enqueue job"| Redis[("Redis")]
+    Import -->|"write images"| Files[("slides volume")]
+    Import --> PG
     Live --> Redis
     Live --> PG[("PostgreSQL")]
     Deck --> PG
@@ -802,7 +799,7 @@ Note for the slide version: Mermaid places lines automatically and can cross lin
 
 | Store | Holds | Why |
 | --- | --- | --- |
-| **Redis** (live, in memory, AOF) | Answers of open activities, counts, seq event log, participant presence, job queue, Socket.IO Pub/Sub | 300 answers in one second without a database bottleneck or race (MD-9: Lua script 22–32 µs per submit) |
+| **Redis** (live, in memory, AOF) | Answers of open activities, counts, seq event log, participant presence, Socket.IO Pub/Sub | 300 answers in one second without a database bottleneck or race (MD-9: Lua script 22–32 µs per submit) |
 | **PostgreSQL** (durable) | Everything in §4.1 | Results, history, export. Filled from Redis by a batch flush |
 
 ### 5.2 Redis keys
@@ -881,7 +878,7 @@ On "Close activity", the UI shows the closed state only after the final flush re
 | Images | Built directly on the VM. No registry |
 | TLS and access | Self-signed certificate for now. The server is reachable from the internet (risks in §1.6) |
 | Slide images | Docker volume on the VM |
-| Worker | Separate `worker` container |
+| PDF import | Runs inside `api` as a background job (worker thread). No separate worker container. The host uploads the PDF from the frontend. Revisit in R2 if embedding jobs are heavy |
 | Monitoring | Not deployed in R1. Prometheus and Grafana stay in the diagram as future containers |
 | Backup | No backup plan in R1 (risk in §1.6) |
 | Frontend state | Zustand |
@@ -889,7 +886,7 @@ On "Close activity", the UI shows the closed state only after the final flush re
 | API shape | REST under `/api/v1`, one Socket.IO namespace |
 | Guest token | `HttpOnly` cookie (MD-7). MD-5 §2.3 updated |
 | MD-17 | Walking skeleton was replaced by a prototype. No skeleton code to match |
-| Architecture style | Modular monolith (one `api` + one `worker`), not microservices |
+| Architecture style | Modular monolith (one `api`), not microservices |
 | Shared types | `packages/shared` workspace |
 | Changing a poll answer | The host decides per poll (`allowAnswerChange`). Default off: the first answer counts. MD-5 §5.2 updated |
 | Dev environment | Same VM `CP26SSA2`, second Compose project, auto-deploy on merge to `dev` |
