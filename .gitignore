@@ -9,3 +9,4 @@ out
 !.env.example
 .DS_Store
 *.log
+spikes/md-13-Reconnect-and-state-recovery/data/
