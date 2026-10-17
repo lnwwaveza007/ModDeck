@@ -6,28 +6,95 @@
     <title>MD-13 Reconnect spike</title>
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
     <style>
-      :root { color-scheme: dark; }
-      body { font-family: ui-sans-serif, system-ui, sans-serif; margin: 24px; background: #0f172a; color: #e2e8f0; }
-      h1 { font-size: 1.35rem; }
-      .row { display: flex; gap: 16px; flex-wrap: wrap; }
-      .card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 16px; min-width: 280px; flex: 1; }
-      label { display: block; font-size: 0.8rem; color: #94a3b8; margin: 8px 0 4px; }
-      input, select { width: 100%; box-sizing: border-box; padding: 8px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #e2e8f0; }
-      button { margin: 8px 8px 0 0; padding: 8px 12px; border: 0; border-radius: 6px; background: #2563eb; color: white; font-weight: 600; cursor: pointer; }
-      button.danger { background: #dc2626; }
-      .status { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.8rem; }
-      .on { background: #166534; }
-      .off { background: #7f1d1d; }
-      .wait { background: #854d0e; }
-      pre { background: #020617; padding: 12px; border-radius: 8px; overflow: auto; font-size: 0.8rem; }
-      .opts button { display: block; width: 100%; margin: 6px 0 0; text-align: left; }
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        margin: 24px;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+      h1 {
+        font-size: 1.35rem;
+      }
+      .row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 10px;
+        padding: 16px;
+        min-width: 280px;
+        flex: 1;
+      }
+      label {
+        display: block;
+        font-size: 0.8rem;
+        color: #94a3b8;
+        margin: 8px 0 4px;
+      }
+      input,
+      select {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #475569;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+      button {
+        margin: 8px 8px 0 0;
+        padding: 8px 12px;
+        border: 0;
+        border-radius: 6px;
+        background: #2563eb;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button.danger {
+        background: #dc2626;
+      }
+      .status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+      }
+      .on {
+        background: #166534;
+      }
+      .off {
+        background: #7f1d1d;
+      }
+      .wait {
+        background: #854d0e;
+      }
+      pre {
+        background: #020617;
+        padding: 12px;
+        border-radius: 8px;
+        overflow: auto;
+        font-size: 0.8rem;
+      }
+      .opts button {
+        display: block;
+        width: 100%;
+        margin: 6px 0 0;
+        text-align: left;
+      }
     </style>
   </head>
   <body>
     <h1>MD-13 · Reconnect and state recovery</h1>
     <p>
-      Connection: <span id="conn" class="status off">offline</span>
-      · Guest cookie is stored as <code>md13_session</code> and cleared when the session ends.
+      Connection: <span id="conn" class="status off">offline</span> · Guest cookie is stored as
+      <code>md13_session</code> and cleared when the session ends.
     </p>
     <div class="row">
       <section class="card">
@@ -75,10 +142,16 @@
       let socket = io({ autoConnect: true, reconnection: true });
 
       function readCookie() {
-        const match = document.cookie.split(";").map((s) => s.trim()).find((s) => s.startsWith(COOKIE + "="));
+        const match = document.cookie
+          .split(";")
+          .map((s) => s.trim())
+          .find((s) => s.startsWith(COOKIE + "="));
         if (!match) return null;
-        try { return JSON.parse(decodeURIComponent(match.slice(COOKIE.length + 1))); }
-        catch { return null; }
+        try {
+          return JSON.parse(decodeURIComponent(match.slice(COOKIE.length + 1)));
+        } catch {
+          return null;
+        }
       }
 
       function writeCookie(payload) {
@@ -89,7 +162,11 @@
         }
         token = payload;
         lastSeq = payload.lastSeq ?? lastSeq;
-        document.cookie = COOKIE + "=" + encodeURIComponent(JSON.stringify(payload)) + "; Path=/; Max-Age=28800; SameSite=Lax";
+        document.cookie =
+          COOKIE +
+          "=" +
+          encodeURIComponent(JSON.stringify(payload)) +
+          "; Path=/; Max-Age=28800; SameSite=Lax";
       }
 
       function setConn(kind, label) {
@@ -120,7 +197,10 @@
       }
 
       function note(msg, data) {
-        logEl.textContent = `[${new Date().toISOString()}] ${msg}\n` + (data ? JSON.stringify(data, null, 2) + "\n" : "") + logEl.textContent;
+        logEl.textContent =
+          `[${new Date().toISOString()}] ${msg}\n` +
+          (data ? JSON.stringify(data, null, 2) + "\n" : "") +
+          logEl.textContent;
       }
 
       function applySync(sync) {
@@ -200,8 +280,14 @@
       });
       socket.on("disconnect", () => setConn("off", "disconnected"));
       socket.on("reconnect_attempt", () => setConn("wait", "reconnecting…"));
-      socket.on("joined", (msg) => { applySync(msg); note("joined", msg.you); });
-      socket.on("sync", (msg) => { applySync(msg); flushQueue(); });
+      socket.on("joined", (msg) => {
+        applySync(msg);
+        note("joined", msg.you);
+      });
+      socket.on("sync", (msg) => {
+        applySync(msg);
+        flushQueue();
+      });
       socket.on("event", (event) => applyEvent(event));
       socket.on("session_ended", (msg) => {
         note("session ended", msg);
@@ -209,7 +295,11 @@
       });
 
       document.getElementById("create").onclick = async () => {
-        const res = await fetch("/api/sessions", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+        const res = await fetch("/api/sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        });
         const data = await res.json();
         sessionId = data.sessionId;
         pin = data.pin;
@@ -221,7 +311,10 @@
         const res = await fetch(`/api/sessions/${sessionId}/questions`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: "Which protocol restores missed events?", options: ["seq + snapshot", "only polling", "full page reload", "email"] }),
+          body: JSON.stringify({
+            text: "Which protocol restores missed events?",
+            options: ["seq + snapshot", "only polling", "full page reload", "email"],
+          }),
         });
         note("question", await res.json());
       };
