@@ -344,6 +344,23 @@ sequenceDiagram
 
 **Evidence in the project today:** token file and specimen page ([`apps/web/src/app/design-system/page.tsx`](../../apps/web/src/app/design-system/page.tsx)), MD-3 render helpers ([`spikes/md-3-math-code-rendering/src/lib/render.ts`](../../spikes/md-3-math-code-rendering/src/lib/render.ts)), MD-13 client with resume ([`spikes/md-13-Reconnect-and-state-recovery/src/client.mjs`](../../spikes/md-13-Reconnect-and-state-recovery/src/client.mjs)), MD-6 wireframes and MD-15 hi-fi mockups.
 
+### 2.8 Components on each page
+
+Every route from the [MD-5 sitemap](../ux/md-5-ia-and-flows.md#3-sitemap) is built only from the components in 2.4. `/login` has no screen of its own: it redirects to KMUTT SSO. The [visual review page](technical-design-visual.html#pages) draws one diagram per page.
+
+| Page | Route | Components | State, REST and socket |
+| --- | --- | --- | --- |
+| Landing | `/` | `PinInput`, `Button`, `Banner`, `Tabs` (language) | `prefs` · `GET /pins/{pin}` |
+| Join | `/j/:pin` | `Card`, `Banner`, `Button`, `Input`, `Tabs` (language) | `drafts`, `identity`, `prefs` · `GET /pins/{pin}`, `POST …/participants` |
+| Student live screen | `/s/:sessionId` | `ConnectionBanner`, `Tabs`, `Badge`, `WaitingView`, `ActivityRenderer` (`PollOptionButton`, `WordCloudInput`, `PollChart`), `QuestionList` (`QuestionCard`), `AskForm` (`AnonymousToggle`), `ReactionBar`, `RichText` | `connection`, `liveSession`, `myResponses`, `qa`, `drafts` · socket `hello`, `vote`, `word`, `question`, `upvote`, `reaction` |
+| My decks | `/decks` | `Button`, `Card`, `Badge`, `Dialog`, `Input` | TanStack Query `["decks"]` · `GET/POST /decks`, `POST …/copies`, `DELETE /decks/{id}` |
+| Deck editor | `/decks/:deckId` | `Button`, `Banner`, `SlideThumbnail`, `Dialog`, `ImportProgress`, `SlideRenderer`, `RichText`, `Input`, `Toggle` | TanStack Query `["deck", id]` · slides, `slide-order`, `settings`, `imports` · socket `import_progress` |
+| Presenter control | `/host/:sessionId` | `JoinBar`, `ConnectionBanner`, `Banner`, `SlideRenderer`, `SlideThumbnail`, `ActivityRenderer` (`PollChart`, `WordCloudView`), `Button`, `QuestionList` (`QuestionCard`), `ParticipantList`, `Toggle`, `HoldButton`, `PresenterOverlay` | `connection`, `liveSession`, `qa` · `PATCH` session, activity, question · socket `slide_changed`, `activity_state`, `vote_update`, `participant_count`, `question_posted` |
+| Co-host Q&A | `/host/:sessionId/qa` | `ConnectionBanner`, `Banner`, `Button`, `Tabs`, `QuestionList` (`QuestionCard`) | `connection`, `qa` · `PATCH` question, `POST …/sender-removals`, `POST …/takeovers` |
+| Audience screen | `/screen/:sessionId` | `SlideRenderer`, `RichText`, `ActivityRenderer` (`PollChart`, `WordCloudView`), `JoinBar`, `QuestionCard`, `ReactionLayer`, `Card` | `connection`, `liveSession` (read only) · socket `slide_changed`, `activity_state`, `vote_update`, `word_update`, `reaction_burst`, `session_ended` |
+| Session history | `/sessions` | `Card`, `Badge`, `Button` | TanStack Query `["sessions"]` · `GET /sessions` |
+| Session results | `/sessions/:sessionId` | `Tabs`, `Button`, `PollChart`, `WordCloudView`, `Badge`, `QuestionList` (`QuestionCard`), `ParticipantList` | TanStack Query `["session", id]` · `GET` session, results, questions, participants, export |
+
 ---
 
 ## 3. Backend: API Design
