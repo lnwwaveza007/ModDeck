@@ -37,10 +37,13 @@ services:
       WEB_ORIGIN: http://localhost:${WEB_PORT:-3000}
       DATABASE_URL: postgresql://${POSTGRES_USER:-moddeck}:${POSTGRES_PASSWORD:-moddeck}@postgres:5432/${POSTGRES_DB:-moddeck}
       REDIS_URL: redis://redis:6379
+    # Apply pending migrations and the demo seed (idempotent) before the dev server.
+    command: ["sh", "-c", "pnpm db:generate && pnpm db:deploy && pnpm db:seed && pnpm dev"]
     ports:
       - "${API_PORT:-4000}:4000"
     volumes:
       - ./apps/api/src:/repo/apps/api/src
+      - ./apps/api/prisma:/repo/apps/api/prisma
     depends_on:
       postgres:
         condition: service_healthy
