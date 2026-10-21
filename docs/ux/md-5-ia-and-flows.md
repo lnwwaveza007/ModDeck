@@ -132,7 +132,7 @@ Shortcut list (shown with `?`): `→` / `←` next / previous slide, `Space` sta
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Host login            | KMUTT SSO only. Any SSO account can host, staff or student (Q1). No guest hosts.                                                                         |
 | Student login         | Choose "Log in with KMUTT" or "Join as guest". Default session setting allows both.                                                                      |
-| Guest identity        | Nickname (required, 2–20 characters). A device token in local storage keeps the same participant on rejoin.                                              |
+| Guest identity        | Nickname (required, 2–20 characters). A room-scoped device token in an `HttpOnly`, `Secure` cookie keeps the same participant on rejoin (MD-7). JavaScript cannot read it. |
 | SSO identity          | Name and student ID from SSO. Used in the CSV export.                                                                                                    |
 | Anonymous Q&A         | Default on (Q4). The host and other students never see the name. The server still stores the participant ID (needed for upvote rules and abuse checks). |
 | "Require KMUTT login" | Session setting, default off. When on, the guest option is hidden.                                                                                       |
@@ -392,7 +392,7 @@ flowchart TD
 | Login         | SSO redirect, then back to the page the host asked for. A failed login shows an error page with "Try again".                                                                                                     |
 | Create deck   | Only a name is required. A new deck starts with one blank title slide.                                                                                                                                           |
 | PDF import    | Upload a PDF, max 50 MB and 150 pages (Q6). The host can keep editing while import runs. Each page becomes one image slide, added at the end of the deck or after the selected slide. Failed pages show a retry. |
-| Add activity  | Live Poll: question (text, code, or math), 2–10 options, single or multiple choice. Word Cloud: prompt, max entries per person (1–3, default 1), max 25 characters per entry.                                    |
+| Add activity  | Live Poll: question (text, code, or math), 2–10 options, single or multiple choice, "Allow answer change" (default off). Word Cloud: prompt, max entries per person (1–3, default 1), max 25 characters per entry.                                    |
 | Validation    | A poll with an empty question or fewer than 2 options is "incomplete". The host cannot start a session while any activity is incomplete. The editor lists the slides to fix.                                    |
 | Start session | Copies the deck settings into the session. Assigns a PIN. The deck stays editable within the limits in 4.3.                                                                                                     |
 | Present       | Arrow keys or buttons move slides. By default, moving to an activity slide does not start it; the host presses "Start". With "auto-start activities" on, the activity goes live when its slide is shown (Q2).   |
@@ -456,7 +456,7 @@ flowchart TD
     M -->|results shown| Q["Results chart / cloud"]
 
     O --> O1{"Activity type"}
-    O1 -->|Live Poll| O2["Pick option(s), submit, can change until closed"]
+    O1 -->|Live Poll| O2["Pick option(s), submit. Locked unless host allows change"]
     O1 -->|Word Cloud| O3["Type word(s), submit up to limit"]
     O2 --> O4["'Answer sent' confirmation"]
     O3 --> O4
@@ -487,7 +487,7 @@ flowchart TD
 | PIN entry    | Numeric keypad on mobile (`inputmode="numeric"`). Auto-submit after 6 digits. Paste works.                                                                                                   |
 | Identity     | Two buttons: "Log in with KMUTT" and "Join as guest". Guest asks for a nickname only (rules in 2.6). A short privacy line shows on this screen (2.4). If the SSO login fails, the error offers "Join as guest" instead (unless login is required), with the reason. |
 | Waiting view | Shown on lobby and content slides: session title, "Look at the screen", slide number ("Slide 5 of 20", plus the activity type when the next slide is an activity), connection status dot. No slide content on the phone (Q5). A "Tap to refresh" link is always visible, and the phone asks the server for the current state whenever the screen wakes up.                                                           |
-| Live Poll    | Options as large buttons. Code and math render in the options. "Submit" sends. After submit, the student can change the answer until the poll closes. Last answer counts.                   |
+| Live Poll    | Options as large buttons. Code and math render in the options. "Submit" sends. By default the first answer counts and is locked. If the host turned on "Allow answer change" for this poll, the student can change the answer until the poll closes, and the last answer counts. |
 | Word Cloud   | Text field, character counter, "Send". Shows sent entries. Disables when the limit is reached.                                                                                               |
 | Results      | When the host shows results, the phone shows the same chart or cloud. The student's own choice is marked.                                                                                    |
 | Q&A list     | Sort by Popular (upvotes) or Recent. Each item: text, author or "Anonymous", upvote count, "Answered" tag. Hidden questions disappear for everyone except the author.                       |
@@ -632,7 +632,7 @@ State is per activity per session. A new session starts every activity in Draft 
 | State             | Meaning                                        | Host controls        | Audience screen                                                       | Student phone                 | Answers                     |
 | ----------------- | ---------------------------------------------- | -------------------- | --------------------------------------------------------------------- | ----------------------------- | --------------------------- |
 | **Draft**         | Not started in this session. Editable.         | Start                | Question only                                                         | Waiting view                  | Blocked                     |
-| **Live**          | Accepting answers. Locked in editor.           | Close, Show results  | Question, response count. Live chart only if "show results live" is on | Answer form (no chart, even with "show results live") | Accepted, can change (poll) |
+| **Live**          | Accepting answers. Locked in editor.           | Close, Show results  | Question, response count. Live chart only if "show results live" is on | Answer form (no chart, even with "show results live") | Accepted (poll: locked unless change allowed) |
 | **Closed**        | Voting stopped, results hidden. Locked.        | Show results, Reopen | Question, final count, "Voting closed"                                | "Voting closed", own answer   | Blocked                     |
 | **Results shown** | Voting stopped, results visible. Locked.       | Hide results, Reopen | Full chart or word cloud                                              | Same chart, own answer marked | Blocked                     |
 
@@ -785,6 +785,7 @@ Acceptance criterion "Flows reviewed by the whole team" needs a meeting. Suggest
 | 2026-10-09 | Role review by student and instructor agents. Added F12–F14, privacy rules, host roles, nickname and accessibility rules, mirror mode, End-session undo, seat release (Q14–Q23). | Gaps found in role review |
 | 2026-10-11 | Q14–Q23 kept as provisional defaults. Build on them now; revise after user feedback. Added the user feedback log (9.5). | Real users have not seen these yet |
 | 2026-10-12 | Overlay key `Tab` → `O`. Mirror-mode limit accepted (2.2, Q19). Added Q24–Q27. | Found while drawing MD-6 wireframes |
+| 2026-10-18 | Guest device token moved from local storage to an `HttpOnly` cookie (2.3). Poll answers locked by default; host can allow changes per poll (4.2, 5.2, 7.1). | Team decisions for the Exam02 technical design |
 
 ### 9.5 User feedback log
 
