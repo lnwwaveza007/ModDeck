@@ -108,6 +108,22 @@ describe("database schema (e2e)", () => {
     expect(inserted).toBe(0);
   });
 
+  it("keeps reaction totals per session, slide and emoji", async () => {
+    const session = await newSession("424247");
+    const slide = await prisma.slide.findFirstOrThrow({ where: { deckId } });
+    const key = { sessionId: session.id, slideId: slide.id, emoji: "heart" };
+    await prisma.reactionCount.create({ data: { ...key, count: 3 } });
+    await expect(prisma.reactionCount.create({ data: key })).rejects.toThrow();
+  });
+
+  it("stores a PDF import against a deck and removes it with the deck", async () => {
+    const deck = await prisma.deck.create({ data: { ownerId: hostId, title: "Import test" } });
+    const created = await prisma.pdfImport.create({ data: { deckId: deck.id, fileName: "a.pdf" } });
+    expect(created.status).toBe("queued");
+    await prisma.deck.delete({ where: { id: deck.id } });
+    expect(await prisma.pdfImport.count({ where: { id: created.id } })).toBe(0);
+  });
+
   it("allows one highlighted question per session", async () => {
     const session = await newSession("424245");
     const ask = (status: "highlighted" | "visible") =>

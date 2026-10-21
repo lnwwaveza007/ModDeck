@@ -13,6 +13,9 @@ erDiagram
 
     decks ||--o{ slides : contains
     decks ||--o{ sessions : "is run as"
+    decks ||--o{ pdf_imports : "imports from"
+    slides ||--o{ reaction_counts : "is reacted on"
+    sessions ||--o{ reaction_counts : records
 
     slides ||--o| activities : "has (kind = activity)"
     activities ||--o{ activity_options : offers
@@ -101,6 +104,8 @@ erDiagram
         uuid participant_id FK
         uuid option_id FK "poll"
         text text "word cloud"
+        text normalized_text "word cloud"
+        bool hidden "host hid the word"
         smallint slot
         bool after_reopen
         int points
@@ -121,6 +126,22 @@ erDiagram
         uuid question_id PK, FK
         uuid participant_id PK, FK
         timestamptz created_at
+    }
+    reaction_counts {
+        uuid session_id PK, FK
+        uuid slide_id PK, FK "index (slide_id)"
+        text emoji PK
+        int count
+    }
+    pdf_imports {
+        uuid id PK
+        uuid deck_id FK "index (deck_id, created_at desc)"
+        text file_name
+        int page_count
+        enum status "queued, running, done, failed"
+        jsonb pages "per-page progress"
+        timestamptz created_at
+        timestamptz updated_at
     }
     session_results {
         uuid id PK
