@@ -12,6 +12,22 @@ concurrency:
 jobs:
   lint-test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: moddeck
+          POSTGRES_PASSWORD: moddeck
+          POSTGRES_DB: moddeck
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U moddeck -d moddeck"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://moddeck:moddeck@localhost:5432/moddeck
     steps:
       - uses: actions/checkout@v4
 
@@ -25,6 +41,9 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma client
+        run: pnpm --filter api db:generate
+
       - name: Format check
         run: pnpm format:check
 
@@ -33,6 +52,11 @@ jobs:
 
       - name: Test (Jest)
         run: pnpm test
+
+      - name: Migrate and seed database
+        run: |
+          pnpm --filter api db:migrate
+          pnpm --filter api db:seed
 
       - name: Test API e2e
         run: pnpm --filter api test:e2e

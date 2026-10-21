@@ -8,12 +8,20 @@
     "start": "node dist/main",
     "lint": "eslint .",
     "test": "jest",
-    "test:e2e": "jest --config test/jest-e2e.json"
+    "test:e2e": "jest --config test/jest-e2e.json",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:seed": "prisma db seed",
+    "db:reset": "prisma migrate reset"
   },
   "dependencies": {
     "@nestjs/common": "^11",
     "@nestjs/core": "^11",
     "@nestjs/platform-express": "^11",
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
+    "pg": "^8.23.1",
     "reflect-metadata": "^0.2",
     "rxjs": "^7"
   },
@@ -23,10 +31,14 @@
     "@types/express": "^5",
     "@types/jest": "^30",
     "@types/node": "^22",
+    "@types/pg": "^8.23.1",
     "@types/supertest": "^6",
+    "dotenv": "^18.0.8",
     "jest": "^30",
+    "prisma": "7.10.1",
     "supertest": "^7",
     "ts-jest": "^29",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "typescript-eslint": "^8"
   },

@@ -16,5 +16,8 @@ RUN pnpm install --frozen-lockfile --filter "${APP}..." --filter moddeck
 COPY tsconfig.base.json eslint.base.mjs .prettierrc.json ./
 COPY apps/${APP} apps/${APP}
 
+# The api needs the generated Prisma client (gitignored) before it starts or seeds.
+RUN if [ "${APP}" = "api" ]; then pnpm --filter api db:generate; fi
+
 WORKDIR /repo/apps/${APP}
 CMD ["pnpm", "dev"]

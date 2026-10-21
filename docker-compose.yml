@@ -26,6 +26,20 @@ services:
       timeout: 3s
       retries: 10
 
+  # One-shot: applies migrations and seeds the demo deck, then exits. api waits for it.
+  migrate:
+    build:
+      context: .
+      dockerfile: docker/dev.Dockerfile
+      args:
+        APP: api
+    command: sh -c "pnpm db:migrate && pnpm db:seed"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-moddeck}:${POSTGRES_PASSWORD:-moddeck}@postgres:5432/${POSTGRES_DB:-moddeck}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   api:
     build:
       context: .
@@ -46,6 +60,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   web:
     build:
