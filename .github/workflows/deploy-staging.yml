@@ -1,0 +1,135 @@
+name: Deploy staging
+
+# Every push to main (a merged PR) builds both images, pushes them to GHCR and
+# deploys them to the staging VM. Setup: deploy/staging/README.md.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# One deploy at a time. A newer push waits; it does not cancel a running deploy.
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        app: [api, web]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Image name
+        id: image
+        run: echo "name=${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/moddeck-${{ matrix.app }}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/${{ matrix.app }}.Dockerfile
+          push: true
+          tags: |
+            ${{ steps.image.outputs.name }}:${{ github.sha }}
+            ${{ steps.image.outputs.name }}:staging
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}
+
+  deploy:
+    needs: build
+    # Self-hosted runner on the staging VM: the VM is on the campus network,
+    # which GitHub-hosted runners cannot reach.
+    runs-on: [self-hosted, moddeck-staging]
+    environment:
+      name: staging
+      url: https://${{ vars.STAGING_HOST }}
+    permissions:
+      contents: read
+      packages: read
+    env:
+      DEPLOY_DIR: /opt/moddeck
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check settings
+        env:
+          STAGING_HOST: ${{ vars.STAGING_HOST }}
+          POSTGRES_PASSWORD: ${{ secrets.STAGING_POSTGRES_PASSWORD }}
+        run: |
+          [ -n "$STAGING_HOST" ] || { echo "::error::Repository variable STAGING_HOST is not set"; exit 1; }
+          [ -n "$POSTGRES_PASSWORD" ] || { echo "::error::Secret STAGING_POSTGRES_PASSWORD is not set"; exit 1; }
+          [ -f "$DEPLOY_DIR/certs/fullchain.pem" ] || { echo "::error::No TLS cert in $DEPLOY_DIR/certs. Run deploy/staging/vm-setup.sh on the VM."; exit 1; }
+
+      - name: Copy stack files
+        run: cp deploy/staging/docker-compose.yml deploy/staging/nginx.conf deploy/staging/init.sql "$DEPLOY_DIR/"
+
+      - name: Write .env from secrets
+        env:
+          STAGING_HOST: ${{ vars.STAGING_HOST }}
+          POSTGRES_PASSWORD: ${{ secrets.STAGING_POSTGRES_PASSWORD }}
+        run: |
+          image="${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/moddeck"
+          umask 077
+          cat > "$DEPLOY_DIR/.env" <<EOF
+          STAGING_HOST=${STAGING_HOST}
+          POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+          API_IMAGE=${image}-api:${GITHUB_SHA}
+          WEB_IMAGE=${image}-web:${GITHUB_SHA}
+          EOF
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull images
+        working-directory: ${{ env.DEPLOY_DIR }}
+        run: docker compose pull
+
+      - name: Start stack
+        working-directory: ${{ env.DEPLOY_DIR }}
+        run: docker compose up -d --remove-orphans --wait --wait-timeout 180
+
+      - name: Smoke check /health through Nginx
+        run: |
+          # -k: the runner checks the route, not the certificate. Phones check the cert.
+          for i in $(seq 1 20); do
+            body=$(curl -fsSk --max-time 5 https://127.0.0.1/api/health) && echo "$body" | grep -q '"status":"ok"' && {
+              echo "OK: $body"; exit 0; }
+            sleep 3
+          done
+          echo "::error::GET https://127.0.0.1/api/health did not return status ok"
+          exit 1
+
+      - name: Show logs on failure
+        if: failure()
+        working-directory: ${{ env.DEPLOY_DIR }}
+        run: |
+          docker compose ps
+          docker compose logs --tail 100
+
+      # Only ModDeck images: the VM may host other projects.
+      - name: Remove old ModDeck images
+        if: success()
+        run: |
+          image="${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/moddeck"
+          docker images --format '{{.Repository}}:{{.Tag}}' \
+            | grep "^${image}-" | grep -v ":${GITHUB_SHA}$" \
+            | xargs -r docker rmi || true
