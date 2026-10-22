@@ -12,6 +12,22 @@ concurrency:
 jobs:
   lint-test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: moddeck
+          POSTGRES_PASSWORD: moddeck
+          POSTGRES_DB: moddeck
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U moddeck -d moddeck"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://moddeck:moddeck@localhost:5432/moddeck
     steps:
       - uses: actions/checkout@v4
 
@@ -30,6 +46,19 @@ jobs:
 
       - name: Lint
         run: pnpm lint
+
+      - name: Generate Prisma client
+        run: pnpm --filter api db:generate
+
+      - name: Migrate database
+        run: pnpm --filter api db:deploy
+
+      - name: Check schema matches migrations
+        working-directory: apps/api
+        run: pnpm exec prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
+
+      - name: Seed database
+        run: pnpm --filter api db:seed
 
       - name: Test (Jest)
         run: pnpm test

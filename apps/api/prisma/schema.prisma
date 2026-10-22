@@ -1,0 +1,389 @@
+// Release 1 schema. Source: docs/exam02/technical-design.md §4 (conceptual model)
+// and docs/db/schema.md (tables, indexes, ERD). Tables and columns are snake_case
+// in PostgreSQL and camelCase in the Prisma client.
+//
+// Hot paths stay outside Prisma (technical design §3.1): poll answers and word
+// entries are written by the Redis flush with one raw-SQL batch INSERT ... ON
+// CONFLICT DO NOTHING, so their keys must make a repeated row a no-op (MD-9).
+
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  moduleFormat    = "cjs"
+  previewFeatures = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SlideKind {
+  text
+  code
+  math
+  image
+  poll
+  word_cloud
+
+  @@map("slide_kind")
+}
+
+enum ActivityType {
+  poll
+  word_cloud
+
+  @@map("activity_type")
+}
+
+enum ImportStatus {
+  queued
+  running
+  done
+  failed
+
+  @@map("import_status")
+}
+
+enum SessionStatus {
+  live
+  host_away
+  ended
+
+  @@map("session_status")
+}
+
+enum SessionEndReason {
+  host
+  timeout
+
+  @@map("session_end_reason")
+}
+
+enum LoginType {
+  sso
+  guest
+
+  @@map("login_type")
+}
+
+enum ParticipantStatus {
+  active
+  removed
+
+  @@map("participant_status")
+}
+
+enum ActivityRunState {
+  draft
+  live
+  closed
+  results_shown
+
+  @@map("activity_run_state")
+}
+
+enum QuestionStatus {
+  visible
+  highlighted
+  answered
+  hidden
+  deleted
+
+  @@map("question_status")
+}
+
+// Host or SSO student. Created on first KMUTT SSO login (MD-7).
+model User {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  ssoSubject  String   @unique @map("sso_subject") // Entra object ID
+  email       String
+  displayName String   @map("display_name")
+  studentId   String?  @map("student_id") // empty for staff
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  decks        Deck[]
+  sessions     Session[]       @relation("SessionOwner")
+  cohostOf     SessionCohost[]
+  participants Participant[]
+
+  @@map("users")
+}
+
+// Reusable deck. The settings are defaults copied into each new session.
+model Deck {
+  id                String   @id @default(uuid(7)) @db.Uuid
+  ownerId           String   @map("owner_id") @db.Uuid
+  title             String
+  requireKmuttLogin Boolean  @default(false) @map("require_kmutt_login")
+  qaEnabled         Boolean  @default(true) @map("qa_enabled")
+  anonymousAllowed  Boolean  @default(true) @map("anonymous_allowed")
+  showResultsLive   Boolean  @default(false) @map("show_results_live")
+  autoStart         Boolean  @default(false) @map("auto_start")
+  reactionsEnabled  Boolean  @default(false) @map("reactions_enabled") // MD-5 Q14
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  owner    User        @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  slides   Slide[]
+  imports  PdfImport[]
+  sessions Session[]
+
+  // "My decks", newest first.
+  @@index([ownerId, updatedAt(sort: Desc)])
+  @@map("decks")
+}
+
+model Slide {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  deckId    String    @map("deck_id") @db.Uuid
+  // Not unique: a reorder rewrites every position in one transaction, and a
+  // unique key would collide halfway through.
+  position  Int
+  kind      SlideKind
+  content   String? // text, code or LaTeX source
+  imageRef  String?   @map("image_ref") // file in the slides volume
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  deck           Deck            @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  activity       Activity?
+  currentIn      Session[]       @relation("SessionCurrentSlide")
+  reactionCounts ReactionCount[]
+
+  @@index([deckId, position])
+  @@map("slides")
+}
+
+// Poll or word cloud on one slide. State per session lives in ActivityRun.
+model Activity {
+  id                  String       @id @default(uuid(7)) @db.Uuid
+  slideId             String       @unique @map("slide_id") @db.Uuid
+  type                ActivityType
+  prompt              String
+  multipleChoice      Boolean      @default(false) @map("multiple_choice") // poll only
+  allowAnswerChange   Boolean      @default(false) @map("allow_answer_change") // poll only
+  maxEntriesPerPerson Int          @default(1) @map("max_entries_per_person") // word cloud, 1 to 3
+
+  slide   Slide            @relation(fields: [slideId], references: [id], onDelete: Cascade)
+  options ActivityOption[]
+  runs    ActivityRun[]
+
+  @@map("activities")
+}
+
+// Poll option A, B, C ... (2 to 10). No vote counter: counts come from answers.
+model ActivityOption {
+  id         String @id @default(uuid(7)) @db.Uuid
+  activityId String @map("activity_id") @db.Uuid
+  position   Int
+  label      String
+
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  answers  Answer[]
+
+  @@index([activityId, position])
+  @@map("activity_options")
+}
+
+model PdfImport {
+  id        String       @id @default(uuid(7)) @db.Uuid
+  deckId    String       @map("deck_id") @db.Uuid
+  fileName  String       @map("file_name")
+  pageCount Int?         @map("page_count") // known after the PDF is parsed
+  status    ImportStatus @default(queued)
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  deck Deck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+
+  @@index([deckId, createdAt(sort: Desc)])
+  @@map("pdf_imports")
+}
+
+// One run of a deck, with its own PIN, participants and answers.
+model Session {
+  id             String            @id @default(uuid(7)) @db.Uuid
+  deckId         String            @map("deck_id") @db.Uuid
+  ownerId        String            @map("owner_id") @db.Uuid
+  pin            String            @db.Char(6)
+  status         SessionStatus     @default(live)
+  currentSlideId String?           @map("current_slide_id") @db.Uuid
+  settings       Json // deck settings copied at start
+  startedAt      DateTime          @default(now()) @map("started_at") @db.Timestamptz(3)
+  endedAt        DateTime?         @map("ended_at") @db.Timestamptz(3)
+  endReason      SessionEndReason? @map("end_reason")
+
+  deck           Deck            @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  owner          User            @relation("SessionOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  currentSlide   Slide?          @relation("SessionCurrentSlide", fields: [currentSlideId], references: [id], onDelete: SetNull)
+  cohost         SessionCohost?
+  participants   Participant[]
+  activityRuns   ActivityRun[]
+  questions      Question[]
+  reactionCounts ReactionCount[]
+
+  // A PIN is unique among sessions that have not ended. An ended session keeps
+  // its PIN so GET /pins/{pin} can answer 410 for 24 h; the plain index serves
+  // that lookup.
+  @@unique([pin], map: "sessions_live_pin_key", where: raw("status <> 'ended'"))
+  @@index([pin])
+  @@index([ownerId, startedAt(sort: Desc)])
+  @@index([deckId, status])
+  @@map("sessions")
+}
+
+// One co-host per session in R1 (MD-5 Q17), enforced by the unique session_id.
+model SessionCohost {
+  sessionId String   @unique @map("session_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  invitedAt DateTime @default(now()) @map("invited_at") @db.Timestamptz(3)
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([sessionId, userId])
+  @@index([userId])
+  @@map("session_cohosts")
+}
+
+// Room-scoped identity. The participant token (MD-7, MD-13) is a random value
+// in an HttpOnly cookie; only its SHA-256 hash is stored. It expires after 8 h
+// and slides forward when less than half the lifetime is left.
+model Participant {
+  id             String            @id @default(uuid(7)) @db.Uuid
+  sessionId      String            @map("session_id") @db.Uuid
+  userId         String?           @map("user_id") @db.Uuid // empty for guests
+  loginType      LoginType         @map("login_type")
+  nickname       String
+  tokenHash      String            @unique @map("token_hash")
+  tokenExpiresAt DateTime          @map("token_expires_at") @db.Timestamptz(3)
+  status         ParticipantStatus @default(active)
+  joinedAt       DateTime          @default(now()) @map("joined_at") @db.Timestamptz(3)
+  lastSeenAt     DateTime          @default(now()) @map("last_seen_at") @db.Timestamptz(3)
+
+  session       Session        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user          User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  answers       Answer[]
+  wordEntries   WordEntry[]
+  questions     Question[]
+  questionVotes QuestionVote[]
+
+  @@unique([sessionId, nickname]) // NICKNAME_TAKEN
+  @@unique([sessionId, userId]) // an SSO user rejoins as the same participant
+  @@index([userId])
+  @@map("participants")
+}
+
+// State of one activity in one session. Results are counted from answers and
+// word entries; the deck itself never changes during a session.
+model ActivityRun {
+  id             String           @id @default(uuid(7)) @db.Uuid
+  sessionId      String           @map("session_id") @db.Uuid
+  activityId     String           @map("activity_id") @db.Uuid
+  state          ActivityRunState @default(draft)
+  firstOpenedAt  DateTime?        @map("first_opened_at") @db.Timestamptz(3)
+  lastReopenedAt DateTime?        @map("last_reopened_at") @db.Timestamptz(3)
+  closedAt       DateTime?        @map("closed_at") @db.Timestamptz(3)
+
+  session     Session     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  activity    Activity    @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  answers     Answer[]
+  wordEntries WordEntry[]
+
+  @@unique([sessionId, activityId])
+  @@index([activityId])
+  @@map("activity_runs")
+}
+
+// Poll answer. The key is the last guard against double answers (MD-9 §3).
+// A multiple-choice answer is one row per chosen option.
+model Answer {
+  activityRunId String   @map("activity_run_id") @db.Uuid
+  participantId String   @map("participant_id") @db.Uuid
+  optionId      String   @map("option_id") @db.Uuid
+  afterReopen   Boolean  @default(false) @map("after_reopen") // flagged in export
+  answeredAt    DateTime @map("answered_at") @db.Timestamptz(3)
+
+  activityRun ActivityRun    @relation(fields: [activityRunId], references: [id], onDelete: Cascade)
+  participant Participant    @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  option      ActivityOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@id([activityRunId, participantId, optionId])
+  @@index([activityRunId, optionId])
+  @@index([participantId])
+  @@index([optionId])
+  @@map("answers")
+}
+
+// Word cloud entry. The id is the client answerId (crypto.randomUUID()), so a
+// retried submit or a repeated flush inserts nothing new.
+model WordEntry {
+  id             String   @id @db.Uuid
+  activityRunId  String   @map("activity_run_id") @db.Uuid
+  participantId  String   @map("participant_id") @db.Uuid
+  text           String // max 25 graphemes
+  normalizedText String   @map("normalized_text")
+  hidden         Boolean  @default(false)
+  createdAt      DateTime @map("created_at") @db.Timestamptz(3)
+
+  activityRun ActivityRun @relation(fields: [activityRunId], references: [id], onDelete: Cascade)
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@index([activityRunId, normalizedText])
+  @@index([participantId])
+  @@map("word_entries")
+}
+
+// Anonymous questions still store the participant, for bans and upvote rules.
+model Question {
+  id            String         @id @default(uuid(7)) @db.Uuid
+  sessionId     String         @map("session_id") @db.Uuid
+  participantId String         @map("participant_id") @db.Uuid
+  text          String // max 280 characters
+  anonymous     Boolean        @default(true)
+  status        QuestionStatus @default(visible)
+  duplicateOfId String?        @map("duplicate_of_id") @db.Uuid
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  session     Session        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  participant Participant    @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  duplicateOf Question?      @relation("QuestionDuplicate", fields: [duplicateOfId], references: [id], onDelete: SetNull)
+  duplicates  Question[]     @relation("QuestionDuplicate")
+  votes       QuestionVote[]
+
+  @@index([sessionId, createdAt])
+  @@index([participantId])
+  @@index([duplicateOfId])
+  @@map("questions")
+}
+
+// Upvote. One per participant per question.
+model QuestionVote {
+  questionId    String   @map("question_id") @db.Uuid
+  participantId String   @map("participant_id") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  question    Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@id([questionId, participantId])
+  @@index([participantId])
+  @@map("question_votes")
+}
+
+// Reactions keep counts only, never the person.
+model ReactionCount {
+  sessionId String @map("session_id") @db.Uuid
+  slideId   String @map("slide_id") @db.Uuid
+  emoji     String
+  count     Int    @default(0)
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  slide   Slide   @relation(fields: [slideId], references: [id], onDelete: Cascade)
+
+  @@id([sessionId, slideId, emoji])
+  @@index([slideId])
+  @@map("reaction_counts")
+}
