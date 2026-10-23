@@ -493,12 +493,12 @@ Progress is also pushed over the socket (`import_progress`), so the editor does 
 
 ### 3.4 Socket.IO events (live channel)
 
-All live traffic uses one Socket.IO namespace (`/`). Each session is one room. Every server event carries `seq` (per session, increasing). Client actions send an ack callback. The names extend the MD-2 schema; MD-13 adds `hello`, `sync` and `seq`.
+All live traffic uses one Socket.IO namespace (`/`). Each session is one room. Every server event carries `seq` (per session, increasing). Client actions send an ack callback. The names extend the MD-2 schema; MD-13 adds the join handshake, `state` and `seq`. The schema is code in [`packages/shared/src/events.ts`](../../packages/shared/src/events.ts); room events are sent as `{ seq, type, sessionId, at, data }`.
 
 | Direction | Event | Payload (main fields) | Notes |
 | --- | --- | --- | --- |
-| C → S | `hello` | `token` (from cookie), `lastSeq` | First message after every (re)connect |
-| S → C | `sync` | `mode: "replay" \| "snapshot"`, `events[]` or `state`, `you` | Replay if `lastSeq` is still in the log (cap 500 events), else snapshot |
+| C → S | `join` | `sessionId`, `lastSeq` (token from the cookie or `auth.token` in the handshake) | First message after every (re)connect. A socket without a valid token is refused at the handshake; a `sessionId` other than the token's gets `ROOM_FORBIDDEN` |
+| S → C | `state` | `mode: "replay" \| "snapshot"`, `seq`, `events[]` or `snapshot` | Also returned in the `join` ack. Replay if `lastSeq` is still in the log (cap 500 events), else snapshot |
 | C → S | `vote` | `activityRunId`, `optionIds[]`, `answerId` | Ack: `{ ok, duplicate }`. Lua script, one answer per participant (MD-9). Default: the first answer counts and a second vote returns `duplicate` (the fastest path, proven in MD-9). If the host turns on "allow answer change" for this poll, a new vote replaces the old one until the poll closes |
 | C → S | `word` | `activityRunId`, `text`, `answerId` | Ack, limit per person |
 | C → S | `question` | `text`, `anonymous`, `clientMsgId` | Ack. 1 per 20 s |
@@ -513,7 +513,7 @@ All live traffic uses one Socket.IO namespace (`/`). Each session is one room. E
 | S → C | `reaction_burst` | counts per emoji | Audience screen only |
 | S → C | `import_progress` | `importId`, `page`, `status` | Host only |
 | S → C | `session_ended` | `reason: "host" \| "timeout"` | |
-| S → C | `error` | `code`, `message` | Same codes as REST |
+| S → C | `error` | `code`, `message`, `seq` | Same codes as REST |
 
 ### 3.5 Error handling and status codes
 
