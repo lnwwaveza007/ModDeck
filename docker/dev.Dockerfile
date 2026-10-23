@@ -11,9 +11,12 @@ WORKDIR /repo
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/
 COPY apps/api/package.json apps/api/
+COPY packages/shared/package.json packages/shared/
 RUN pnpm install --frozen-lockfile --filter "${APP}..." --filter moddeck
 
 COPY tsconfig.base.json eslint.base.mjs .prettierrc.json ./
+COPY packages/shared packages/shared
+RUN pnpm --filter @moddeck/shared build
 COPY apps/${APP} apps/${APP}
 
 WORKDIR /repo/apps/${APP}
