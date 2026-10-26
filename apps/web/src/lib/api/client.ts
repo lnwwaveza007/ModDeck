@@ -2,7 +2,9 @@
 // Every error, including network failures, comes out as an ApiError with a stable `code`
 // that screens map to Thai / English text.
 
-export const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL ?? ""}/api/v1`;
+// The api root: "/api" behind nginx (it strips the prefix), "http://localhost:4000" in local dev.
+// Same variable and default as the socket (lib/realtime/socket.ts).
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 /** Error body shared by REST and socket errors (tech design §3.5). */
 export interface ApiErrorBody {

@@ -25,12 +25,12 @@ describe("apiFetch", () => {
     const result = await apiFetch<{ participantId: string }>("/sessions/ses_1/participants", {
       method: "POST",
       body: { nickname: "ปลา" },
-      baseUrl: "http://api.test/api/v1",
+      baseUrl: "http://api.test",
     });
 
     expect(result).toEqual({ participantId: "par_1" });
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe("http://api.test/api/v1/sessions/ses_1/participants");
+    expect(url).toBe("http://api.test/sessions/ses_1/participants");
     expect(init.credentials).toBe("include");
     expect(init.body).toBe(JSON.stringify({ nickname: "ปลา" }));
     expect(new Headers(init.headers).get("Content-Type")).toBe("application/json");
