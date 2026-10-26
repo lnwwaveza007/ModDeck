@@ -26,8 +26,18 @@ jobs:
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     env:
       DATABASE_URL: postgresql://moddeck:moddeck@localhost:5432/moddeck
+      REDIS_URL: redis://localhost:6379
     steps:
       - uses: actions/checkout@v4
 
@@ -40,6 +50,10 @@ jobs:
 
       - name: Install
         run: pnpm install --frozen-lockfile
+
+      # web and api import the compiled event schema from packages/shared.
+      - name: Build shared package
+        run: pnpm --filter @moddeck/shared build
 
       - name: Format check
         run: pnpm format:check

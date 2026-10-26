@@ -5,8 +5,11 @@ RUN corepack enable
 WORKDIR /repo
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/
+COPY packages/shared/package.json packages/shared/
 RUN pnpm install --frozen-lockfile --filter web...
 COPY tsconfig.base.json ./
+COPY packages/shared packages/shared
+RUN pnpm --filter @moddeck/shared build
 COPY apps/web apps/web
 
 # NEXT_PUBLIC_* values are inlined at build time. The default is a relative

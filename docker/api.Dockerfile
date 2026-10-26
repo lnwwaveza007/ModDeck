@@ -5,11 +5,14 @@ RUN corepack enable
 WORKDIR /repo
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/api/package.json apps/api/
+COPY packages/shared/package.json packages/shared/
 
 # Build stage: all deps, generate the Prisma client, compile to dist/.
 FROM base AS build
 RUN pnpm install --frozen-lockfile --filter api...
 COPY tsconfig.base.json ./
+COPY packages/shared packages/shared
+RUN pnpm --filter @moddeck/shared build
 COPY apps/api apps/api
 WORKDIR /repo/apps/api
 RUN pnpm build
@@ -20,6 +23,7 @@ ENV NODE_ENV=production
 RUN apk add --no-cache openssl \
   && pnpm install --frozen-lockfile --prod --filter api... \
   && pnpm store prune
+COPY --from=build /repo/packages/shared/dist /repo/packages/shared/dist
 WORKDIR /repo/apps/api
 COPY --from=build /repo/apps/api/dist ./dist
 COPY apps/api/prisma ./prisma
