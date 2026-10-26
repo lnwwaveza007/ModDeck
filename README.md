@@ -4,12 +4,13 @@ Real-time interactive presentation platform for KMUTT classrooms.
 
 Monorepo (pnpm workspaces):
 
-| Path       | What                                    | Port |
-| ---------- | --------------------------------------- | ---- |
-| `apps/web` | Next.js frontend (TypeScript, Tailwind) | 3000 |
-| `apps/api` | NestJS backend (`GET /health`)          | 4000 |
-| —          | PostgreSQL 17 + pgvector                | 5432 |
-| —          | Redis 7                                 | 6379 |
+| Path              | What                                                       | Port |
+| ----------------- | ---------------------------------------------------------- | ---- |
+| `apps/web`        | Next.js frontend (TypeScript, Tailwind)                    | 3000 |
+| `apps/api`        | NestJS backend (`GET /health`, `GET /metrics`, Socket.IO)  | 4000 |
+| `packages/shared` | Socket event schema, error codes, limits (used by web, api) | —    |
+| —                 | PostgreSQL 17 + pgvector                                   | 5432 |
+| —                 | Redis 7                                                    | 6379 |
 
 ## Local setup
 
@@ -26,6 +27,7 @@ Source in `apps/*/src` is mounted into the containers, so edits hot-reload.
 
 ```sh
 pnpm install
+pnpm --filter @moddeck/shared build   # again after editing packages/shared
 docker compose up -d postgres redis
 pnpm dev
 ```
@@ -35,6 +37,7 @@ pnpm dev
 These match CI (`.github/workflows/ci.yml`), which runs on every PR:
 
 ```sh
+pnpm --filter @moddeck/shared build
 pnpm format:check
 pnpm lint
 pnpm test
