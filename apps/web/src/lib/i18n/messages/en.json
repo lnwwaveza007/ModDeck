@@ -1,0 +1,71 @@
+{
+  "common": {
+    "appName": "ModDeck",
+    "comingSoon": "This page is under construction",
+    "backHome": "Back to home",
+    "close": "Close"
+  },
+  "language": {
+    "label": "ไทย · EN",
+    "switchTo": "เปลี่ยนเป็นภาษาไทย"
+  },
+  "nav": {
+    "main": "Main menu",
+    "decks": "My decks",
+    "sessions": "Session history"
+  },
+  "states": {
+    "loading": "Loading…",
+    "errorTitle": "Something went wrong",
+    "errorDescription": "This page could not load. Please try again.",
+    "retry": "Try again",
+    "notFoundTitle": "Page not found",
+    "notFoundDescription": "The link may be wrong, or the page was removed."
+  },
+  "landing": {
+    "title": "Join a class",
+    "subtitle": "Enter the 6-digit PIN shown on the screen",
+    "pinLabel": "PIN",
+    "pinHelp": "You join automatically after 6 digits",
+    "join": "Join",
+    "qrHint": "QR code on the screen? Scan it with your phone camera. No PIN needed.",
+    "hostPrompt": "Teaching?",
+    "hostLogin": "Log in with your KMUTT account"
+  },
+  "login": {
+    "title": "Host login",
+    "description": "Use your KMUTT account. Instructors and students with an account can create decks and run sessions.",
+    "button": "Log in with KMUTT",
+    "participantPrompt": "Joining a class? No login needed.",
+    "participantLink": "Enter a PIN"
+  },
+  "join": {
+    "back": "Back to PIN entry"
+  },
+  "live": {
+    "connecting": "Connecting…",
+    "menu": "Menu",
+    "tabs": "Tabs",
+    "activity": "Activity",
+    "qa": "Q&A"
+  },
+  "host": {
+    "live": "LIVE",
+    "backToDecks": "Back to My decks",
+    "slides": "Slides",
+    "cohostBadge": "Co-host · Q&A moderation"
+  },
+  "pages": {
+    "landing": { "title": "Join a class" },
+    "login": { "title": "Host login" },
+    "decks": { "title": "My decks" },
+    "deckEditor": { "title": "Deck editor" },
+    "sessions": { "title": "Session history" },
+    "sessionResults": { "title": "Session results" },
+    "presenter": { "title": "Presenter control" },
+    "cohostQa": { "title": "Q&A" },
+    "join": { "title": "Join session" },
+    "live": { "title": "Live session" },
+    "screen": { "title": "Audience screen" }
+  }
+}
