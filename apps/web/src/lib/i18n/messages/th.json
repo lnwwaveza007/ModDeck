@@ -1,0 +1,71 @@
+{
+  "common": {
+    "appName": "ModDeck",
+    "comingSoon": "หน้านี้กำลังพัฒนา",
+    "backHome": "กลับหน้าแรก",
+    "close": "ปิด"
+  },
+  "language": {
+    "label": "ไทย · EN",
+    "switchTo": "Switch to English"
+  },
+  "nav": {
+    "main": "เมนูหลัก",
+    "decks": "เด็คของฉัน",
+    "sessions": "ประวัติเซสชัน"
+  },
+  "states": {
+    "loading": "กำลังโหลด…",
+    "errorTitle": "เกิดข้อผิดพลาด",
+    "errorDescription": "โหลดหน้านี้ไม่สำเร็จ โปรดลองอีกครั้ง",
+    "retry": "ลองอีกครั้ง",
+    "notFoundTitle": "ไม่พบหน้านี้",
+    "notFoundDescription": "ลิงก์อาจไม่ถูกต้อง หรือหน้านี้ถูกลบไปแล้ว"
+  },
+  "landing": {
+    "title": "เข้าร่วมห้องเรียน",
+    "subtitle": "ใส่ PIN 6 หลักที่แสดงบนจอหน้าห้อง",
+    "pinLabel": "PIN",
+    "pinHelp": "ระบบเข้าร่วมให้อัตโนมัติเมื่อครบ 6 หลัก",
+    "join": "เข้าร่วม",
+    "qrHint": "มี QR บนจอ? เปิดกล้องมือถือแล้วสแกนได้เลย ไม่ต้องพิมพ์ PIN",
+    "hostPrompt": "ผู้สอน?",
+    "hostLogin": "เข้าสู่ระบบด้วยบัญชี KMUTT"
+  },
+  "login": {
+    "title": "เข้าสู่ระบบสำหรับผู้สอน",
+    "description": "ใช้บัญชี KMUTT ของคุณ ผู้สอนและนักศึกษาที่มีบัญชีสร้างเด็คและเปิดเซสชันได้",
+    "button": "เข้าสู่ระบบด้วย KMUTT",
+    "participantPrompt": "เป็นผู้เข้าร่วม? ไม่ต้องเข้าสู่ระบบ",
+    "participantLink": "ใส่ PIN เพื่อเข้าห้องเรียน"
+  },
+  "join": {
+    "back": "กลับไปใส่ PIN"
+  },
+  "live": {
+    "connecting": "กำลังเชื่อมต่อ…",
+    "menu": "เมนู",
+    "tabs": "แท็บ",
+    "activity": "กิจกรรม",
+    "qa": "ถาม-ตอบ"
+  },
+  "host": {
+    "live": "LIVE",
+    "backToDecks": "กลับไปเด็คของฉัน",
+    "slides": "สไลด์",
+    "cohostBadge": "ผู้ช่วยสอน · จัดการถาม-ตอบ"
+  },
+  "pages": {
+    "landing": { "title": "เข้าร่วมห้องเรียน" },
+    "login": { "title": "เข้าสู่ระบบสำหรับผู้สอน" },
+    "decks": { "title": "เด็คของฉัน" },
+    "deckEditor": { "title": "แก้ไขเด็ค" },
+    "sessions": { "title": "ประวัติเซสชัน" },
+    "sessionResults": { "title": "ผลของเซสชัน" },
+    "presenter": { "title": "ควบคุมการนำเสนอ" },
+    "cohostQa": { "title": "ถาม-ตอบ" },
+    "join": { "title": "เข้าร่วมเซสชัน" },
+    "live": { "title": "เซสชันสด" },
+    "screen": { "title": "หน้าจอโปรเจกเตอร์" }
+  }
+}
