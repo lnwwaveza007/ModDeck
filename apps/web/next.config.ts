@@ -1,11 +1,12 @@
-import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import type { NextConfig } from "next";
+
+const withNextIntl = createNextIntlPlugin(); // keep whatever arguments you already have
 
 const nextConfig: NextConfig = {
-  // Self-contained server bundle for the production image (docker/web.Dockerfile).
-  output: "standalone",
+  async rewrites() {
+    return [{ source: "/api/:path*", destination: "http://127.0.0.1:4000/:path*" }];
+  },
 };
-
-const withNextIntl = createNextIntlPlugin("./src/lib/i18n/request.ts");
 
 export default withNextIntl(nextConfig);

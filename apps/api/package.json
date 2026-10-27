@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "prisma generate && nest build",
-    "dev": "prisma generate && nest start --watch",
+    "dev": "prisma generate && nest start --watch --env-file=.env",
     "start": "node dist/main",
     "lint": "eslint .",
     "test": "jest",
@@ -24,7 +24,7 @@
     "@prisma/adapter-pg": "^7",
     "@prisma/client": "^7",
     "@socket.io/redis-adapter": "^8.3.0",
-    "dotenv": "^18",
+    "dotenv": "^18.0.8",
     "ioredis": "^5.11.1",
     "prisma": "^7",
     "prom-client": "^15.1.3",
