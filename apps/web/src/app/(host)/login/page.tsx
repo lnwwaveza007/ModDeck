@@ -4,7 +4,7 @@ import { buttonClass } from "@/components/ui/Button";
 import { LanguageSwitch } from "@/components/shell/LanguageSwitch";
 import { Logo } from "@/components/shell/Logo";
 
-const ERROR_CODES = ["invalid_state", "invalid_token", "login_failed"] as const;
+const ERROR_CODES = ["access_denied", "invalid_state", "invalid_token", "login_failed", "sso_error"] as const;
 type ErrorCode = (typeof ERROR_CODES)[number];
 
 // The API redirects here with ?error=<code>. Unknown codes fall back to login_failed.

@@ -39,6 +39,8 @@
     "participantPrompt": "Joining a class? No login needed.",
     "participantLink": "Enter a PIN",
     "errors": {
+      "access_denied": "Login was cancelled or access was denied.",
+      "sso_error": "KMUTT sign-in returned an error. Please try again.",
       "invalid_state": "Login session expired or invalid. Please try again.",
       "invalid_token": "Could not verify your KMUTT account. Please try again.",
       "login_failed": "Login failed. Please try again."
