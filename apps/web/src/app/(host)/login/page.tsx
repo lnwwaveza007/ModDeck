@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { API_BASE_URL } from "@/lib/api/client";
 import { buttonClass } from "@/components/ui/Button";
 import { LanguageSwitch } from "@/components/shell/LanguageSwitch";
 import { Logo } from "@/components/shell/Logo";
@@ -45,7 +44,7 @@ export default async function LoginPage({
           )}
           {/* Plain anchor on purpose: full-page redirect to the API, not a Next route. */}
           <a
-            href={`${API_BASE_URL}/auth/login`}
+            href="/api/auth/login"
             className={buttonClass({ size: "lg", fullWidth: true })}
           >
             <ShieldIcon />
