@@ -1,6 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { AUTH_CONFIG, type AuthConfig } from './auth.config';
-import { randomToken, sha256Base64Url } from './crypto.util';
+import { Inject, Injectable } from "@nestjs/common";
+import { AUTH_CONFIG, type AuthConfig, requireSso } from "./auth.config";
+import { randomToken, sha256Base64Url } from "./crypto.util";
 
 export interface LoginTx {
   state: string;
@@ -9,15 +9,15 @@ export interface LoginTx {
   returnTo: string;
 }
 
-export const DEFAULT_RETURN_TO = '/decks';
+export const DEFAULT_RETURN_TO = "/decks";
 
 /** Only same-site relative paths are allowed (prevents open redirects). */
 export function sanitizeReturnTo(raw: unknown): string {
   if (
-    typeof raw !== 'string' ||
-    !raw.startsWith('/') ||
-    raw.startsWith('//') ||
-    raw.includes('\\') ||
+    typeof raw !== "string" ||
+    !raw.startsWith("/") ||
+    raw.startsWith("//") ||
+    raw.includes("\\") ||
     /[\r\n]/.test(raw)
   ) {
     return DEFAULT_RETURN_TO;
@@ -26,16 +26,16 @@ export function sanitizeReturnTo(raw: unknown): string {
 }
 
 export const encodeTx = (tx: LoginTx): string =>
-  Buffer.from(JSON.stringify(tx)).toString('base64url');
+  Buffer.from(JSON.stringify(tx)).toString("base64url");
 
 export function decodeTx(raw: string | undefined): LoginTx | null {
   if (!raw) return null;
   try {
-    const v = JSON.parse(Buffer.from(raw, 'base64url').toString('utf8'));
+    const v = JSON.parse(Buffer.from(raw, "base64url").toString("utf8"));
     if (
-      typeof v?.state === 'string' &&
-      typeof v?.nonce === 'string' &&
-      typeof v?.verifier === 'string'
+      typeof v?.state === "string" &&
+      typeof v?.nonce === "string" &&
+      typeof v?.verifier === "string"
     ) {
       return {
         state: v.state,
@@ -56,6 +56,7 @@ export class OidcService {
 
   /** Builds the authorize URL (Authorization Code + PKCE S256) and the transaction to remember. */
   start(returnTo: string): { url: string; tx: LoginTx } {
+    const sso = requireSso(this.cfg);
     const tx: LoginTx = {
       state: randomToken(),
       nonce: randomToken(),
@@ -63,37 +64,38 @@ export class OidcService {
       returnTo,
     };
     const params = new URLSearchParams({
-      client_id: this.cfg.clientId,
-      response_type: 'code',
-      redirect_uri: this.cfg.redirectUri,
-      response_mode: 'query',
-      scope: 'openid profile email',
+      client_id: sso.clientId,
+      response_type: "code",
+      redirect_uri: sso.redirectUri,
+      response_mode: "query",
+      scope: "openid profile email",
       state: tx.state,
       nonce: tx.nonce,
       code_challenge: sha256Base64Url(tx.verifier),
-      code_challenge_method: 'S256',
+      code_challenge_method: "S256",
     });
     return {
-      url: `${this.cfg.authority}/oauth2/v2.0/authorize?${params}`,
+      url: `${sso.authority}/oauth2/v2.0/authorize?${params}`,
       tx,
     };
   }
 
   /** Redeems the authorization code and returns the raw ID token. */
   async exchangeCode(code: string, verifier: string): Promise<string> {
+    const sso = requireSso(this.cfg);
     const body = new URLSearchParams({
-      client_id: this.cfg.clientId,
-      grant_type: 'authorization_code',
+      client_id: sso.clientId,
+      grant_type: "authorization_code",
       code,
-      redirect_uri: this.cfg.redirectUri,
+      redirect_uri: sso.redirectUri,
       code_verifier: verifier,
-      scope: 'openid profile email',
+      scope: "openid profile email",
     });
-    if (this.cfg.clientSecret) body.set('client_secret', this.cfg.clientSecret);
+    if (sso.clientSecret) body.set("client_secret", sso.clientSecret);
 
-    const res = await fetch(`${this.cfg.authority}/oauth2/v2.0/token`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    const res = await fetch(`${sso.authority}/oauth2/v2.0/token`, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
       body,
       signal: AbortSignal.timeout(10_000),
     });
@@ -102,9 +104,9 @@ export class OidcService {
       error?: string;
       error_codes?: number[];
     };
-    if (!res.ok || typeof json.id_token !== 'string') {
+    if (!res.ok || typeof json.id_token !== "string") {
       throw new Error(
-        `Token endpoint failed (${res.status} ${json.error ?? 'unknown'} ${json.error_codes?.join(',') ?? ''})`,
+        `Token endpoint failed (${res.status} ${json.error ?? "unknown"} ${json.error_codes?.join(",") ?? ""})`,
       );
     }
     return json.id_token;

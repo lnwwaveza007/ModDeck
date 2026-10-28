@@ -1,3 +1,5 @@
+// Local runs read apps/api/.env (same as prisma.config.ts); Docker passes env vars.
+import "dotenv/config";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { setupApp } from "./app.setup";

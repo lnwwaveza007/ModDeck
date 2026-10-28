@@ -38,6 +38,10 @@ services:
       WEB_ORIGIN: https://${STAGING_HOST:?set STAGING_HOST in .env}
       DATABASE_URL: postgresql://${POSTGRES_USER:-moddeck}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-moddeck}
       REDIS_URL: redis://redis:6379
+      ENTRA_TENANT_ID: ${ENTRA_TENANT_ID:-}
+      ENTRA_CLIENT_ID: ${ENTRA_CLIENT_ID:-}
+      ENTRA_CLIENT_SECRET: ${ENTRA_CLIENT_SECRET:-}
+      APP_BASE_URL: https://${STAGING_HOST}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/health"]
       interval: 10s

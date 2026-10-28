@@ -1,8 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { AUTH_CONFIG, type AuthConfig } from './auth.config';
-import type { AuthUser, EntraIdentity } from './auth.types';
-import { randomToken, sha256Hex } from './crypto.util';
+import { Inject, Injectable } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { AUTH_CONFIG, type AuthConfig } from "./auth.config";
+import type { AuthUser, EntraIdentity } from "./auth.types";
+import { randomToken, sha256Hex } from "./crypto.util";
 
 const toAuthUser = (u: AuthUser): AuthUser => ({
   id: u.id,
@@ -12,9 +12,8 @@ const toAuthUser = (u: AuthUser): AuthUser => ({
 });
 
 /**
- * Host login sessions are stored as `participants` rows with session_id = NULL
- * (a host signs in before any live session exists). Room participants always
- * have a session_id, so the two never overlap.
+ * Host logins live in `host_sessions`, separate from room participants: a host
+ * signs in before any live session exists.
  */
 @Injectable()
 export class AuthService {
@@ -46,20 +45,11 @@ export class AuthService {
   async createSession(user: AuthUser): Promise<{ token: string; expiresAt: Date }> {
     const token = randomToken(32);
     const expiresAt = new Date(Date.now() + this.cfg.sessionTtlMs);
-    await this.prisma.participant.create({
-      data: {
-        sessionId: null,
-        userId: user.id,
-        loginType: 'sso',
-        nickname: user.displayName,
-        tokenHash: sha256Hex(token),
-        tokenExpiresAt: expiresAt,
-      },
+    await this.prisma.hostSession.create({
+      data: { userId: user.id, tokenHash: sha256Hex(token), expiresAt },
     });
-    // Opportunistic cleanup of expired host logins (never touches room participants).
-    await this.prisma.participant.deleteMany({
-      where: { sessionId: null, tokenExpiresAt: { lt: new Date() } },
-    });
+    // Opportunistic cleanup of expired host logins.
+    await this.prisma.hostSession.deleteMany({ where: { expiresAt: { lt: new Date() } } });
     return { token, expiresAt };
   }
 
@@ -68,38 +58,31 @@ export class AuthService {
    * when less than half the lifetime is left; `renewedExpiresAt` tells the
    * caller to refresh the cookie.
    */
-  async authenticate(
-    token: string,
-  ): Promise<{ user: AuthUser; renewedExpiresAt?: Date } | null> {
-    const row = await this.prisma.participant.findUnique({
+  async authenticate(token: string): Promise<{ user: AuthUser; renewedExpiresAt?: Date } | null> {
+    const row = await this.prisma.hostSession.findUnique({
       where: { tokenHash: sha256Hex(token) },
       include: { user: true },
     });
-    // Must be a host login: no room, linked user, still active.
-    if (!row || row.sessionId !== null || !row.user || row.status !== 'active') {
-      return null;
-    }
+    if (!row) return null;
 
     const now = Date.now();
-    if (row.tokenExpiresAt.getTime() <= now) {
-      await this.prisma.participant.deleteMany({ where: { id: row.id } });
+    if (row.expiresAt.getTime() <= now) {
+      await this.prisma.hostSession.deleteMany({ where: { id: row.id } });
       return null;
     }
 
     let renewedExpiresAt: Date | undefined;
-    if (row.tokenExpiresAt.getTime() - now < this.cfg.sessionTtlMs / 2) {
+    if (row.expiresAt.getTime() - now < this.cfg.sessionTtlMs / 2) {
       renewedExpiresAt = new Date(now + this.cfg.sessionTtlMs);
-      await this.prisma.participant.update({
+      await this.prisma.hostSession.update({
         where: { id: row.id },
-        data: { tokenExpiresAt: renewedExpiresAt, lastSeenAt: new Date() },
+        data: { expiresAt: renewedExpiresAt, lastSeenAt: new Date(now) },
       });
     }
     return { user: toAuthUser(row.user), renewedExpiresAt };
   }
 
   async revoke(token: string): Promise<void> {
-    await this.prisma.participant.deleteMany({
-      where: { tokenHash: sha256Hex(token), sessionId: null },
-    });
+    await this.prisma.hostSession.deleteMany({ where: { tokenHash: sha256Hex(token) } });
   }
 }
