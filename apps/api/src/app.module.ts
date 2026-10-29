@@ -4,9 +4,10 @@ import { MetricsModule } from "./metrics/metrics.module";
 import { PrismaModule } from "./prisma/prisma.module";
 import { RealtimeModule } from "./realtime/realtime.module";
 import { RedisModule } from "./redis/redis.module";
+import { AuthModule } from "./auth/auth.module";
 
 @Module({
-  imports: [PrismaModule, RedisModule, MetricsModule, RealtimeModule],
+  imports: [PrismaModule, RedisModule, MetricsModule, RealtimeModule, AuthModule],
   controllers: [HealthController],
 })
 export class AppModule {}

@@ -1,12 +1,33 @@
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { buttonClass } from "@/components/ui/Button";
 import { LanguageSwitch } from "@/components/shell/LanguageSwitch";
 import { Logo } from "@/components/shell/Logo";
 
-// MD-15 H00. KMUTT SSO is MD-7, so the button opens My decks for now.
-export default function LoginPage() {
-  const t = useTranslations("login");
+const ERROR_CODES = [
+  "access_denied",
+  "invalid_state",
+  "invalid_token",
+  "login_failed",
+  "sso_error",
+] as const;
+type ErrorCode = (typeof ERROR_CODES)[number];
+
+// The API redirects here with ?error=<code>. Unknown codes fall back to login_failed.
+function toErrorCode(value: string | string[] | undefined): ErrorCode | null {
+  if (value === undefined) return null;
+  const code = Array.isArray(value) ? value[0] : value;
+  return (ERROR_CODES as readonly string[]).includes(code) ? (code as ErrorCode) : "login_failed";
+}
+
+// MD-15 H00. Host login through KMUTT SSO (MD-7).
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string | string[] }>;
+}) {
+  const t = await getTranslations("login");
+  const errorCode = toErrorCode((await searchParams).error);
   return (
     <div className="flex min-h-screen flex-col bg-primary-50">
       <header className="flex justify-end px-6 py-4">
@@ -19,10 +40,19 @@ export default function LoginPage() {
             <h1 className="text-2xl font-bold">{t("title")}</h1>
             <p className="text-muted">{t("description")}</p>
           </div>
-          <Link href="/decks" className={buttonClass({ size: "lg", fullWidth: true })}>
+          {errorCode && (
+            <p
+              role="alert"
+              className="rounded-lg border border-error-500 bg-error-50 px-4 py-3 text-sm text-error-700"
+            >
+              {t(`errors.${errorCode}`)}
+            </p>
+          )}
+          {/* Plain anchor on purpose: full-page redirect to the API, not a Next route. */}
+          <a href="/api/auth/login" className={buttonClass({ size: "lg", fullWidth: true })}>
             <ShieldIcon />
             {t("button")}
-          </Link>
+          </a>
           <p className="text-center text-sm text-muted">
             {t("participantPrompt")}{" "}
             <Link href="/" className="text-primary-700 underline hover:text-primary-800">

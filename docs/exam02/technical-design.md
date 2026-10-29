@@ -593,6 +593,7 @@ erDiagram
     USER ||--o{ SESSION : hosts
     USER ||--o{ SESSION_COHOST : "is co-host in"
     USER |o--o{ PARTICIPANT : "joins as (SSO)"
+    USER ||--o{ HOST_SESSION : "logs in"
 
     DECK ||--|{ SLIDE : contains
     DECK ||--o{ PDF_IMPORT : "imports from"
@@ -629,6 +630,12 @@ erDiagram
         string displayName
         string studentId "from SSO, may be empty for staff"
         datetime createdAt
+    }
+    HOST_SESSION {
+        string hostSessionId PK
+        string userId FK
+        string tokenHash "cookie token, hashed"
+        datetime expiresAt "8 h, sliding"
     }
     DECK {
         string deckId PK

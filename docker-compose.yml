@@ -37,6 +37,10 @@ services:
       WEB_ORIGIN: http://localhost:${WEB_PORT:-3000}
       DATABASE_URL: postgresql://${POSTGRES_USER:-moddeck}:${POSTGRES_PASSWORD:-moddeck}@postgres:5432/${POSTGRES_DB:-moddeck}
       REDIS_URL: redis://redis:6379
+      ENTRA_TENANT_ID: ${ENTRA_TENANT_ID:-}
+      ENTRA_CLIENT_ID: ${ENTRA_CLIENT_ID:-}
+      ENTRA_CLIENT_SECRET: ${ENTRA_CLIENT_SECRET:-}
+      APP_BASE_URL: http://localhost:${WEB_PORT:-3000}
     # Apply pending migrations and the demo seed (idempotent) before the dev server.
     command: ["sh", "-c", "pnpm db:generate && pnpm db:deploy && pnpm db:seed && pnpm dev"]
     ports:
@@ -58,6 +62,7 @@ services:
         APP: web
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:${API_PORT:-4000}
+      API_INTERNAL_URL: http://api:4000 # dev rewrite of /api/* (next.config.ts)
       WATCHPACK_POLLING: "true"
     ports:
       - "${WEB_PORT:-3000}:3000"

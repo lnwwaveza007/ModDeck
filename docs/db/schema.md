@@ -28,6 +28,7 @@ The ticket lists the tables by working names. The technical design (§4.1) refin
 | Ticket name | Table | Note |
 | --- | --- | --- |
 | users | `users` | |
+| — | `host_sessions` | Host login after KMUTT SSO (MD-7). Not in the ticket list |
 | decks | `decks` | Holds the session default settings |
 | slides | `slides` | |
 | activities | `activities` | Poll or word cloud, one per slide |
@@ -50,6 +51,7 @@ erDiagram
     users ||--o{ sessions : hosts
     users ||--o{ session_cohosts : "co-hosts"
     users |o--o{ participants : "joins as (SSO)"
+    users ||--o{ host_sessions : "logs in"
 
     decks ||--|{ slides : contains
     decks ||--o{ pdf_imports : "imports from"
@@ -88,6 +90,14 @@ erDiagram
         text student_id "null for staff"
         timestamptz created_at
         timestamptz updated_at
+    }
+    host_sessions {
+        uuid id PK
+        uuid user_id FK
+        text token_hash UK "SHA-256 of the cookie token"
+        timestamptz expires_at
+        timestamptz created_at
+        timestamptz last_seen_at
     }
     decks {
         uuid id PK
@@ -227,6 +237,7 @@ The three lookups named in the ticket:
 Other indexes:
 
 - `participants.token_hash` UK: resolve the participant cookie on every socket `hello` (MD-13).
+- `host_sessions.token_hash` UK: resolve the host cookie on every host request. `host_sessions (expires_at)`: delete expired logins.
 - `answers (activity_run_id, option_id)`: count votes per option for results and export.
 - `word_entries (activity_run_id, normalized_text)`: group words for the cloud.
 - Each foreign key column that is not the first column of another index has its own index, so cascading deletes do not scan whole tables.
@@ -259,12 +270,15 @@ If Redis loses data, the API rebuilds `ans:` and `votes:` for open runs from `an
 
 Participant token (MD-7, MD-13): the server makes a random token, puts it in the `md_pt` `HttpOnly` cookie and stores only its SHA-256 hash in `participants.token_hash`. `token_expires_at` is 8 h after issue and moves forward when less than half the lifetime is left (MD-13 fix 2). A missing or past expiry fails closed. Removing a participant sets `status = 'removed'`, which blocks the token for that session.
 
+Host login (MD-7): after KMUTT SSO the server makes a random token, puts it in the `host_session` `HttpOnly` cookie and stores only its SHA-256 hash in `host_sessions.token_hash`, with the same 8 h sliding expiry. A host signs in before any session exists, so a host login is not a participant. Logout deletes the row; expired rows are deleted on the next login.
+
 ## 7. Deletes
 
 - Deleting a deck deletes its slides, imports and **all its past sessions and results** (cascade). The API refuses while a session is live (`409 DECK_LIVE`).
 - Deleting a slide or activity deletes its past runs and answers. The API refuses while the activity is live (`409 ACTIVITY_LOCKED`). Keeping history after a deck edit is a candidate change for R2 (copy the activity into the session at start).
 - A user who owns decks or sessions cannot be deleted (`RESTRICT`). There is no user delete in R1.
 - R1 never deletes participants; removal is a status change.
+- Deleting a user deletes their host logins (cascade).
 
 ## 8. How to run
 
