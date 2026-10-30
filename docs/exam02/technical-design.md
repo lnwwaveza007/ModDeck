@@ -438,7 +438,7 @@ Paths are relative to `/api/v1`. "Errors" lists the main non-2xx codes. The comm
 | POST | `/decks` | Create a deck (name only; one blank title slide) | host | 201 + `Location` | 422 empty name |
 | GET | `/decks/{deckId}` | Deck with slides, activities, options | owner | 200 | 404 |
 | PATCH | `/decks/{deckId}` | Rename | owner | 200 | 422 |
-| DELETE | `/decks/{deckId}` | Delete a deck | owner | 204 | 409 `DECK_LIVE` (a session is live) |
+| DELETE | `/decks/{deckId}` | Delete a deck (soft: past sessions and results stay) | owner | 204 | 409 `DECK_LIVE` (a session is live) |
 | POST | `/decks/{deckId}/copies` | Duplicate a deck | owner | 201 + `Location` | — |
 | GET / PUT | `/decks/{deckId}/settings` | Session defaults: require KMUTT login, Q&A on, anonymous allowed, show results live, auto-start, reactions | owner | 200 | 422 |
 | POST | `/decks/{deckId}/slides` | Add a slide (content, poll, word cloud) at a position | owner | 201 | 422 invalid content |

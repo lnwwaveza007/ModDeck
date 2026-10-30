@@ -111,6 +111,7 @@ erDiagram
         boolean reactions_enabled "default false"
         timestamptz created_at
         timestamptz updated_at
+        timestamptz deleted_at "null unless deleted"
     }
     slides {
         uuid id PK
@@ -231,7 +232,7 @@ The three lookups named in the ticket:
 | Lookup | Index | Used by |
 | --- | --- | --- |
 | Session by PIN | `sessions_live_pin_key`: `UNIQUE (pin) WHERE status <> 'ended'`, plus `sessions_pin_idx` on `pin` | `GET /pins/{pin}`, join. The partial unique index stops two open sessions from sharing a PIN. Ended sessions keep their PIN, so the plain index also finds them for the 410 "session ended" answer in the first 24 h |
-| Decks by owner | `decks_owner_id_updated_at_idx` on `(owner_id, updated_at DESC)` | `GET /decks` (my decks, newest first) |
+| Decks by owner | `decks_owner_id_updated_at_idx` on `(owner_id, updated_at DESC) WHERE deleted_at IS NULL` | `GET /decks` (my decks, newest first, deleted decks left out) |
 | Rows by session ID | `participants (session_id, nickname)` UK, `participants (session_id, user_id)` UK, `activity_runs (session_id, activity_id)` UK, `questions (session_id, created_at)`, `sessions (deck_id, status)`, `sessions (owner_id, started_at DESC)`, and the composite keys of `session_cohosts` and `reaction_counts` | Live screens, rejoin, results, export, history, "live now" count, `DECK_LIVE` check |
 
 Other indexes:
@@ -274,7 +275,7 @@ Host login (MD-7): after KMUTT SSO the server makes a random token, puts it in t
 
 ## 7. Deletes
 
-- Deleting a deck deletes its slides, imports and **all its past sessions and results** (cascade). The API refuses while a session is live (`409 DECK_LIVE`).
+- Deleting a deck is a soft delete: `DELETE /decks/{id}` sets `deleted_at`, and the deck leaves My decks and answers 404. Its slides, past sessions, answers and questions stay, so session history, results and export keep working. The API refuses while a session is live (`409 DECK_LIVE`). The `ON DELETE CASCADE` from decks still applies to a real row delete, which only maintenance scripts do.
 - Deleting a slide or activity deletes its past runs and answers. The API refuses while the activity is live (`409 ACTIVITY_LOCKED`). Keeping history after a deck edit is a candidate change for R2 (copy the activity into the session at start).
 - A user who owns decks or sessions cannot be deleted (`RESTRICT`). There is no user delete in R1.
 - R1 never deletes participants; removal is a status change.
