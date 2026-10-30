@@ -8,6 +8,8 @@ export const ERROR_CODES = [
   "SESSION_ENDED",
   "ROOM_FORBIDDEN",
   "INVALID_PAYLOAD",
+  "NOT_FOUND",
+  "DECK_LIVE",
   "INTERNAL",
 ] as const;
 

@@ -62,6 +62,59 @@
     "slides": "สไลด์",
     "cohostBadge": "ผู้ช่วยสอน · จัดการถาม-ตอบ"
   },
+  "decks": {
+    "search": "ค้นหาเด็ค",
+    "newDeck": "เด็คใหม่",
+    "liveCount": "สด {count} เซสชัน",
+    "slides": "{count, plural, other {# สไลด์}}",
+    "edited": "แก้ไขเมื่อ {when}",
+    "sessions": "{count, plural, =0 {ยังไม่เคยใช้} other {# เซสชัน}}",
+    "pin": "PIN {pin}",
+    "backToSession": "กลับไปคุมเซสชัน",
+    "actions": "ตัวเลือกของ {title}",
+    "rename": "เปลี่ยนชื่อ",
+    "duplicate": "ทำสำเนา",
+    "delete": "ลบ",
+    "deleteBlocked": "จบเซสชันสดก่อนจึงจะลบได้",
+    "copyTitle": "สำเนาของ {title}",
+    "empty": {
+      "title": "ยังไม่มีเด็ค",
+      "description": "สร้างเด็คแรกเพื่อเตรียมการสอนก่อนเข้าคลาส"
+    },
+    "noMatch": {
+      "title": "ไม่พบเด็คที่ตรงกับ “{query}”",
+      "description": "ลองค้นหาด้วยชื่ออื่น"
+    },
+    "form": {
+      "name": "ชื่อเด็ค",
+      "cancel": "ยกเลิก"
+    },
+    "create": {
+      "title": "เด็คใหม่",
+      "submit": "สร้างเด็ค"
+    },
+    "renameDialog": {
+      "title": "เปลี่ยนชื่อเด็ค",
+      "submit": "บันทึก"
+    },
+    "deleteDialog": {
+      "title": "ลบ “{title}” ใช่ไหม",
+      "description": "เด็คจะหายไปจากเด็คของฉัน แต่ผลของเซสชันที่ผ่านมายังอยู่ในประวัติเซสชัน",
+      "confirm": "ลบเด็ค"
+    },
+    "errors": {
+      "titleRequired": "กรุณาใส่ชื่อเด็ค",
+      "titleTooLong": "ใช้ได้ไม่เกิน {max} ตัวอักษร",
+      "DECK_LIVE": "มีเซสชันสดของเด็คนี้อยู่ จบเซสชันก่อนจึงจะลบได้",
+      "NOT_FOUND": "ไม่พบเด็คนี้แล้ว",
+      "generic": "บันทึกไม่สำเร็จ ลองอีกครั้ง"
+    },
+    "toasts": {
+      "renamed": "เปลี่ยนชื่อเด็คแล้ว",
+      "duplicated": "ทำสำเนาเด็คแล้ว",
+      "deleted": "ลบเด็คแล้ว"
+    }
+  },
   "pages": {
     "landing": { "title": "เข้าร่วมห้องเรียน" },
     "login": { "title": "เข้าสู่ระบบสำหรับผู้สอน" },
