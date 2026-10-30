@@ -131,18 +131,21 @@ model HostSession {
 }
 
 // Reusable deck. The settings are defaults copied into each new session.
+// Deleting a deck only sets deleted_at: its past sessions, answers and
+// questions stay for session results and export.
 model Deck {
-  id                String   @id @default(uuid(7)) @db.Uuid
-  ownerId           String   @map("owner_id") @db.Uuid
+  id                String    @id @default(uuid(7)) @db.Uuid
+  ownerId           String    @map("owner_id") @db.Uuid
   title             String
-  requireKmuttLogin Boolean  @default(false) @map("require_kmutt_login")
-  qaEnabled         Boolean  @default(true) @map("qa_enabled")
-  anonymousAllowed  Boolean  @default(true) @map("anonymous_allowed")
-  showResultsLive   Boolean  @default(false) @map("show_results_live")
-  autoStart         Boolean  @default(false) @map("auto_start")
-  reactionsEnabled  Boolean  @default(false) @map("reactions_enabled") // MD-5 Q14
-  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  requireKmuttLogin Boolean   @default(false) @map("require_kmutt_login")
+  qaEnabled         Boolean   @default(true) @map("qa_enabled")
+  anonymousAllowed  Boolean   @default(true) @map("anonymous_allowed")
+  showResultsLive   Boolean   @default(false) @map("show_results_live")
+  autoStart         Boolean   @default(false) @map("auto_start")
+  reactionsEnabled  Boolean   @default(false) @map("reactions_enabled") // MD-5 Q14
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(3)
 
   owner    User        @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   slides   Slide[]
@@ -150,7 +153,7 @@ model Deck {
   sessions Session[]
 
   // "My decks", newest first.
-  @@index([ownerId, updatedAt(sort: Desc)])
+  @@index([ownerId, updatedAt(sort: Desc)], where: raw("deleted_at IS NULL"))
   @@map("decks")
 }
 
