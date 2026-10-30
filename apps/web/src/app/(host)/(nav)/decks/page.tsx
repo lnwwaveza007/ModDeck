@@ -1,12 +1,6 @@
-import { useTranslations } from "next-intl";
-import { HostPage } from "@/components/shell/HostPage";
-import { PagePlaceholder } from "@/components/shell/PagePlaceholder";
+import { DeckList } from "@/components/decks/DeckList";
 
+// MD-15 H01. The list loads in the browser, where the host_session cookie is.
 export default function DecksPage() {
-  const t = useTranslations("pages");
-  return (
-    <HostPage title={t("decks.title")}>
-      <PagePlaceholder page="decks" titled={false} />
-    </HostPage>
-  );
+  return <DeckList />;
 }

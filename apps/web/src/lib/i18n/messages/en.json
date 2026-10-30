@@ -62,6 +62,59 @@
     "slides": "Slides",
     "cohostBadge": "Co-host · Q&A moderation"
   },
+  "decks": {
+    "search": "Search decks",
+    "newDeck": "New deck",
+    "liveCount": "{count} live",
+    "slides": "{count, plural, one {# slide} other {# slides}}",
+    "edited": "Edited {when}",
+    "sessions": "{count, plural, =0 {Never used} one {# session} other {# sessions}}",
+    "pin": "PIN {pin}",
+    "backToSession": "Back to session control",
+    "actions": "Actions for {title}",
+    "rename": "Rename",
+    "duplicate": "Duplicate",
+    "delete": "Delete",
+    "deleteBlocked": "End the live session to delete",
+    "copyTitle": "Copy of {title}",
+    "empty": {
+      "title": "No decks yet",
+      "description": "Create your first deck to get a lecture ready before class."
+    },
+    "noMatch": {
+      "title": "No decks match “{query}”",
+      "description": "Try another name."
+    },
+    "form": {
+      "name": "Deck name",
+      "cancel": "Cancel"
+    },
+    "create": {
+      "title": "New deck",
+      "submit": "Create deck"
+    },
+    "renameDialog": {
+      "title": "Rename deck",
+      "submit": "Save"
+    },
+    "deleteDialog": {
+      "title": "Delete “{title}”?",
+      "description": "The deck leaves My decks. Results of its past sessions stay in Session history.",
+      "confirm": "Delete deck"
+    },
+    "errors": {
+      "titleRequired": "Enter a deck name",
+      "titleTooLong": "Use {max} characters or fewer",
+      "DECK_LIVE": "A session on this deck is live. End it before deleting.",
+      "NOT_FOUND": "This deck no longer exists.",
+      "generic": "Could not save. Please try again."
+    },
+    "toasts": {
+      "renamed": "Deck renamed",
+      "duplicated": "Deck duplicated",
+      "deleted": "Deck deleted"
+    }
+  },
   "pages": {
     "landing": { "title": "Join a class" },
     "login": { "title": "Host login" },
