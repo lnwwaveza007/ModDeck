@@ -115,6 +115,126 @@
       "deleted": "ลบเด็คแล้ว"
     }
   },
+  "content": {
+    "mathError": "สูตร LaTeX ผิดพลาด",
+    "imageAlt": "รูปภาพในสไลด์",
+    "empty": {
+      "text": "สไลด์ข้อความว่าง",
+      "code": "สไลด์โค้ดว่าง",
+      "math": "สไลด์สูตรว่าง",
+      "image": "ยังไม่มีรูปภาพ"
+    },
+    "activity": {
+      "poll": "โพลสด",
+      "word_cloud": "คลาวด์คำ",
+      "noPrompt": "ยังไม่มีคำถาม"
+    }
+  },
+  "editor": {
+    "notFound": "ไม่พบเด็คนี้แล้ว",
+    "slideLabel": "สไลด์ {number} ประเภท{kind}",
+    "kinds": {
+      "text": "ข้อความ",
+      "code": "โค้ด",
+      "math": "สูตร",
+      "image": "รูปภาพ",
+      "poll": "โพลสด",
+      "word_cloud": "คลาวด์คำ"
+    },
+    "languages": {
+      "python": "Python",
+      "java": "Java",
+      "sql": "SQL",
+      "javascript": "JavaScript",
+      "typescript": "TypeScript",
+      "c": "C",
+      "cpp": "C++",
+      "bash": "Bash",
+      "json": "JSON",
+      "html": "HTML",
+      "css": "CSS",
+      "verilog": "Verilog",
+      "plaintext": "ข้อความธรรมดา"
+    },
+    "empty": {
+      "title": "เด็คนี้ยังไม่มีสไลด์",
+      "description": "เพิ่มสไลด์แรกเพื่อเริ่มสร้าง"
+    },
+    "save": {
+      "saving": "กำลังบันทึก…",
+      "saved": "บันทึกแล้ว",
+      "error": "บันทึกไม่สำเร็จ",
+      "retry": "ลองอีกครั้ง"
+    },
+    "add": {
+      "button": "เพิ่มสไลด์",
+      "title": "เพิ่มสไลด์",
+      "content": "เนื้อหา",
+      "activities": "กิจกรรม",
+      "soon": "เร็วๆ นี้",
+      "kindHints": {
+        "text": "หัวข้อ ข้อความ โค้ด และสูตร",
+        "code": "โค้ดไฮไลต์สีตามภาษา",
+        "math": "สูตร LaTeX",
+        "image": "ไฟล์ PNG, JPEG, WebP หรือ GIF",
+        "poll": "ถามคำถามพร้อมตัวเลือก",
+        "word_cloud": "รวบรวมคำตอบสั้นๆ",
+        "qa": "คำถามจากผู้ฟัง"
+      },
+      "qa": "ถามตอบ",
+      "cancel": "ยกเลิก"
+    },
+    "toolbar": {
+      "label": "การทำงานกับสไลด์",
+      "counter": "สไลด์ {current} จาก {total}",
+      "moveUp": "เลื่อนขึ้น",
+      "moveDown": "เลื่อนลง",
+      "duplicate": "ทำสำเนา",
+      "delete": "ลบ"
+    },
+    "panel": {
+      "editSlide": "แก้ไขสไลด์",
+      "editActivity": "แก้ไขกิจกรรม",
+      "text": "ข้อความ",
+      "textHelp": "ใช้ # สำหรับหัวข้อ `โค้ด` ``` สำหรับบล็อกโค้ด และ $x^2$ สำหรับสูตร",
+      "code": "โค้ด",
+      "language": "ภาษา",
+      "math": "สูตร LaTeX",
+      "mathHelp": "เช่น {example}",
+      "mathPreviewError": "LaTeX ผิดพลาด: {message}",
+      "image": "รูปภาพ",
+      "imageUpload": "อัปโหลดรูปภาพ",
+      "imageReplace": "เปลี่ยนรูปภาพ",
+      "imageUploading": "กำลังอัปโหลด…",
+      "imageHelp": "PNG, JPEG, WebP หรือ GIF ขนาดไม่เกิน {size} MB",
+      "activityComingSoon": "ตัวแก้ไขคำถามและตัวเลือกจะมาเร็วๆ นี้"
+    },
+    "deleteDialog": {
+      "title": "ลบสไลด์นี้?",
+      "description": "สไลด์และเนื้อหาจะถูกลบออกจากเด็ค",
+      "confirm": "ลบสไลด์",
+      "cancel": "ยกเลิก"
+    },
+    "drag": {
+      "instructions": "หากต้องการจัดลำดับใหม่ กด Space ที่สไลด์ ใช้ปุ่มลูกศรเพื่อย้าย แล้วกด Space อีกครั้ง หรือใช้ปุ่มเลื่อนขึ้นและเลื่อนลง",
+      "picked": "หยิบสไลด์ {from} แล้ว",
+      "over": "สไลด์ {from} อยู่เหนือตำแหน่ง {to}",
+      "dropped": "ย้ายสไลด์ {from} ไปตำแหน่ง {to} แล้ว",
+      "cancelled": "ยกเลิกการย้ายแล้ว"
+    },
+    "toasts": {
+      "added": "เพิ่มสไลด์แล้ว",
+      "duplicated": "ทำสำเนาสไลด์แล้ว",
+      "deleted": "ลบสไลด์แล้ว"
+    },
+    "errors": {
+      "NOT_FOUND": "ไม่พบสไลด์หรือเด็คนี้แล้ว ตัวแก้ไขโหลดใหม่แล้ว",
+      "ACTIVITY_LOCKED": "กิจกรรมนี้กำลังใช้งานในเซสชัน ให้จบเซสชันก่อนลบ",
+      "imageType": "เลือกไฟล์ PNG, JPEG, WebP หรือ GIF",
+      "imageSize": "รูปภาพนี้ใหญ่กว่า {size} MB",
+      "generic": "ทำรายการไม่สำเร็จ ตัวแก้ไขโหลดใหม่แล้ว"
+    }
+  },
   "pages": {
     "landing": { "title": "เข้าร่วมห้องเรียน" },
     "login": { "title": "เข้าสู่ระบบสำหรับผู้สอน" },

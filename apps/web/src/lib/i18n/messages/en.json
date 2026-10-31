@@ -115,6 +115,126 @@
       "deleted": "Deck deleted"
     }
   },
+  "content": {
+    "mathError": "LaTeX error",
+    "imageAlt": "Slide image",
+    "empty": {
+      "text": "Empty text slide",
+      "code": "Empty code slide",
+      "math": "Empty math slide",
+      "image": "No image yet"
+    },
+    "activity": {
+      "poll": "Live Poll",
+      "word_cloud": "Word Cloud",
+      "noPrompt": "No question yet"
+    }
+  },
+  "editor": {
+    "notFound": "This deck no longer exists.",
+    "slideLabel": "Slide {number}, {kind}",
+    "kinds": {
+      "text": "Text",
+      "code": "Code",
+      "math": "Math",
+      "image": "Image",
+      "poll": "Live Poll",
+      "word_cloud": "Word Cloud"
+    },
+    "languages": {
+      "python": "Python",
+      "java": "Java",
+      "sql": "SQL",
+      "javascript": "JavaScript",
+      "typescript": "TypeScript",
+      "c": "C",
+      "cpp": "C++",
+      "bash": "Bash",
+      "json": "JSON",
+      "html": "HTML",
+      "css": "CSS",
+      "verilog": "Verilog",
+      "plaintext": "Plain text"
+    },
+    "empty": {
+      "title": "This deck has no slides",
+      "description": "Add your first slide to start building."
+    },
+    "save": {
+      "saving": "Saving…",
+      "saved": "Saved",
+      "error": "Could not save",
+      "retry": "Try again"
+    },
+    "add": {
+      "button": "Add slide",
+      "title": "Add a slide",
+      "content": "Content",
+      "activities": "Activities",
+      "soon": "Soon",
+      "kindHints": {
+        "text": "Heading, text, code and formulas",
+        "code": "Highlighted code with a language",
+        "math": "A LaTeX formula",
+        "image": "A PNG, JPEG, WebP or GIF",
+        "poll": "Ask a question with options",
+        "word_cloud": "Collect short answers",
+        "qa": "Audience questions"
+      },
+      "qa": "Q&A",
+      "cancel": "Cancel"
+    },
+    "toolbar": {
+      "label": "Slide actions",
+      "counter": "Slide {current} of {total}",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "duplicate": "Duplicate",
+      "delete": "Delete"
+    },
+    "panel": {
+      "editSlide": "Edit slide",
+      "editActivity": "Edit activity",
+      "text": "Text",
+      "textHelp": "Use # for a heading, `code`, ``` for a code block and $x^2$ for a formula.",
+      "code": "Code",
+      "language": "Language",
+      "math": "LaTeX formula",
+      "mathHelp": "For example {example}",
+      "mathPreviewError": "LaTeX error: {message}",
+      "image": "Image",
+      "imageUpload": "Upload image",
+      "imageReplace": "Replace image",
+      "imageUploading": "Uploading…",
+      "imageHelp": "PNG, JPEG, WebP or GIF, up to {size} MB",
+      "activityComingSoon": "The question and options editor is coming soon."
+    },
+    "deleteDialog": {
+      "title": "Delete this slide?",
+      "description": "The slide and its content are removed from the deck.",
+      "confirm": "Delete slide",
+      "cancel": "Cancel"
+    },
+    "drag": {
+      "instructions": "To reorder, press Space on a slide, move it with the arrow keys, then press Space again. You can also use Move up and Move down.",
+      "picked": "Picked up slide {from}.",
+      "over": "Slide {from} is over position {to}.",
+      "dropped": "Slide {from} moved to position {to}.",
+      "cancelled": "Move cancelled."
+    },
+    "toasts": {
+      "added": "Slide added",
+      "duplicated": "Slide duplicated",
+      "deleted": "Slide deleted"
+    },
+    "errors": {
+      "NOT_FOUND": "This slide or deck no longer exists. The editor reloaded.",
+      "ACTIVITY_LOCKED": "This activity is live in a session. End it before deleting.",
+      "imageType": "Choose a PNG, JPEG, WebP or GIF file.",
+      "imageSize": "This image is larger than {size} MB.",
+      "generic": "Could not complete that. The editor reloaded."
+    }
+  },
   "pages": {
     "landing": { "title": "Join a class" },
     "login": { "title": "Host login" },

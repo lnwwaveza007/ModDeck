@@ -165,6 +165,7 @@ model Slide {
   position  Int
   kind      SlideKind
   content   String? // text, code or LaTeX source
+  language  String? // code slides only: one of CODE_LANGUAGES in packages/shared
   imageRef  String?   @map("image_ref") // file in the slides volume
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)

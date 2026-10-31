@@ -6,9 +6,18 @@ import { RealtimeModule } from "./realtime/realtime.module";
 import { RedisModule } from "./redis/redis.module";
 import { AuthModule } from "./auth/auth.module";
 import { DecksModule } from "./decks/decks.module";
+import { SlidesModule } from "./slides/slides.module";
 
 @Module({
-  imports: [PrismaModule, RedisModule, MetricsModule, RealtimeModule, AuthModule, DecksModule],
+  imports: [
+    PrismaModule,
+    RedisModule,
+    MetricsModule,
+    RealtimeModule,
+    AuthModule,
+    DecksModule,
+    SlidesModule,
+  ],
   controllers: [HealthController],
 })
 export class AppModule {}

@@ -118,7 +118,8 @@ erDiagram
         uuid deck_id FK
         int position
         slide_kind kind "text code math image poll word_cloud"
-        text content "null for image"
+        text content "null for image and activity slides"
+        text language "code slides only"
         text image_ref "file in slides volume"
         timestamptz created_at
         timestamptz updated_at

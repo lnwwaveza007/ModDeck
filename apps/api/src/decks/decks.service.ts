@@ -1,9 +1,10 @@
 import { Injectable } from "@nestjs/common";
-import { DECK_TITLE_MAX, type DeckSummary } from "@moddeck/shared";
+import { DECK_TITLE_MAX, type DeckDetail, type DeckSummary } from "@moddeck/shared";
 import { z } from "zod";
 import { ApiException } from "../common/api-error";
 import type { Prisma } from "../generated/prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
+import { slideArgs, toSlideDto } from "../slides/slide.mapper";
 
 const summaryArgs = {
   include: {
@@ -49,8 +50,15 @@ export class DecksService {
     return decks.map(toSummary);
   }
 
-  async get(ownerId: string, deckId: string): Promise<DeckSummary> {
-    return toSummary(await this.findOwned(this.prisma, ownerId, deckId));
+  /** The card data plus the slides in order, with each activity's wording. */
+  async get(ownerId: string, deckId: string): Promise<DeckDetail> {
+    const deck = await this.findOwned(this.prisma, ownerId, deckId);
+    const slides = await this.prisma.slide.findMany({
+      where: { deckId },
+      orderBy: { position: "asc" },
+      ...slideArgs,
+    });
+    return { ...toSummary(deck), slides: slides.map(toSlideDto) };
   }
 
   /** A new deck starts with one blank title slide (technical design §3.3). */
@@ -97,26 +105,32 @@ export class DecksService {
           reactionsEnabled: source.reactionsEnabled,
           slides: {
             // Image files are never edited in place, so both decks can share imageRef.
-            create: source.slides.map(({ position, kind, content, imageRef, activity }) => ({
-              position,
-              kind,
-              content,
-              imageRef,
-              ...(activity && {
-                activity: {
-                  create: {
-                    type: activity.type,
-                    prompt: activity.prompt,
-                    multipleChoice: activity.multipleChoice,
-                    allowAnswerChange: activity.allowAnswerChange,
-                    maxEntriesPerPerson: activity.maxEntriesPerPerson,
-                    options: {
-                      create: activity.options.map(({ position, label }) => ({ position, label })),
+            create: source.slides.map(
+              ({ position, kind, content, language, imageRef, activity }) => ({
+                position,
+                kind,
+                content,
+                language,
+                imageRef,
+                ...(activity && {
+                  activity: {
+                    create: {
+                      type: activity.type,
+                      prompt: activity.prompt,
+                      multipleChoice: activity.multipleChoice,
+                      allowAnswerChange: activity.allowAnswerChange,
+                      maxEntriesPerPerson: activity.maxEntriesPerPerson,
+                      options: {
+                        create: activity.options.map(({ position, label }) => ({
+                          position,
+                          label,
+                        })),
+                      },
                     },
                   },
-                },
+                }),
               }),
-            })),
+            ),
           },
         },
         ...summaryArgs,
