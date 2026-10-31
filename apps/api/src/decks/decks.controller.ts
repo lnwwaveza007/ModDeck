@@ -14,6 +14,7 @@ import {
   deckCopyBodySchema,
   deckTitleBodySchema,
   type DeckCopyBody,
+  type DeckDetail,
   type DeckSummary,
   type DeckTitleBody,
 } from "@moddeck/shared";
@@ -48,7 +49,7 @@ export class DecksController {
   }
 
   @Get(":deckId")
-  get(@CurrentUser() user: AuthUser, @Param("deckId") deckId: string): Promise<DeckSummary> {
+  get(@CurrentUser() user: AuthUser, @Param("deckId") deckId: string): Promise<DeckDetail> {
     return this.decks.get(user.id, deckId);
   }
 

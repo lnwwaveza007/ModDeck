@@ -42,6 +42,9 @@ services:
       ENTRA_CLIENT_ID: ${ENTRA_CLIENT_ID:-}
       ENTRA_CLIENT_SECRET: ${ENTRA_CLIENT_SECRET:-}
       APP_BASE_URL: https://${STAGING_HOST}
+      SLIDES_DIR: /data/slides
+    volumes:
+      - slides:/data/slides
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/health"]
       interval: 10s
@@ -86,3 +89,4 @@ services:
 volumes:
   pgdata:
   redisdata:
+  slides:

@@ -1,9 +1,10 @@
 import { Injectable } from "@nestjs/common";
-import { DECK_TITLE_MAX, type DeckSummary } from "@moddeck/shared";
+import { DECK_TITLE_MAX, type DeckDetail, type DeckSummary } from "@moddeck/shared";
 import { z } from "zod";
 import { ApiException } from "../common/api-error";
 import type { Prisma } from "../generated/prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
+import { slideArgs, toSlideDto } from "../slides/slide.mapper";
 
 const summaryArgs = {
   include: {
@@ -49,14 +50,21 @@ export class DecksService {
     return decks.map(toSummary);
   }
 
-  async get(ownerId: string, deckId: string): Promise<DeckSummary> {
-    return toSummary(await this.findOwned(this.prisma, ownerId, deckId));
+  /** The card data plus the slides in order, with each activity's wording. */
+  async get(ownerId: string, deckId: string): Promise<DeckDetail> {
+    const deck = await this.findOwned(this.prisma, ownerId, deckId);
+    const slides = await this.prisma.slide.findMany({
+      where: { deckId },
+      orderBy: { position: "asc" },
+      ...slideArgs,
+    });
+    return { ...toSummary(deck), slides: slides.map(toSlideDto) };
   }
 
   /** A new deck starts with one blank title slide (technical design §3.3). */
   async create(ownerId: string, title: string): Promise<DeckSummary> {
     const deck = await this.prisma.deck.create({
-      data: { ownerId, title, slides: { create: { position: 0, kind: "text" } } },
+      data: { ownerId, title, slides: { create: { position: 0, kind: "content" } } },
       ...summaryArgs,
     });
     return toSummary(deck);
@@ -96,12 +104,11 @@ export class DecksService {
           autoStart: source.autoStart,
           reactionsEnabled: source.reactionsEnabled,
           slides: {
-            // Image files are never edited in place, so both decks can share imageRef.
-            create: source.slides.map(({ position, kind, content, imageRef, activity }) => ({
+            // Image files are never edited in place, so both decks can share them.
+            create: source.slides.map(({ position, kind, elements, activity }) => ({
               position,
               kind,
-              content,
-              imageRef,
+              elements: elements as Prisma.InputJsonValue,
               ...(activity && {
                 activity: {
                   create: {
@@ -111,7 +118,10 @@ export class DecksService {
                     allowAnswerChange: activity.allowAnswerChange,
                     maxEntriesPerPerson: activity.maxEntriesPerPerson,
                     options: {
-                      create: activity.options.map(({ position, label }) => ({ position, label })),
+                      create: activity.options.map(({ position, label }) => ({
+                        position,
+                        label,
+                      })),
                     },
                   },
                 },
