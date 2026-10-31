@@ -17,7 +17,12 @@ datasource db {
   provider = "postgresql"
 }
 
+// "content" is a canvas of elements (text, code, formula, image) in Slide.elements. text, code,
+// math and image are the slide kinds before the canvas editor: a migration turned those rows
+// into content slides, and the api no longer writes them. Postgres cannot drop an enum value,
+// so they stay in the type.
 enum SlideKind {
+  content
   text
   code
   math
@@ -164,9 +169,12 @@ model Slide {
   // unique key would collide halfway through.
   position  Int
   kind      SlideKind
-  content   String? // text, code or LaTeX source
-  language  String? // code slides only: one of CODE_LANGUAGES in packages/shared
-  imageRef  String?   @map("image_ref") // file in the slides volume
+  // Content slides: the canvas, back to front. Validated by slideElementsSchema in packages/shared.
+  elements  Json      @default("[]")
+  // Unused since the canvas editor; the data now lives in elements. Dropped in a later contract
+  // migration (technical design §1.5: expand, then contract).
+  content   String?
+  imageRef  String?   @map("image_ref")
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 

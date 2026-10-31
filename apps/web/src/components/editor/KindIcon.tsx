@@ -1,6 +1,5 @@
-import type { SlideKind } from "@moddeck/shared";
-
-export type TileKind = SlideKind | "qa";
+export type TileKind =
+  "content" | "text" | "code" | "math" | "image" | "poll" | "word_cloud" | "qa";
 
 const stroke = {
   fill: "none",
@@ -15,6 +14,12 @@ export function KindIcon({ kind }: { kind: TileKind }) {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" {...stroke}>
       {kind === "text" && <path d="M5 6h14M5 11h14M5 16h9" />}
+      {kind === "content" && (
+        <>
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="M7 10h6M7 14h10" />
+        </>
+      )}
       {kind === "code" && <path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 5l-4 14" />}
       {kind === "math" && <path d="M18 5H7l6 7-6 7h11" />}
       {kind === "image" && (

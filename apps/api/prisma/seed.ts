@@ -2,6 +2,7 @@
 // Safe to run more than once: it does nothing if the demo deck exists.
 
 import "dotenv/config";
+import { randomUUID } from "node:crypto";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 
@@ -41,8 +42,20 @@ async function main() {
         create: [
           {
             position: 0,
-            kind: "text",
-            content: "# Welcome to ModDeck\n\nJoin with the PIN on screen.",
+            kind: "content",
+            elements: [
+              {
+                id: randomUUID(),
+                type: "text",
+                x: 8,
+                y: 30,
+                w: 84,
+                text: "# Welcome to ModDeck\n\nJoin with the PIN on screen.",
+                size: 3.4,
+                bold: false,
+                align: "left",
+              },
+            ],
           },
           {
             position: 1,

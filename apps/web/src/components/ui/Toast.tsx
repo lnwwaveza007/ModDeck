@@ -9,12 +9,15 @@ export interface ToastOptions {
   tone?: ToastTone;
   /** Milliseconds before it hides. 0 keeps it until closed. */
   duration?: number;
+  /** A button in the toast, such as Undo. Pressing it also closes the toast. */
+  action?: { label: string; onClick: () => void };
 }
 
 interface ToastItem {
   id: number;
   message: string;
   tone: ToastTone;
+  action?: ToastOptions["action"];
 }
 
 const toneClass: Record<ToastTone, string> = {
@@ -41,9 +44,9 @@ export function ToastProvider({
   }, []);
 
   const show = useCallback(
-    (message: string, { tone = "info", duration = 4000 }: ToastOptions = {}) => {
+    (message: string, { tone = "info", duration = 4000, action }: ToastOptions = {}) => {
       const id = Date.now() + Math.random();
-      setToasts((current) => [...current, { id, message, tone }]);
+      setToasts((current) => [...current, { id, message, tone, action }]);
       if (duration > 0) setTimeout(() => dismiss(id), duration);
     },
     [dismiss],
@@ -66,6 +69,18 @@ export function ToastProvider({
             )}
           >
             <p className="flex-1">{toast.message}</p>
+            {toast.action && (
+              <button
+                type="button"
+                onClick={() => {
+                  toast.action?.onClick();
+                  dismiss(toast.id);
+                }}
+                className="h-11 shrink-0 rounded-md px-3 font-semibold underline hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-white"
+              >
+                {toast.action.label}
+              </button>
+            )}
             <button
               type="button"
               aria-label={closeLabel}

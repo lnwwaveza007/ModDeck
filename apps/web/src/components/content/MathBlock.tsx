@@ -13,10 +13,13 @@ import { renderMath } from "@/lib/render/math";
 export function MathBlock({
   latex,
   display = true,
+  scroll = true,
   className,
 }: {
   latex: string;
   display?: boolean;
+  /** A formula wider than its box scrolls. A slide turns this off and lets it spill instead. */
+  scroll?: boolean;
   className?: string;
 }) {
   const t = useTranslations("content");
@@ -27,7 +30,7 @@ export function MathBlock({
     const Tag = display ? "div" : "span";
     return (
       <Tag
-        className={cn(display && "max-w-full overflow-x-auto", className)}
+        className={cn(display && scroll && "max-w-full overflow-x-auto", className)}
         dangerouslySetInnerHTML={{ __html: result.html }}
       />
     );

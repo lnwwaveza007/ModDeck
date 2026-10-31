@@ -118,10 +118,10 @@
   "content": {
     "mathError": "LaTeX error",
     "imageAlt": "Slide image",
-    "empty": {
-      "text": "Empty text slide",
-      "code": "Empty code slide",
-      "math": "Empty math slide",
+    "placeholder": {
+      "text": "Type something",
+      "code": "Type or paste code",
+      "math": "Type a LaTeX formula",
       "image": "No image yet"
     },
     "activity": {
@@ -134,10 +134,7 @@
     "notFound": "This deck no longer exists.",
     "slideLabel": "Slide {number}, {kind}",
     "kinds": {
-      "text": "Text",
-      "code": "Code",
-      "math": "Math",
-      "image": "Image",
+      "content": "Content",
       "poll": "Live Poll",
       "word_cloud": "Word Cloud"
     },
@@ -172,33 +169,83 @@
       "content": "Content",
       "activities": "Activities",
       "soon": "Soon",
+      "blank": "Blank slide",
       "kindHints": {
-        "text": "Heading, text, code and formulas",
-        "code": "Highlighted code with a language",
-        "math": "A LaTeX formula",
-        "image": "A PNG, JPEG, WebP or GIF",
+        "content": "Add text, code, formulas and images, and move them anywhere",
         "poll": "Ask a question with options",
         "word_cloud": "Collect short answers",
         "qa": "Audience questions"
       },
-      "qa": "Q&A",
-      "cancel": "Cancel"
+      "qa": "Q&A"
+    },
+    "insert": {
+      "label": "Add to slide",
+      "heading": "Heading",
+      "text": "Text",
+      "code": "Code",
+      "math": "Formula",
+      "image": "Image",
+      "uploading": "Uploading…"
     },
     "toolbar": {
       "label": "Slide actions",
       "counter": "Slide {current} of {total}",
       "moveUp": "Move up",
       "moveDown": "Move down",
-      "duplicate": "Duplicate",
-      "delete": "Delete"
+      "duplicate": "Duplicate slide",
+      "delete": "Delete slide",
+      "undo": "Undo",
+      "redo": "Redo"
+    },
+    "canvas": {
+      "label": "Slide canvas",
+      "emptyHint": "Add a heading, text, code, formula or image from the bar above.",
+      "help": "Click an element to select it. Drag to move. Arrow keys nudge it. Press Enter to edit its text and Delete to remove it."
+    },
+    "layers": {
+      "title": "Layers",
+      "none": "No elements yet",
+      "empty": "empty",
+      "types": {
+        "text": "Text",
+        "code": "Code",
+        "math": "Formula",
+        "image": "Image"
+      }
     },
     "panel": {
-      "editSlide": "Edit slide",
+      "slide": "Slide",
+      "slideHint": "Click an element on the slide to edit it, or add one from the bar above the slide.",
+      "activityComingSoon": "The question and options editor is coming soon.",
       "editActivity": "Edit activity",
+      "element": {
+        "text": "Text",
+        "code": "Code block",
+        "math": "Formula",
+        "image": "Image"
+      },
       "text": "Text",
-      "textHelp": "Use # for a heading, `code`, ``` for a code block and $x^2$ for a formula.",
+      "textHelp": "Use # for a heading, `code` for code and $x^2$ for a formula.",
+      "style": "Style",
+      "presets": {
+        "heading": "Heading",
+        "subheading": "Subheading",
+        "body": "Body",
+        "small": "Small"
+      },
+      "size": "Size",
+      "smaller": "Smaller",
+      "larger": "Larger",
+      "bold": "Bold",
+      "textAlign": "Text alignment",
+      "align": {
+        "left": "Left",
+        "center": "Center",
+        "right": "Right"
+      },
       "code": "Code",
       "language": "Language",
+      "fixedHeight": "Fixed height, scroll long code",
       "math": "LaTeX formula",
       "mathHelp": "For example {example}",
       "mathPreviewError": "LaTeX error: {message}",
@@ -207,13 +254,24 @@
       "imageReplace": "Replace image",
       "imageUploading": "Uploading…",
       "imageHelp": "PNG, JPEG, WebP or GIF, up to {size} MB",
-      "activityComingSoon": "The question and options editor is coming soon."
-    },
-    "deleteDialog": {
-      "title": "Delete this slide?",
-      "description": "The slide and its content are removed from the deck.",
-      "confirm": "Delete slide",
-      "cancel": "Cancel"
+      "position": "Position",
+      "alignToSlide": {
+        "left": "Align left",
+        "hcenter": "Center horizontally",
+        "right": "Align right",
+        "top": "Align top",
+        "vcenter": "Center vertically",
+        "bottom": "Align bottom"
+      },
+      "layer": "Layer",
+      "layerMove": {
+        "front": "Bring to front",
+        "forward": "Bring forward",
+        "backward": "Send backward",
+        "back": "Send to back"
+      },
+      "duplicate": "Duplicate",
+      "delete": "Delete"
     },
     "drag": {
       "instructions": "To reorder, press Space on a slide, move it with the arrow keys, then press Space again. You can also use Move up and Move down.",
@@ -225,7 +283,8 @@
     "toasts": {
       "added": "Slide added",
       "duplicated": "Slide duplicated",
-      "deleted": "Slide deleted"
+      "deleted": "Slide deleted",
+      "undo": "Undo"
     },
     "errors": {
       "NOT_FOUND": "This slide or deck no longer exists. The editor reloaded.",

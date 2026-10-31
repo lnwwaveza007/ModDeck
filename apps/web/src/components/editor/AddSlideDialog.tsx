@@ -1,13 +1,14 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ACTIVITY_SLIDE_KINDS, CONTENT_SLIDE_KINDS, type SlideKind } from "@moddeck/shared";
+import type { SlideKind } from "@moddeck/shared";
 import { Dialog } from "@/components/ui/Dialog";
 import { KindIcon, type TileKind } from "./KindIcon";
 
 /**
- * MD-15 H03 add-slide panel: content slides first, then activities. Live Poll and Word Cloud add
- * an activity slide now (R1-13 and R1-16 bring their editors); Q&A is a slot for later.
+ * MD-15 H03 add-slide panel: a blank slide to fill with elements, then the activities. Live Poll
+ * and Word Cloud add an activity slide now (R1-13 and R1-16 bring their editors); Q&A is a slot
+ * for later.
  */
 export function AddSlideDialog({
   onAdd,
@@ -24,7 +25,7 @@ export function AddSlideDialog({
       <button
         type="button"
         disabled={disabled}
-        onClick={kind === "qa" ? undefined : () => onAdd(kind)}
+        onClick={kind === "qa" ? undefined : () => onAdd(kind as SlideKind)}
         className="flex min-h-11 w-full items-center gap-3 rounded-lg border border-border bg-background p-3 text-left hover:border-primary-500 hover:bg-primary-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-60"
       >
         <span className="grid size-10 shrink-0 place-items-center rounded-md bg-neutral-100 text-neutral-700">
@@ -39,7 +40,7 @@ export function AddSlideDialog({
               </span>
             )}
           </span>
-          <span className="text-sm text-muted">{t(`add.kindHints.${kind}`)}</span>
+          <span className="text-sm text-muted">{t(`add.kindHints.${kind as "content"}`)}</span>
         </span>
       </button>
     </li>
@@ -51,16 +52,15 @@ export function AddSlideDialog({
         <h3 id="add-content" className="text-sm font-semibold text-muted">
           {t("add.content")}
         </h3>
-        <ul className="flex flex-col gap-2">
-          {CONTENT_SLIDE_KINDS.map((kind) => tile(kind, t(`kinds.${kind}`)))}
-        </ul>
+        <ul className="flex flex-col gap-2">{tile("content", t("add.blank"))}</ul>
       </section>
       <section aria-labelledby="add-activities" className="flex flex-col gap-2">
         <h3 id="add-activities" className="text-sm font-semibold text-muted">
           {t("add.activities")}
         </h3>
         <ul className="flex flex-col gap-2">
-          {ACTIVITY_SLIDE_KINDS.map((kind) => tile(kind, t(`kinds.${kind}`)))}
+          {tile("poll", t("kinds.poll"))}
+          {tile("word_cloud", t("kinds.word_cloud"))}
           {tile("qa", t("add.qa"), true)}
         </ul>
       </section>

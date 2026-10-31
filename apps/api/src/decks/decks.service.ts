@@ -64,7 +64,7 @@ export class DecksService {
   /** A new deck starts with one blank title slide (technical design §3.3). */
   async create(ownerId: string, title: string): Promise<DeckSummary> {
     const deck = await this.prisma.deck.create({
-      data: { ownerId, title, slides: { create: { position: 0, kind: "text" } } },
+      data: { ownerId, title, slides: { create: { position: 0, kind: "content" } } },
       ...summaryArgs,
     });
     return toSummary(deck);
@@ -104,33 +104,29 @@ export class DecksService {
           autoStart: source.autoStart,
           reactionsEnabled: source.reactionsEnabled,
           slides: {
-            // Image files are never edited in place, so both decks can share imageRef.
-            create: source.slides.map(
-              ({ position, kind, content, language, imageRef, activity }) => ({
-                position,
-                kind,
-                content,
-                language,
-                imageRef,
-                ...(activity && {
-                  activity: {
-                    create: {
-                      type: activity.type,
-                      prompt: activity.prompt,
-                      multipleChoice: activity.multipleChoice,
-                      allowAnswerChange: activity.allowAnswerChange,
-                      maxEntriesPerPerson: activity.maxEntriesPerPerson,
-                      options: {
-                        create: activity.options.map(({ position, label }) => ({
-                          position,
-                          label,
-                        })),
-                      },
+            // Image files are never edited in place, so both decks can share them.
+            create: source.slides.map(({ position, kind, elements, activity }) => ({
+              position,
+              kind,
+              elements: elements as Prisma.InputJsonValue,
+              ...(activity && {
+                activity: {
+                  create: {
+                    type: activity.type,
+                    prompt: activity.prompt,
+                    multipleChoice: activity.multipleChoice,
+                    allowAnswerChange: activity.allowAnswerChange,
+                    maxEntriesPerPerson: activity.maxEntriesPerPerson,
+                    options: {
+                      create: activity.options.map(({ position, label }) => ({
+                        position,
+                        label,
+                      })),
                     },
                   },
-                }),
+                },
               }),
-            ),
+            })),
           },
         },
         ...summaryArgs,

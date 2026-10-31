@@ -95,6 +95,27 @@ describe("Toast", () => {
     expect(screen.queryByText("Saved")).not.toBeInTheDocument();
   });
 
+  it("runs an action button once and closes the toast", () => {
+    const undo = jest.fn();
+    function WithAction() {
+      const toast = useToast();
+      return (
+        <button onClick={() => toast("Deleted", { action: { label: "Undo", onClick: undo } })}>
+          delete
+        </button>
+      );
+    }
+    render(
+      <ToastProvider closeLabel="Close">
+        <WithAction />
+      </ToastProvider>,
+    );
+    fireEvent.click(screen.getByText("delete"));
+    fireEvent.click(screen.getByRole("button", { name: "Undo" }));
+    expect(undo).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("Deleted")).not.toBeInTheDocument();
+  });
+
   it("throws outside the provider", () => {
     jest.spyOn(console, "error").mockImplementation(() => {});
     expect(() => render(<Trigger />)).toThrow("useToast must be used inside <ToastProvider>");

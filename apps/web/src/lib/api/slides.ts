@@ -1,6 +1,12 @@
 // Deck editor REST calls (technical design §3.3). Errors come out as ApiError from apiFetch.
 
-import type { DeckDetail, SlideCreateBody, SlideDto, SlidePatchBody } from "@moddeck/shared";
+import type {
+  DeckDetail,
+  SlideCreateBody,
+  SlideDto,
+  SlideElement,
+  SlideImageDto,
+} from "@moddeck/shared";
 import { HOST_API_BASE_URL, apiFetch } from "./client";
 
 const host = { baseUrl: HOST_API_BASE_URL };
@@ -13,16 +19,16 @@ export function createSlide(deckId: string, body: SlideCreateBody): Promise<Slid
   return apiFetch(`/decks/${deckId}/slides`, { ...host, method: "POST", body });
 }
 
-/** `keepalive` lets an autosave still go out while the tab is closing. */
-export function patchSlide(
+/** Saves the whole canvas. `keepalive` lets an autosave still go out while the tab is closing. */
+export function saveElements(
   deckId: string,
   slideId: string,
-  body: SlidePatchBody,
+  elements: SlideElement[],
 ): Promise<SlideDto> {
   return apiFetch(`/decks/${deckId}/slides/${slideId}`, {
     ...host,
     method: "PATCH",
-    body,
+    body: { elements },
     keepalive: true,
   });
 }
@@ -39,10 +45,11 @@ export function reorderSlides(deckId: string, slideIds: string[]): Promise<Slide
   return apiFetch(`/decks/${deckId}/slide-order`, { ...host, method: "PUT", body: { slideIds } });
 }
 
-export function uploadSlideImage(deckId: string, slideId: string, file: File): Promise<SlideDto> {
+/** Stores the file. An image element then points at the returned name. */
+export function uploadSlideImage(deckId: string, file: File): Promise<SlideImageDto> {
   const body = new FormData();
   body.append("file", file);
-  return apiFetch(`/decks/${deckId}/slides/${slideId}/image`, { ...host, method: "PUT", body });
+  return apiFetch(`/decks/${deckId}/slide-images`, { ...host, method: "POST", body });
 }
 
 /**

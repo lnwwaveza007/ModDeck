@@ -1,13 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import {
   DECK_SLIDES_MAX,
-  DEFAULT_CODE_LANGUAGE,
   isActivityKind,
-  slideContentError,
   type SlideCreateBody,
   type SlideDto,
-  type SlideKind,
-  type SlidePatchBody,
+  type SlideElement,
 } from "@moddeck/shared";
 import { z } from "zod";
 import { ApiException } from "../common/api-error";
@@ -29,6 +26,10 @@ function invalid(field: string, reason: string, message: string) {
 const deckFull = () =>
   invalid("slides", "deck_full", `A deck holds at most ${DECK_SLIDES_MAX} slides`);
 
+// The elements column is JSON, so Prisma wants a plain JSON value.
+const toJson = (elements: SlideElement[]): Prisma.InputJsonValue =>
+  elements as unknown as Prisma.InputJsonValue;
+
 /** Slide rules of the deck editor: positions stay 0..n-1 with no gaps after every change. */
 @Injectable()
 export class SlidesService {
@@ -37,9 +38,11 @@ export class SlidesService {
   async create(ownerId: string, deckId: string, body: SlideCreateBody): Promise<SlideDto> {
     return this.prisma.$transaction(async (tx) => {
       await this.requireDeck(tx, ownerId, deckId);
+      if (body.elements && isActivityKind(body.kind)) {
+        throw invalid("elements", "not_content", "Only a content slide has elements");
+      }
       const count = await tx.slide.count({ where: { deckId } });
       if (count >= DECK_SLIDES_MAX) throw deckFull();
-      this.checkFields(body.kind, body.content, body.language);
 
       const position = Math.min(body.position ?? count, count);
       await tx.slide.updateMany({
@@ -51,8 +54,7 @@ export class SlidesService {
           deckId,
           position,
           kind: body.kind,
-          content: this.initialContent(body),
-          language: body.kind === "code" ? (body.language ?? DEFAULT_CODE_LANGUAGE) : null,
+          elements: toJson(body.elements ?? []),
           // The wording and options are written by the activity editors (R1-13, R1-16).
           ...(isActivityKind(body.kind) && {
             activity: { create: { type: body.kind, prompt: "" } },
@@ -65,19 +67,22 @@ export class SlidesService {
     });
   }
 
-  async update(
+  /** Replaces the canvas of a content slide with the given elements, back to front. */
+  async updateElements(
     ownerId: string,
     deckId: string,
     slideId: string,
-    body: SlidePatchBody,
+    elements: SlideElement[],
   ): Promise<SlideDto> {
     return this.prisma.$transaction(async (tx) => {
       await this.requireDeck(tx, ownerId, deckId);
       const slide = await this.requireSlide(tx, deckId, slideId);
-      this.checkFields(slide.kind, body.content, body.language);
+      if (isActivityKind(toKind(slide.kind))) {
+        throw invalid("elements", "not_content", "Only a content slide has elements");
+      }
       const updated = await tx.slide.update({
         where: { id: slideId },
-        data: { content: body.content, language: body.language },
+        data: { elements: toJson(elements) },
         ...slideArgs,
       });
       await this.touchDeck(tx, deckId);
@@ -89,7 +94,7 @@ export class SlidesService {
     await this.prisma.$transaction(async (tx) => {
       await this.requireDeck(tx, ownerId, deckId);
       const slide = await this.requireSlide(tx, deckId, slideId);
-      if (isActivityKind(slide.kind)) await this.requireNotLive(tx, slideId);
+      if (isActivityKind(toKind(slide.kind))) await this.requireNotLive(tx, slideId);
       await tx.slide.delete({ where: { id: slideId } });
       await tx.slide.updateMany({
         where: { deckId, position: { gt: slide.position } },
@@ -122,10 +127,8 @@ export class SlidesService {
           deckId,
           position,
           kind: source.kind,
-          content: source.content,
-          language: source.language,
-          // Image files are never edited in place, so both slides can share imageRef.
-          imageRef: source.imageRef,
+          // Image files are never edited in place, so both slides can share them.
+          elements: source.elements as Prisma.InputJsonValue,
           ...(activity && {
             activity: {
               create: {
@@ -174,49 +177,9 @@ export class SlidesService {
     });
   }
 
-  /** Throws unless the slide is an image slide of the host's deck. Runs before a file is written. */
-  async assertImageSlide(ownerId: string, deckId: string, slideId: string): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      await this.requireDeck(tx, ownerId, deckId);
-      const slide = await this.requireSlide(tx, deckId, slideId);
-      if (slide.kind !== "image") {
-        throw invalid("kind", "not_image", "Only an image slide holds an image");
-      }
-    });
-  }
-
-  /** Points an image slide at a stored file. */
-  async setImage(
-    ownerId: string,
-    deckId: string,
-    slideId: string,
-    imageRef: string,
-  ): Promise<SlideDto> {
-    return this.prisma.$transaction(async (tx) => {
-      await this.requireDeck(tx, ownerId, deckId);
-      await this.requireSlide(tx, deckId, slideId);
-      const updated = await tx.slide.update({
-        where: { id: slideId },
-        data: { imageRef },
-        ...slideArgs,
-      });
-      await this.touchDeck(tx, deckId);
-      return toSlideDto(updated);
-    });
-  }
-
-  private initialContent({ kind, content }: SlideCreateBody): string | null {
-    return kind === "text" || kind === "code" || kind === "math" ? (content ?? "") : null;
-  }
-
-  private checkFields(kind: SlideKind, content: string | undefined, language: string | undefined) {
-    if (content !== undefined) {
-      const problem = slideContentError(kind, content);
-      if (problem) throw invalid("content", problem, "Content does not fit this kind of slide");
-    }
-    if (language !== undefined && kind !== "code") {
-      throw invalid("language", "not_code", "Only a code slide has a language");
-    }
+  /** Throws unless the deck is the host's own. Runs before an image file is written. */
+  async assertDeckOwner(ownerId: string, deckId: string): Promise<void> {
+    await this.prisma.$transaction((tx) => this.requireDeck(tx, ownerId, deckId));
   }
 
   /** A live run on the activity keeps its slide in place (technical design §3.3). */
@@ -253,4 +216,9 @@ export class SlidesService {
       select: { id: true },
     });
   }
+}
+
+// Rows from before the canvas editor can still hold text, code, math or image.
+function toKind(kind: string): "content" | "poll" | "word_cloud" {
+  return kind === "poll" || kind === "word_cloud" ? kind : "content";
 }

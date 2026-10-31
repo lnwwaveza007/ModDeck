@@ -442,11 +442,11 @@ Paths are relative to `/api/v1`. "Errors" lists the main non-2xx codes. The comm
 | POST | `/decks/{deckId}/copies` | Duplicate a deck | owner | 201 + `Location` | — |
 | GET / PUT | `/decks/{deckId}/settings` | Session defaults: require KMUTT login, Q&A on, anonymous allowed, show results live, auto-start, reactions | owner | 200 | 422 |
 | POST | `/decks/{deckId}/slides` | Add a slide (content, poll, word cloud) at a position | owner | 201 | 422 invalid content |
-| PATCH | `/decks/{deckId}/slides/{slideId}` | Edit slide or its activity | owner | 200 | 409 `ACTIVITY_LOCKED` (non-wording change while live), 422 |
+| PATCH | `/decks/{deckId}/slides/{slideId}` | Save the canvas of a content slide: `{ elements }`, the whole list back to front (text, code, formula, image, each with position and size). Activity wording is edited with the activity endpoints | owner | 200 | 422 invalid element or activity slide |
 | DELETE | `/decks/{deckId}/slides/{slideId}` | Delete a slide | owner | 204 | 409 `ACTIVITY_LOCKED` (activity slide while live) |
 | POST | `/decks/{deckId}/slides/{slideId}/copies` | Duplicate a slide; the copy sits right after it | owner | 201 + `Location` | 404 |
 | PUT | `/decks/{deckId}/slide-order` | Reorder: full list of slide IDs | owner | 200 | 422 list does not match |
-| PUT | `/decks/{deckId}/slides/{slideId}/image` | Upload the image of an image slide (`multipart/form-data`, field `file`; PNG, JPEG, WebP or GIF, 5 MB) | owner | 200 | 413 over 5 MB, 415 not an image, 422 not an image slide |
+| POST | `/decks/{deckId}/slide-images` | Upload an image (`multipart/form-data`, field `file`; PNG, JPEG, WebP or GIF, 5 MB). An image element then points at the returned `imageRef` | owner | 201 `{ imageRef }` | 413 over 5 MB, 415 not an image, 422 no file |
 | GET | `/slide-images/{imageRef}` | Read a slide image. No login: the projector and student phones read it. The name is a random uuid | none | 200 | 404 |
 
 **PDF import (F9)**

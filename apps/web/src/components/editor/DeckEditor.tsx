@@ -3,15 +3,20 @@
 import { arrayMove } from "@dnd-kit/sortable";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { SlideDto, SlideKind, SlidePatchBody } from "@moddeck/shared";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import {
+  SLIDE_ELEMENTS_MAX,
+  SLIDE_IMAGE_MAX_BYTES,
+  type SlideDto,
+  type SlideElement,
+  type SlideKind,
+} from "@moddeck/shared";
 import { SlideRenderer } from "@/components/content/SlideRenderer";
 import { SessionHeader } from "@/components/shell/SessionHeader";
 import { EmptyState } from "@/components/states/EmptyState";
 import { ErrorState } from "@/components/states/ErrorState";
 import { LoadingState } from "@/components/states/LoadingState";
 import { Button } from "@/components/ui/Button";
-import { Dialog } from "@/components/ui/Dialog";
 import { useToast } from "@/components/ui/Toast";
 import { ApiError } from "@/lib/api/client";
 import {
@@ -19,27 +24,38 @@ import {
   deleteSlide,
   duplicateSlide,
   getDeck,
-  patchSlide,
   reorderSlides,
+  saveElements,
   uploadSlideImage,
 } from "@/lib/api/slides";
+import {
+  alignBox,
+  copyElement,
+  createElement,
+  elementBox,
+  moveLayer,
+  updateElement,
+  type AlignEdge,
+  type LayerMove,
+} from "@/lib/editor/elements";
+import { History } from "@/lib/editor/history";
+import { readImageAspect } from "@/lib/editor/image";
 import { SaveQueue } from "@/lib/editor/save-queue";
+import { DuplicateIcon, IconButton, RedoIcon, TrashIcon, UndoIcon } from "./ActionIcons";
 import { AddSlideDialog } from "./AddSlideDialog";
+import { ElementPanel } from "./ElementPanel";
+import { InsertBar, type InsertKind } from "./InsertBar";
 import { SaveIndicator } from "./SaveIndicator";
+import { SlideCanvas, type SlideCanvasHandle } from "./SlideCanvas";
 import { SlideList } from "./SlideList";
-import { SlidePanel } from "./SlidePanel";
 
 type Load =
   { status: "loading" } | { status: "error" } | { status: "notFound" } | { status: "ready" };
 
-type OpenDialog =
-  | { kind: "add" }
-  | { kind: "delete"; slideId: string; pending: boolean; error?: "ACTIVITY_LOCKED" | "generic" };
-
 /**
- * MD-15 H02 deck editor (F8): slide list on the left, the slide on a canvas in the middle, its
- * fields on the right. Text, code, math and image slides plus activity slots; every change
- * autosaves (technical design §3.3).
+ * MD-15 H02 deck editor (F8). Slide list on the left, the slide on a canvas in the middle, the
+ * selected element's settings on the right. A slide is a canvas: add a heading, text, code, a
+ * formula or an image, then drag it anywhere. Every change autosaves (technical design §3.3).
  */
 export function DeckEditor({ deckId }: { deckId: string }) {
   const t = useTranslations("editor");
@@ -50,25 +66,57 @@ export function DeckEditor({ deckId }: { deckId: string }) {
   const toast = useToast();
 
   const [queue] = useState(() => new SaveQueue());
+  const canvas = useRef<SlideCanvasHandle>(null);
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const [title, setTitle] = useState("");
   const [slides, setSlides] = useState<SlideDto[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [dialog, setDialog] = useState<OpenDialog | null>(null);
+  // The element selected on the current slide, and the one being typed into.
+  const [elementId, setElementId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+  // What the host did, for undo and redo. A slide that an undo brings back has a new id on the
+  // server, so history keeps the id the slide first had, and these maps go between the two.
+  const [history] = useState(() => new History());
+  const rootOf = useRef(new Map<string, string>());
+  const currentOf = useRef(new Map<string, string>());
+  const applying = useRef(false);
+  const undoable = useSyncExternalStore(
+    history.subscribe,
+    () => history.snapshot,
+    () => "00",
+  );
   // Bumped by "Try again" to load the deck once more.
   const [attempt, setAttempt] = useState(0);
 
+  // The newest slides, for work that finishes after a render (an upload).
+  const latest = useRef(slides);
+  useEffect(() => {
+    latest.current = slides;
+  });
+
   const selectedIndex = slides.findIndex((slide) => slide.id === selectedId);
   const selected = selectedIndex === -1 ? undefined : slides[selectedIndex];
+  const elements = selected?.elements;
+  const element = elements?.find((el) => el.id === elementId) ?? null;
 
-  const apply = useCallback((deck: { title: string; slides: SlideDto[] }) => {
-    setTitle(deck.title);
-    setSlides(deck.slides);
-    setSelectedId((current) =>
-      deck.slides.some((slide) => slide.id === current) ? current : (deck.slides[0]?.id ?? null),
-    );
-    setLoad({ status: "ready" });
-  }, []);
+  const apply = useCallback(
+    (deck: { title: string; slides: SlideDto[] }) => {
+      setTitle(deck.title);
+      setSlides(deck.slides);
+      setSelectedId((current) =>
+        deck.slides.some((slide) => slide.id === current) ? current : (deck.slides[0]?.id ?? null),
+      );
+      setElementId(null);
+      setEditingId(null);
+      // What the server has replaces what the host did, so older steps no longer fit.
+      history.clear();
+      rootOf.current.clear();
+      currentOf.current.clear();
+      setLoad({ status: "ready" });
+    },
+    [history],
+  );
 
   const handleLoadError = useCallback(
     (error: unknown) => {
@@ -118,56 +166,235 @@ export function DeckEditor({ deckId }: { deckId: string }) {
     [apply, deckId, handleLoadError, t, toast],
   );
 
-  // A content change shows at once and goes to the server after a short pause.
-  const edit = useCallback(
-    (slideId: string, fields: SlidePatchBody) => {
-      setSlides((current) =>
-        current.map((slide) => (slide.id === slideId ? { ...slide, ...fields } : slide)),
-      );
-      queue.patch(slideId, fields, (body) => patchSlide(deckId, slideId, body));
-    },
-    [deckId, queue],
-  );
+  function selectSlide(slideId: string) {
+    setSelectedId(slideId);
+    setElementId(null);
+    setEditingId(null);
+  }
 
-  const insert = useCallback((slide: SlideDto) => {
-    setSlides((current) => {
-      const next = [...current];
-      next.splice(slide.position, 0, slide);
-      return next;
+  // The canvas changed: show it at once and save it after a short pause.
+  function setElements(slideId: string, next: SlideElement[]) {
+    const before = latest.current.find((slide) => slide.id === slideId)?.elements;
+    if (!before) return;
+    latest.current = latest.current.map((slide) =>
+      slide.id === slideId ? { ...slide, elements: next } : slide,
+    );
+    if (!applying.current) history.record(rootId(slideId), before, next);
+    setSlides(latest.current);
+    queue.patch(slideId, { elements: next }, (body) =>
+      saveElements(deckId, slideId, body.elements),
+    );
+  }
+
+  function insertElement(kind: InsertKind) {
+    if (!selected || selected.elements.length >= SLIDE_ELEMENTS_MAX) return;
+    const created = createElement(kind, { index: selected.elements.length });
+    history.breakGroup();
+    setElements(selected.id, [...selected.elements, created]);
+    history.breakGroup();
+    setElementId(created.id);
+    // Type straight away, like adding a text box in a design tool.
+    setEditingId(created.id);
+  }
+
+  async function insertImage(file: File) {
+    if (!selected || selected.elements.length >= SLIDE_ELEMENTS_MAX) return;
+    const slide = selected;
+    try {
+      const [{ imageRef }, imageAspect] = await Promise.all([
+        queue.run(() => uploadSlideImage(deckId, file)),
+        readImageAspect(file),
+      ]);
+      // The list may have changed while the file uploaded, so build on the newest one.
+      const current = latest.current.find((s) => s.id === slide.id);
+      if (!current) return;
+      const created = createElement("image", {
+        index: current.elements.length,
+        imageRef,
+        imageAspect,
+      });
+      history.breakGroup();
+      setElements(slide.id, [...current.elements, created]);
+      history.breakGroup();
+      setElementId(created.id);
+    } catch (error) {
+      recover(error);
+    }
+  }
+
+  function rejectImage(reason: "type" | "size") {
+    toast(
+      reason === "type"
+        ? t("errors.imageType")
+        : t("errors.imageSize", { size: SLIDE_IMAGE_MAX_BYTES / (1024 * 1024) }),
+      { tone: "error" },
+    );
+  }
+
+  function changeElement(change: Partial<SlideElement>) {
+    if (!selected || !element) return;
+    setElements(selected.id, updateElement(selected.elements, element.id, change));
+  }
+
+  function alignElement(edge: AlignEdge) {
+    if (!selected || !element) return;
+    const box = elementBox(element, canvas.current?.measureHeight(element.id) ?? 0);
+    history.breakGroup();
+    setElements(selected.id, updateElement(selected.elements, element.id, alignBox(box, edge)));
+    history.breakGroup();
+  }
+
+  function layerElement(move: LayerMove) {
+    if (!selected || !element) return;
+    history.breakGroup();
+    setElements(selected.id, moveLayer(selected.elements, element.id, move));
+    history.breakGroup();
+  }
+
+  function duplicateElement(id = element?.id) {
+    if (!selected || !id || selected.elements.length >= SLIDE_ELEMENTS_MAX) return;
+    const index = selected.elements.findIndex((el) => el.id === id);
+    if (index === -1) return;
+    const copy = copyElement(selected.elements[index]);
+    const next = [...selected.elements];
+    next.splice(index + 1, 0, copy);
+    history.breakGroup();
+    setElements(selected.id, next);
+    history.breakGroup();
+    setElementId(copy.id);
+  }
+
+  function deleteElement(id = element?.id) {
+    if (!selected || !id) return;
+    history.breakGroup();
+    setElements(
+      selected.id,
+      selected.elements.filter((el) => el.id !== id),
+    );
+    history.breakGroup();
+    setElementId(null);
+    setEditingId(null);
+  }
+
+  async function replaceImage(file: File) {
+    if (!selected || !element || element.type !== "image") return;
+    const { id } = element;
+    const slideId = selected.id;
+    const { imageRef } = await queue.run(() => uploadSlideImage(deckId, file));
+    const current = latest.current.find((s) => s.id === slideId);
+    if (!current) return;
+    history.breakGroup();
+    setElements(slideId, updateElement(current.elements, id, { imageRef }));
+    history.breakGroup();
+  }
+
+  // The id a slide had when history first saw it, and the id it has now.
+  const rootId = (id: string) => rootOf.current.get(id) ?? id;
+  const currentId = (root: string) => currentOf.current.get(root) ?? root;
+
+  const snapshotOf = (slide: SlideDto) => ({
+    kind: slide.kind,
+    position: slide.position,
+    elements: slide.elements,
+  });
+
+  function showSlides(next: SlideDto[]) {
+    latest.current = next.map((slide, position) => ({ ...slide, position }));
+    setSlides(latest.current);
+  }
+
+  /** Puts a slide on the server and in the list, in the place it had. */
+  async function recreateSlide(snapshot: ReturnType<typeof snapshotOf>, originalId: string) {
+    const position = Math.min(snapshot.position, latest.current.length);
+    const slide = await queue.run(() =>
+      createSlide(deckId, {
+        kind: snapshot.kind,
+        position,
+        ...(snapshot.kind === "content" && { elements: snapshot.elements }),
+      }),
+    );
+    const root = rootId(originalId);
+    currentOf.current.set(root, slide.id);
+    rootOf.current.set(slide.id, root);
+    const next = [...latest.current];
+    next.splice(slide.position, 0, slide);
+    showSlides(next);
+    selectSlide(slide.id);
+  }
+
+  /** Takes a slide off the server and out of the list, and moves the selection to a neighbour. */
+  async function removeSlide(slideId: string) {
+    await queue.run(() => deleteSlide(deckId, slideId));
+    const index = latest.current.findIndex((slide) => slide.id === slideId);
+    const rest = latest.current.filter((slide) => slide.id !== slideId);
+    showSlides(rest);
+    setSelectedId((current) =>
+      current === slideId ? (rest[index]?.id ?? rest[index - 1]?.id ?? null) : current,
+    );
+    setElementId(null);
+    setEditingId(null);
+  }
+
+  /** What undo and redo do for a slide that was added or copied: take it away, bring it back. */
+  function rememberNewSlide(slide: SlideDto) {
+    const root = rootId(slide.id);
+    let snapshot = snapshotOf(slide);
+    history.pushCommand({
+      undo: async () => {
+        const now = latest.current.find((s) => s.id === currentId(root));
+        if (now) snapshot = snapshotOf(now);
+        await removeSlide(currentId(root));
+      },
+      redo: () => recreateSlide(snapshot, root),
     });
-    setSelectedId(slide.id);
-  }, []);
+  }
 
   function addSlide(kind: SlideKind) {
-    setDialog(null);
+    setAddOpen(false);
     const position = selectedIndex === -1 ? slides.length : selectedIndex + 1;
     queue
       .run(() => createSlide(deckId, { kind, position }))
       .then((slide) => {
-        insert(slide);
+        const next = [...latest.current];
+        next.splice(slide.position, 0, slide);
+        showSlides(next);
+        selectSlide(slide.id);
+        rememberNewSlide(slide);
         toast(t("toasts.added"), { tone: "success" });
       }, recover);
   }
 
-  function duplicate() {
+  function duplicateSlideAction() {
     if (!selected) return;
     queue
       .run(() => duplicateSlide(deckId, selected.id))
       .then((slide) => {
-        insert(slide);
+        const next = [...latest.current];
+        next.splice(slide.position, 0, slide);
+        showSlides(next);
+        selectSlide(slide.id);
+        rememberNewSlide(slide);
         toast(t("toasts.duplicated"), { tone: "success" });
       }, recover);
   }
 
-  function reorder(slideIds: string[]) {
-    setSlides((current) => {
-      const byId = new Map(current.map((slide) => [slide.id, slide]));
-      return slideIds.map((id, position) => ({ ...byId.get(id)!, position }));
-    });
-    queue.run(() => reorderSlides(deckId, slideIds)).catch(recover);
+  async function applyOrder(slideIds: string[]) {
+    const byId = new Map(latest.current.map((slide) => [slide.id, slide]));
+    showSlides(slideIds.flatMap((id) => byId.get(id) ?? []));
+    await queue.run(() => reorderSlides(deckId, slideIds));
   }
 
-  function move(delta: -1 | 1) {
+  function reorder(slideIds: string[]) {
+    const before = latest.current.map((slide) => rootId(slide.id));
+    const after = slideIds.map(rootId);
+    applyOrder(slideIds).then(() => undefined, recover);
+    history.pushCommand({
+      undo: () => applyOrder(before.map(currentId)),
+      redo: () => applyOrder(after.map(currentId)),
+    });
+  }
+
+  function moveSlide(delta: -1 | 1) {
     const to = selectedIndex + delta;
     if (selectedIndex === -1 || to < 0 || to >= slides.length) return;
     reorder(
@@ -179,37 +406,89 @@ export function DeckEditor({ deckId }: { deckId: string }) {
     );
   }
 
-  async function confirmDelete(slideId: string) {
-    setDialog({ kind: "delete", slideId, pending: true });
+  /** No confirmation: Undo brings the slide back, in its place and with its content. */
+  async function deleteSlideAction() {
+    if (!selected) return;
+    const target = selected;
+    const snapshot = snapshotOf(target);
+    const root = rootId(target.id);
     try {
-      await queue.run(() => deleteSlide(deckId, slideId));
+      await removeSlide(target.id);
     } catch (error) {
-      if (error instanceof ApiError && error.code === "ACTIVITY_LOCKED") {
-        setDialog({ kind: "delete", slideId, pending: false, error: "ACTIVITY_LOCKED" });
-      } else {
-        setDialog(null);
-        recover(error);
-      }
+      recover(error);
       return;
     }
-    const index = slides.findIndex((slide) => slide.id === slideId);
-    const rest = slides.filter((slide) => slide.id !== slideId);
-    setSlides(rest.map((slide, position) => ({ ...slide, position })));
-    setSelectedId((current) =>
-      current === slideId ? (rest[index]?.id ?? rest[index - 1]?.id ?? null) : current,
-    );
-    setDialog(null);
-    toast(t("toasts.deleted"), { tone: "success" });
+    history.pushCommand({
+      undo: () => recreateSlide(snapshot, root),
+      redo: () => removeSlide(currentId(root)),
+    });
+    toast(t("toasts.deleted"), {
+      tone: "success",
+      action: { label: t("toasts.undo"), onClick: () => void undo() },
+    });
   }
 
-  async function uploadImage(slideId: string, file: File) {
-    const updated = await queue.run(() => uploadSlideImage(deckId, slideId, file));
-    setSlides((current) =>
-      current.map((slide) =>
-        slide.id === slideId ? { ...slide, imageRef: updated.imageRef } : slide,
-      ),
-    );
+  // Puts a slide's elements back as they were, and shows that slide.
+  function applyElements(root: string, next: SlideElement[]) {
+    const slideId = currentId(root);
+    // The slide is gone, so the step cannot be applied and stays where it was.
+    if (!latest.current.some((slide) => slide.id === slideId)) throw new Error("slide missing");
+    applying.current = true;
+    try {
+      setElements(slideId, next);
+    } finally {
+      applying.current = false;
+    }
+    setSelectedId(slideId);
+    setElementId(null);
+    setEditingId(null);
   }
+
+  // One step at a time: a step that asks the server must finish before the next one starts, or
+  // it would look for a slide that is not back yet.
+  const turn = useRef<Promise<void>>(Promise.resolve());
+  const waiting = useRef(0);
+  function inOrder(step: () => Promise<void> | void) {
+    // A canvas step is done at once. A slide step asks the server and returns a promise; the
+    // steps after it queue up behind it.
+    let result: Promise<void> | void;
+    try {
+      result = waiting.current === 0 ? step() : turn.current.then(step);
+    } catch (error) {
+      recover(error);
+      return;
+    }
+    if (!result) return;
+    waiting.current++;
+    turn.current = result.catch(recover).finally(() => {
+      waiting.current--;
+    });
+  }
+
+  const undo = () => inOrder(() => history.undo(applyElements));
+  const redo = () => inOrder(() => history.redo(applyElements));
+
+  // Ctrl or Cmd + Z undoes, with Shift (or Ctrl + Y) redoes. A text box keeps its own undo.
+  const keys = useRef({ undo, redo });
+  useEffect(() => {
+    keys.current = { undo, redo };
+  });
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+      if (["TEXTAREA", "INPUT", "SELECT"].includes((event.target as HTMLElement).tagName)) return;
+      const key = event.key.toLowerCase();
+      if (key === "z" && !event.shiftKey) {
+        event.preventDefault();
+        void keys.current.undo();
+      } else if ((key === "z" && event.shiftKey) || key === "y") {
+        event.preventDefault();
+        void keys.current.redo();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const header = (
     <SessionHeader leading="back" title={title || tPages("deckEditor.title")}>
@@ -259,7 +538,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
   }
 
   const addButton = (
-    <Button variant="secondary" fullWidth onClick={() => setDialog({ kind: "add" })}>
+    <Button variant="secondary" fullWidth onClick={() => setAddOpen(true)}>
       <svg
         width="18"
         height="18"
@@ -287,7 +566,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
           <SlideList
             slides={slides}
             selectedId={selectedId}
-            onSelect={setSelectedId}
+            onSelect={selectSlide}
             onReorder={reorder}
           />
           {addButton}
@@ -304,30 +583,80 @@ export function DeckEditor({ deckId }: { deckId: string }) {
                 <p className="mr-auto text-sm text-muted">
                   {t("toolbar.counter", { current: selectedIndex + 1, total: slides.length })}
                 </p>
-                <Button variant="ghost" disabled={selectedIndex === 0} onClick={() => move(-1)}>
+                <IconButton
+                  label={t("toolbar.undo")}
+                  disabled={undoable[0] !== "1"}
+                  onClick={() => void undo()}
+                >
+                  <UndoIcon />
+                </IconButton>
+                <IconButton
+                  label={t("toolbar.redo")}
+                  disabled={undoable[1] !== "1"}
+                  onClick={() => void redo()}
+                >
+                  <RedoIcon />
+                </IconButton>
+                <Button
+                  variant="ghost"
+                  disabled={selectedIndex === 0}
+                  onClick={() => moveSlide(-1)}
+                >
                   {t("toolbar.moveUp")}
                 </Button>
                 <Button
                   variant="ghost"
                   disabled={selectedIndex === slides.length - 1}
-                  onClick={() => move(1)}
+                  onClick={() => moveSlide(1)}
                 >
                   {t("toolbar.moveDown")}
                 </Button>
-                <Button variant="secondary" onClick={duplicate}>
-                  {t("toolbar.duplicate")}
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() =>
-                    setDialog({ kind: "delete", slideId: selected.id, pending: false })
-                  }
+                <IconButton label={t("toolbar.duplicate")} onClick={duplicateSlideAction}>
+                  <DuplicateIcon />
+                </IconButton>
+                <IconButton
+                  danger
+                  label={t("toolbar.delete")}
+                  onClick={() => void deleteSlideAction()}
                 >
-                  {t("toolbar.delete")}
-                </Button>
+                  <TrashIcon />
+                </IconButton>
               </div>
+
+              {selected.kind === "content" && (
+                <InsertBar
+                  disabled={selected.elements.length >= SLIDE_ELEMENTS_MAX}
+                  onInsert={insertElement}
+                  onInsertImage={insertImage}
+                  onImageRejected={rejectImage}
+                />
+              )}
+
               <div className="mx-auto w-full max-w-240">
-                <SlideRenderer slide={selected} className="shadow-sm" />
+                {selected.kind === "content" ? (
+                  <SlideCanvas
+                    key={selected.id}
+                    ref={canvas}
+                    slide={selected}
+                    selectedId={elementId}
+                    editingId={editingId}
+                    onSelect={(id) => {
+                      history.breakGroup();
+                      setElementId(id);
+                      if (id !== editingId) setEditingId(null);
+                    }}
+                    onEditing={(id) => {
+                      history.breakGroup();
+                      setEditingId(id);
+                    }}
+                    onGestureEnd={() => history.breakGroup()}
+                    onChange={(next) => setElements(selected.id, next)}
+                    onDelete={deleteElement}
+                    onDuplicate={duplicateElement}
+                  />
+                ) : (
+                  <SlideRenderer slide={selected} className="shadow-sm" />
+                )}
               </div>
             </>
           ) : (
@@ -341,45 +670,26 @@ export function DeckEditor({ deckId }: { deckId: string }) {
 
         {selected && (
           <aside className="flex-[1_1_280px] border-l border-neutral-200 bg-background p-4 lg:max-w-90">
-            <SlidePanel
-              key={selected.id}
+            <ElementPanel
+              key={`${selected.id}:${element?.id ?? ""}`}
               slide={selected}
-              onEdit={(fields) => edit(selected.id, fields)}
-              onUploadImage={(file) => uploadImage(selected.id, file)}
+              selected={element}
+              onSelect={(id) => {
+                setElementId(id);
+                setEditingId(null);
+              }}
+              onChange={changeElement}
+              onAlign={alignElement}
+              onLayer={layerElement}
+              onDuplicate={() => duplicateElement()}
+              onDelete={() => deleteElement()}
+              onUploadImage={replaceImage}
             />
           </aside>
         )}
       </div>
 
-      {dialog?.kind === "add" && (
-        <AddSlideDialog onAdd={addSlide} onClose={() => setDialog(null)} />
-      )}
-      {dialog?.kind === "delete" && (
-        <Dialog
-          title={t("deleteDialog.title")}
-          closeLabel={tCommon("close")}
-          onClose={() => setDialog(null)}
-        >
-          <p className="text-base text-muted">{t("deleteDialog.description")}</p>
-          {dialog.error && (
-            <p role="alert" className="text-sm text-error-700">
-              {t(dialog.error === "ACTIVITY_LOCKED" ? "errors.ACTIVITY_LOCKED" : "errors.generic")}
-            </p>
-          )}
-          <div className="flex justify-end gap-2.5">
-            <Button variant="secondary" onClick={() => setDialog(null)}>
-              {t("deleteDialog.cancel")}
-            </Button>
-            <Button
-              variant="danger"
-              disabled={dialog.pending}
-              onClick={() => void confirmDelete(dialog.slideId)}
-            >
-              {t("deleteDialog.confirm")}
-            </Button>
-          </div>
-        </Dialog>
-      )}
+      {addOpen && <AddSlideDialog onAdd={addSlide} onClose={() => setAddOpen(false)} />}
     </>
   );
 }

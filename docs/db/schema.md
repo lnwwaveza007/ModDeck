@@ -117,10 +117,10 @@ erDiagram
         uuid id PK
         uuid deck_id FK
         int position
-        slide_kind kind "text code math image poll word_cloud"
-        text content "null for image and activity slides"
-        text language "code slides only"
-        text image_ref "file in slides volume"
+        slide_kind kind "content poll word_cloud (text code math image are the old kinds)"
+        jsonb elements "canvas of a content slide, back to front"
+        text content "unused, replaced by elements"
+        text image_ref "unused, replaced by elements"
         timestamptz created_at
         timestamptz updated_at
     }
@@ -278,6 +278,7 @@ Host login (MD-7): after KMUTT SSO the server makes a random token, puts it in t
 
 - Deleting a deck is a soft delete: `DELETE /decks/{id}` sets `deleted_at`, and the deck leaves My decks and answers 404. Its slides, past sessions, answers and questions stay, so session history, results and export keep working. The API refuses while a session is live (`409 DECK_LIVE`). The `ON DELETE CASCADE` from decks still applies to a real row delete, which only maintenance scripts do.
 - Deleting a slide or activity deletes its past runs and answers. The API refuses while the activity is live (`409 ACTIVITY_LOCKED`). Keeping history after a deck edit is a candidate change for R2 (copy the activity into the session at start).
+- A content slide is a canvas: `slides.elements` holds its text, code, formula and image elements back to front, each with a position and size in percent of the 16:9 stage. The api validates the list with `slideElementsSchema` (packages/shared) and an element that fails it is skipped on read. The old kinds `text`, `code`, `math` and `image` and the `content` and `image_ref` columns were converted into elements by migration `20261101120100_slide_elements`; the columns and enum values are dropped in a later contract migration.
 - A user who owns decks or sessions cannot be deleted (`RESTRICT`). There is no user delete in R1.
 - R1 never deletes participants; removal is a status change.
 - Deleting a user deletes their host logins (cascade).

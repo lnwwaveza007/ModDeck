@@ -91,7 +91,7 @@ describe("decks (e2e)", () => {
       liveSessions: [],
     });
     const slides = await prisma.slide.findMany({ where: { deckId: res.body.id } });
-    expect(slides).toMatchObject([{ position: 0, kind: "text", content: null }]);
+    expect(slides).toMatchObject([{ position: 0, kind: "content", elements: [] }]);
   });
 
   it("rejects a blank or missing title with 422", async () => {
@@ -134,6 +134,17 @@ describe("decks (e2e)", () => {
   });
 
   it("duplicates slides, activities, options and settings, but not sessions", async () => {
+    const welcome = {
+      id: "0192f3a4-0000-7000-8000-0000000000a1",
+      type: "text",
+      x: 8,
+      y: 8,
+      w: 84,
+      text: "Welcome",
+      size: 3.4,
+      bold: false,
+      align: "left",
+    };
     const source = await prisma.deck.create({
       data: {
         ownerId: hostA.id,
@@ -142,7 +153,7 @@ describe("decks (e2e)", () => {
         reactionsEnabled: true,
         slides: {
           create: [
-            { position: 0, kind: "text", content: "Welcome" },
+            { position: 0, kind: "content", elements: [welcome] },
             {
               position: 1,
               kind: "poll",
@@ -184,7 +195,8 @@ describe("decks (e2e)", () => {
       },
     });
     expect(copy).toMatchObject({ ownerId: hostA.id, qaEnabled: false, reactionsEnabled: true });
-    expect(copy.slides.map((s) => s.content ?? s.kind)).toEqual(["Welcome", "poll"]);
+    expect(copy.slides.map((s) => s.kind)).toEqual(["content", "poll"]);
+    expect(copy.slides[0].elements).toEqual([welcome]);
     expect(copy.slides[1].activity).toMatchObject({ prompt: "Pick one", multipleChoice: true });
     expect(copy.slides[1].activity?.options.map((o) => o.label).sort()).toEqual(["A", "B"]);
 

@@ -3,7 +3,11 @@ import { createReadStream } from "node:fs";
 import { mkdir, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Injectable } from "@nestjs/common";
-import { SLIDE_IMAGE_MAX_BYTES, type SlideImageType } from "@moddeck/shared";
+import {
+  SLIDE_IMAGE_MAX_BYTES,
+  SLIDE_IMAGE_REF_PATTERN,
+  type SlideImageType,
+} from "@moddeck/shared";
 import { ApiException } from "../common/api-error";
 
 const EXTENSIONS: Record<SlideImageType, string> = {
@@ -17,10 +21,8 @@ const MIME_BY_EXTENSION: Record<string, string> = Object.fromEntries(
   Object.entries(EXTENSIONS).map(([mime, extension]) => [extension, mime]),
 );
 
-// Names the api writes: a uuid and one known extension. Nothing else is read back, so a
-// request cannot walk out of the slides folder.
-export const IMAGE_REF_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(png|jpg|webp|gif)$/;
+// Only names the api wrote are read back, so a request cannot walk out of the slides folder.
+export const IMAGE_REF_PATTERN = SLIDE_IMAGE_REF_PATTERN;
 
 const PNG_SIGNATURE = Buffer.from("89504e470d0a1a0a", "hex");
 
