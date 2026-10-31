@@ -18,9 +18,9 @@ import { buttonClass } from "@/components/ui/Button";
 import { ApiError } from "@/lib/api/client";
 import { cn } from "@/lib/cn";
 import {
-  SIZE_STEP,
   TEXT_PRESETS,
-  clampSize,
+  sizeToPt,
+  stepSize,
   presetOf,
   type AlignEdge,
   type LayerMove,
@@ -317,7 +317,7 @@ function SizeStepper({ size, onChange }: { size: number; onChange: (size: number
       <button
         type="button"
         aria-label={t("smaller")}
-        onClick={() => onChange(clampSize(size - SIZE_STEP))}
+        onClick={() => onChange(stepSize(size, -1))}
         className={iconButtonClass}
       >
         <Icon>
@@ -325,12 +325,12 @@ function SizeStepper({ size, onChange }: { size: number; onChange: (size: number
         </Icon>
       </button>
       <output aria-label={t("size")} className="min-w-12 text-center text-sm font-semibold">
-        {size}
+        {Math.round(sizeToPt(size))} pt
       </output>
       <button
         type="button"
         aria-label={t("larger")}
-        onClick={() => onChange(clampSize(size + SIZE_STEP))}
+        onClick={() => onChange(stepSize(size, 1))}
         className={iconButtonClass}
       >
         <Icon>

@@ -8,8 +8,11 @@ import {
   moveBox,
   moveLayer,
   presetOf,
+  ptToSize,
   resizeBox,
+  sizeToPt,
   snapTargets,
+  stepSize,
   updateElement,
   type Box,
 } from "./elements";
@@ -27,11 +30,11 @@ describe("createElement", () => {
   it("makes a heading a big bold text and a text a body-size one", () => {
     const heading = createElement("heading") as TextElement;
     const body = createElement("text") as TextElement;
-    expect(heading).toMatchObject({ type: "text", bold: true, size: 5.5 });
-    expect(body).toMatchObject({ type: "text", bold: false, size: 3.2 });
+    expect(heading).toMatchObject({ type: "text", bold: true, size: ptToSize(44) });
+    expect(body).toMatchObject({ type: "text", bold: false, size: ptToSize(24) });
     expect(presetOf(heading)).toBe("heading");
     expect(presetOf(body)).toBe("body");
-    expect(presetOf({ ...body, size: 3.6 })).toBeNull();
+    expect(presetOf({ ...body, size: ptToSize(25) })).toBeNull();
   });
 
   it("offsets later elements so they do not stack exactly", () => {
@@ -193,10 +196,23 @@ describe("updateElement and elementBox", () => {
   });
 });
 
-describe("clampSize", () => {
-  it("keeps a size in the api's range", () => {
-    expect(clampSize(0.2)).toBe(1);
-    expect(clampSize(55)).toBe(20);
-    expect(clampSize(3.44)).toBe(3.4);
+describe("pt sizes", () => {
+  it("converts pt to percent of a 960 pt wide slide, and back", () => {
+    expect(ptToSize(960)).toBe(100);
+    expect(ptToSize(44)).toBe(4.583);
+    expect(sizeToPt(ptToSize(44))).toBeCloseTo(44, 0);
+  });
+
+  it("keeps a size in the api's range, 10 pt to 192 pt", () => {
+    expect(sizeToPt(clampSize(0.2))).toBeCloseTo(10, 0);
+    expect(sizeToPt(clampSize(55))).toBeCloseTo(192, 0);
+    expect(clampSize(3.44)).toBe(3.44);
+  });
+
+  it("steps in whole pt, 2 pt at a time", () => {
+    const heading = ptToSize(44);
+    expect(sizeToPt(stepSize(heading, 1))).toBeCloseTo(46, 0);
+    expect(sizeToPt(stepSize(heading, -1))).toBeCloseTo(42, 0);
+    expect(sizeToPt(stepSize(ptToSize(11), -1))).toBeCloseTo(10, 0);
   });
 });

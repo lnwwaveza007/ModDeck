@@ -31,12 +31,18 @@ export const SNAP_DISTANCE = 1.2;
 const round = (n: number) => Math.round(n * 10) / 10;
 const clamp = (n: number, min: number, max: number) => Math.min(Math.max(n, min), max);
 
-// Text sizes are percent of the stage width, the same unit the renderer uses (CSS `cqw`).
+// Font sizes are shown in pt, as in PowerPoint. The stage is 13.333 in wide, which is 960 pt, so a
+// pt size is `pt * 100 / 960` percent of the stage width. The renderer draws that percent as CSS
+// `cqw`, so a 44 pt heading is the same size on the projector as in PowerPoint.
+export const STAGE_WIDTH_PT = 960;
+export const ptToSize = (pt: number) => Math.round(((pt * 100) / STAGE_WIDTH_PT) * 1000) / 1000;
+export const sizeToPt = (size: number) => (size * STAGE_WIDTH_PT) / 100;
+
 export const TEXT_PRESETS = {
-  heading: { size: 5.5, bold: true },
-  subheading: { size: 4, bold: true },
-  body: { size: 3.2, bold: false },
-  small: { size: 2.4, bold: false },
+  heading: { size: ptToSize(44), bold: true },
+  subheading: { size: ptToSize(32), bold: true },
+  body: { size: ptToSize(24), bold: false },
+  small: { size: ptToSize(18), bold: false },
 } as const;
 export type TextPreset = keyof typeof TEXT_PRESETS;
 
@@ -47,8 +53,16 @@ export function presetOf(element: TextElement): TextPreset | null {
   return match ?? null;
 }
 
-export const SIZE_STEP = 0.4;
-export const clampSize = (size: number) => round(clamp(size, 1, 20));
+/** The stepper moves in whole pt, within 10 pt and 192 pt (the api's 1 to 20 percent). */
+export const SIZE_STEP_PT = 2;
+const MIN_SIZE = ptToSize(10);
+const MAX_SIZE = 20;
+export const clampSize = (size: number) =>
+  Math.round(clamp(size, MIN_SIZE, MAX_SIZE) * 1000) / 1000;
+
+/** The size `steps` stepper clicks away, counted in whole pt. */
+export const stepSize = (size: number, steps: number) =>
+  clampSize(ptToSize(Math.round(sizeToPt(size)) + steps * SIZE_STEP_PT));
 
 /** What a new element of each kind looks like. `index` offsets it so new ones do not stack. */
 export function createElement(
@@ -89,7 +103,7 @@ export function createElement(
         w: 80,
         code: "",
         language: DEFAULT_CODE_LANGUAGE,
-        size: 2.2,
+        size: ptToSize(18),
       };
     case "math":
       return {
@@ -99,7 +113,7 @@ export function createElement(
         y: 50 + shift,
         w: 60,
         latex: "",
-        size: 4.8,
+        size: ptToSize(36),
         align: "center",
       };
     case "image": {

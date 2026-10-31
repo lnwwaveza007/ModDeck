@@ -11,6 +11,7 @@ import {
   saveElements,
   uploadSlideImage,
 } from "@/lib/api/slides";
+import { ptToSize } from "@/lib/editor/elements";
 import { readImageAspect } from "@/lib/editor/image";
 import { renderWithIntl } from "@/test/render";
 import { DeckEditor } from "./DeckEditor";
@@ -354,7 +355,7 @@ describe("DeckEditor: adding elements", () => {
 
     await flush();
     expect(lastSaved("s2")).toMatchObject([
-      { type: "text", text: "Week 5", size: 5.5, bold: true, align: "left" },
+      { type: "text", text: "Week 5", size: ptToSize(44), bold: true, align: "left" },
     ]);
   });
 
@@ -367,7 +368,7 @@ describe("DeckEditor: adding elements", () => {
     await flush();
     const saved = lastSaved("s2")!;
     expect(saved.map((e) => e.type)).toEqual(["text", "code", "math"]);
-    expect(saved[0]).toMatchObject({ size: 3.2, bold: false });
+    expect(saved[0]).toMatchObject({ size: ptToSize(24), bold: false });
     expect(saved[1]).toMatchObject({ language: "python", w: 80 });
     expect(saved[2]).toMatchObject({ align: "center" });
     // New elements are placed apart, so they do not hide each other.
@@ -477,16 +478,20 @@ describe("DeckEditor: the side panel", () => {
 
     fireEvent.click(p.getByRole("button", { name: "Heading" }));
     await flush();
-    expect(find(lastSaved(), T1)).toMatchObject({ size: 5.5, bold: true });
+    expect(find(lastSaved(), T1)).toMatchObject({ size: ptToSize(44), bold: true });
     expect(p.getByRole("button", { name: "Heading" })).toHaveAttribute("aria-pressed", "true");
 
     fireEvent.click(p.getByRole("button", { name: "Larger" }));
     fireEvent.click(p.getByRole("button", { name: "Bold" }));
     fireEvent.click(p.getByRole("button", { name: "Center" }));
     await flush();
-    expect(find(lastSaved(), T1)).toMatchObject({ size: 5.9, bold: false, align: "center" });
+    expect(find(lastSaved(), T1)).toMatchObject({
+      size: ptToSize(46),
+      bold: false,
+      align: "center",
+    });
     expect(frame(T1).firstElementChild).toHaveStyle({ textAlign: "center" });
-    // 5.9 matches no preset any more.
+    // 46 pt matches no preset any more.
     expect(p.getByRole("button", { name: "Heading" })).toHaveAttribute("aria-pressed", "false");
   });
 
