@@ -47,7 +47,16 @@
     }
   },
   "join": {
-    "back": "Back to PIN entry"
+    "back": "Back to PIN entry",
+    "status": {
+      "checking": "Checking session…",
+      "endedTitle": "Session ended",
+      "endedBody": "This session has ended. Thanks for joining.",
+      "invalidTitle": "No session found",
+      "invalidBody": "Check the PIN on the screen and try again.",
+      "joinTitle": "Join session {pin}",
+      "signInUnavailable": "Participant sign-in is not available yet."
+    }
   },
   "live": {
     "connecting": "Connecting…",
@@ -60,7 +69,24 @@
     "live": "LIVE",
     "backToDecks": "Back to My decks",
     "slides": "Slides",
-    "cohostBadge": "Co-host · Q&A moderation"
+    "cohostBadge": "Co-host · Q&A moderation",
+    "lobby": {
+      "loading": "Loading session…",
+      "loadError": "Could not load this session. Try refreshing.",
+      "online": "{count} online",
+      "ending": "Session ending",
+      "undoIn": "You can undo for {seconds} seconds.",
+      "undo": "Undo end",
+      "joinAt": "Join at {url} or scan the QR code",
+      "enterPin": "Enter this PIN",
+      "participantsJoined": "{count} participants joined",
+      "qrAlt": "QR code to join session {pin}",
+      "qrCreating": "Creating QR…",
+      "qrFailed": "QR code unavailable",
+      "scanToJoin": "Scan to join",
+      "endSession": "End Session",
+      "holdHint": "Hold for 2 seconds to end the session."
+    }
   },
   "decks": {
     "search": "Search decks",
@@ -286,12 +312,18 @@
       "deleted": "Slide deleted",
       "undo": "Undo"
     },
+    "session": {
+      "start": "Start session",
+      "starting": "Starting…"
+    },
     "errors": {
       "NOT_FOUND": "This slide or deck no longer exists. The editor reloaded.",
       "ACTIVITY_LOCKED": "This activity is live in a session. End it before deleting.",
       "imageType": "Choose a PNG, JPEG, WebP or GIF file.",
       "imageSize": "This image is larger than {size} MB.",
-      "generic": "Could not complete that. The editor reloaded."
+      "generic": "Could not complete that. The editor reloaded.",
+      "DECK_INCOMPLETE": "Finish every activity before starting the session.",
+      "IMPORT_RUNNING": "The PDF import is still running. Try again when it finishes."
     }
   },
   "pages": {

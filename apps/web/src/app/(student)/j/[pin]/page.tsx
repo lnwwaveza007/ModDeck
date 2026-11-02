@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
+import { JoinSessionStatus } from "@/components/shell/JoinSessionStatus";
 import { LanguageSwitch } from "@/components/shell/LanguageSwitch";
-import { PagePlaceholder } from "@/components/shell/PagePlaceholder";
 
-// MD-15 S03 frame: back to PIN entry, language switch, then the identity choice.
-export default function JoinPage() {
-  const t = useTranslations("join");
+export default async function JoinPage({ params }: PageProps<"/j/[pin]">) {
+  const { pin } = await params;
+  const t = await getTranslations("join");
   return (
     <>
       <header className="flex items-center justify-between px-2 py-3">
@@ -30,8 +30,8 @@ export default function JoinPage() {
         </Link>
         <LanguageSwitch />
       </header>
-      <main className="flex flex-1 flex-col">
-        <PagePlaceholder page="join" />
+      <main className="flex flex-1 flex-col bg-slate-100 p-6">
+        <JoinSessionStatus pin={pin} />
       </main>
     </>
   );
