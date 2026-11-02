@@ -5,7 +5,10 @@ import { RedisIoAdapter } from "./realtime/redis-io.adapter";
 // Fails if Redis is unreachable: without the adapter, broadcasts would only
 // reach sockets on this instance.
 export async function setupApp(app: INestApplication): Promise<void> {
-  app.enableCors({ origin: process.env.WEB_ORIGIN ?? "http://localhost:3000" });
+  app.enableCors({
+    origin: process.env.WEB_ORIGIN ?? "http://localhost:3000",
+    credentials: true,
+  });
   const adapter = new RedisIoAdapter(app);
   await adapter.connectToRedis();
   app.useWebSocketAdapter(adapter);
