@@ -76,6 +76,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
   const [elementId, setElementId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [starting, setStarting] = useState(false);
   // What the host did, for undo and redo. A slide that an undo brings back has a new id on the
   // server, so history keeps the id the slide first had, and these maps go between the two.
   const [history] = useState(() => new History());
@@ -497,17 +498,24 @@ export function DeckEditor({ deckId }: { deckId: string }) {
         <>
           <SaveIndicator queue={queue} />
           <Button
+            disabled={starting}
             onClick={async () => {
+              setStarting(true);
               try {
                 await queue.flush();
                 const session = await startSession(deckId);
                 router.push(`/host/${session.id}`);
-              } catch {
-                toast(t("errors.generic"), { tone: "error" });
+              } catch (error) {
+                setStarting(false);
+                if (error instanceof ApiError && error.code === "DECK_INCOMPLETE")
+                  toast(t("errors.DECK_INCOMPLETE"), { tone: "error" });
+                else if (error instanceof ApiError && error.code === "IMPORT_RUNNING")
+                  toast(t("errors.IMPORT_RUNNING"), { tone: "error" });
+                else toast(t("errors.generic"), { tone: "error" });
               }
             }}
           >
-            Start session
+            {starting ? t("session.starting") : t("session.start")}
           </Button>
         </>
       )}

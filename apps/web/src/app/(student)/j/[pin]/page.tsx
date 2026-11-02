@@ -12,9 +12,21 @@ export default async function JoinPage({ params }: PageProps<"/j/[pin]">) {
         <Link
           href="/"
           aria-label={t("back")}
-          className="grid size-11 place-items-center rounded-md text-neutral-700 hover:bg-neutral-100"
+          className="grid size-11 place-items-center rounded-md text-neutral-700 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-ring"
         >
-          ←
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
         </Link>
         <LanguageSwitch />
       </header>

@@ -120,6 +120,8 @@ export class SessionsService {
       ...session,
       participantCount: session._count.participants,
       endingAt: endingAt ? Number(endingAt) : null,
+      // Lets the lobby correct for a browser clock that differs from the server.
+      serverNow: Date.now(),
       joinUrl: `${process.env.WEB_ORIGIN ?? "http://localhost:3000"}/j/${session.pin}`,
     };
   }
@@ -133,7 +135,7 @@ export class SessionsService {
     if (existing.status === "ended") {
       if (existing.endedAt) return { status: "ended" as const, endingAt: null, undoSeconds: 0 };
       const currentDeadline = await this.redis.get(endingKey(sessionId));
-      if (currentDeadline && Number(currentDeadline) <= Date.now()) {
+      if (!currentDeadline || Number(currentDeadline) <= Date.now()) {
         await this.finishEnd(ownerId, sessionId);
         return { status: "ended" as const, endingAt: null, undoSeconds: 0 };
       }
@@ -150,15 +152,16 @@ export class SessionsService {
   }
 
   async undoEnd(ownerId: string, sessionId: string) {
-    const session = await this.prisma.session.findFirst({
-      where: { id: sessionId, ownerId, status: "ended", endedAt: null },
-      select: { id: true },
-    });
     const deadline = await this.redis.get(endingKey(sessionId));
-    if (!session || !deadline || Number(deadline) <= Date.now())
+    if (!deadline || Number(deadline) <= Date.now())
       throw new ApiException(409, "UNDO_EXPIRED", "The undo window has expired");
+    // Guarded write: a concurrent finish that already set endedAt must win.
+    const { count } = await this.prisma.session.updateMany({
+      where: { id: sessionId, ownerId, status: "ended", endedAt: null },
+      data: { status: "live" },
+    });
+    if (count === 0) throw new ApiException(409, "UNDO_EXPIRED", "The undo window has expired");
     await this.redis.del(endingKey(sessionId));
-    await this.prisma.session.update({ where: { id: sessionId }, data: { status: "live" } });
     return { status: "live" as const };
   }
 
@@ -169,18 +172,22 @@ export class SessionsService {
     });
     if (!session) throw new ApiException(404, "NOT_FOUND", "Ended session not found");
     if (session.endedAt) return { status: "ended" as const };
+    // A missing deadline means the Redis key was lost. The undo window can no
+    // longer be honored, so finish now instead of leaving the session stuck.
     const deadline = await this.redis.get(endingKey(sessionId));
-    if (!deadline || Number(deadline) > Date.now())
+    if (deadline && Number(deadline) > Date.now())
       throw new ApiException(409, "UNDO_EXPIRED", "The undo window is still open");
-    await this.prisma.session.updateMany({
+    const { count } = await this.prisma.session.updateMany({
       where: { id: sessionId, ownerId, status: "ended", endedAt: null },
       data: { endedAt: new Date(), endReason: "host" },
     });
+    if (count === 0) throw new ApiException(409, "UNDO_EXPIRED", "The session was reopened");
     await this.redis.del(endingKey(sessionId), pinKey(session.pin));
     await this.events.publish(sessionId, "session_ended", { reason: "host" });
     return { status: "ended" as const };
   }
 
+  // Public lookup: returns status only. Session id stays private to the host.
   async byPin(pin: string) {
     const session = await this.prisma.session.findFirst({
       where: { pin },
@@ -190,7 +197,7 @@ export class SessionsService {
     if (!session) throw new ApiException(404, "NOT_FOUND", "No session found");
     if (session.status === "ended") {
       const deadline = await this.redis.get(endingKey(session.id));
-      if (!session.endedAt && deadline && Number(deadline) <= Date.now()) {
+      if (!session.endedAt && (!deadline || Number(deadline) <= Date.now())) {
         await this.finishEnd(session.ownerId, session.id);
       }
       throw new ApiException(410, "SESSION_ENDED", "Session ended");
@@ -200,6 +207,6 @@ export class SessionsService {
       await this.finishEnd(session.ownerId, session.id);
       throw new ApiException(410, "SESSION_ENDED", "Session ended");
     }
-    return { id: session.id, status: session.status };
+    return { status: session.status };
   }
 }

@@ -8,6 +8,8 @@ export interface SessionInfo {
   deck: { title: string };
   joinUrl: string;
   endingAt?: number | null;
+  /** Server clock in ms when the response was built. */
+  serverNow?: number;
 }
 
 export const startSession = (deckId: string) =>
