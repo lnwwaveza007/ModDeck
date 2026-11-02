@@ -115,7 +115,7 @@ export function SessionLobby({ sessionId }: { sessionId: string }) {
     );
 
   return (
-    <main className="min-h-[calc(100vh-64px)] bg-neutral-300 p-6 text-neutral-600">
+    <main className="min-h-[calc(100vh-64px)] bg-neutral-100 p-6 text-neutral-600">
       <header className="mx-auto flex max-w-6xl items-center justify-between rounded-xl bg-white px-6 py-4 shadow-sm">
         <div>
           <span className="mr-3 rounded-full bg-error-600 px-3 py-1 text-sm font-bold text-white">
@@ -133,7 +133,7 @@ export function SessionLobby({ sessionId }: { sessionId: string }) {
       {seconds !== null ? (
         <section
           role="status"
-          className="mx-auto mt-8 max-w-3xl rounded-2xl border border-warning-500 bg-warning-600 text-center"
+          className="mx-auto mt-8 max-w-3xl px-6 py-4 rounded-2xl border border-neutral-300 bg-neutral-300 text-center"
         >
           <h1 className="text-2xl font-bold">Session ending</h1>
           <p className="mt-2">You can undo for {seconds} seconds.</p>
