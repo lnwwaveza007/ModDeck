@@ -93,12 +93,18 @@ export class OidcService {
     });
     if (sso.clientSecret) body.set("client_secret", sso.clientSecret);
 
-    const res = await fetch(`${sso.authority}/oauth2/v2.0/token`, {
-      method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded" },
-      body,
-      signal: AbortSignal.timeout(10_000),
-    });
+    let res: Response;
+    try {
+      res = await fetch(`${sso.authority}/oauth2/v2.0/token`, {
+        method: "POST",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        body,
+        signal: AbortSignal.timeout(10_000),
+      });
+    } catch (error) {
+      console.error("Entra token request failed:", error);
+      throw error;
+    }
     const json = (await res.json().catch(() => ({}))) as {
       id_token?: string;
       error?: string;

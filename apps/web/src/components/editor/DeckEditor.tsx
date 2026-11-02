@@ -28,6 +28,7 @@ import {
   saveElements,
   uploadSlideImage,
 } from "@/lib/api/slides";
+import { startSession } from "@/lib/api/sessions";
 import {
   alignBox,
   copyElement,
@@ -492,7 +493,24 @@ export function DeckEditor({ deckId }: { deckId: string }) {
 
   const header = (
     <SessionHeader leading="back" title={title || tPages("deckEditor.title")}>
-      {load.status === "ready" && <SaveIndicator queue={queue} />}
+      {load.status === "ready" && (
+        <>
+          <SaveIndicator queue={queue} />
+          <Button
+            onClick={async () => {
+              try {
+                await queue.flush();
+                const session = await startSession(deckId);
+                router.push(`/host/${session.id}`);
+              } catch {
+                toast(t("errors.generic"), { tone: "error" });
+              }
+            }}
+          >
+            Start session
+          </Button>
+        </>
+      )}
     </SessionHeader>
   );
 

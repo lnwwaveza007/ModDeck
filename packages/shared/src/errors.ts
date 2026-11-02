@@ -10,6 +10,9 @@ export const ERROR_CODES = [
   "INVALID_PAYLOAD",
   "NOT_FOUND",
   "DECK_LIVE",
+  "DECK_INCOMPLETE",
+  "IMPORT_RUNNING",
+  "UNDO_EXPIRED",
   "ACTIVITY_LOCKED",
   "INTERNAL",
 ] as const;

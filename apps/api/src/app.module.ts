@@ -7,6 +7,7 @@ import { RedisModule } from "./redis/redis.module";
 import { AuthModule } from "./auth/auth.module";
 import { DecksModule } from "./decks/decks.module";
 import { SlidesModule } from "./slides/slides.module";
+import { SessionsModule } from "./sessions/sessions.module";
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { SlidesModule } from "./slides/slides.module";
     AuthModule,
     DecksModule,
     SlidesModule,
+    SessionsModule,
   ],
   controllers: [HealthController],
 })
