@@ -15,11 +15,14 @@ export type LiveTab = "activity" | "qa";
 export function LiveShell({
   title,
   status,
+  banner,
   activity,
   qa,
 }: {
   title: string;
   status?: string;
+  /** A status line under the header, such as "Reconnecting…". */
+  banner?: ReactNode;
   activity: ReactNode;
   qa: ReactNode;
 }) {
@@ -69,6 +72,8 @@ export function LiveShell({
           </div>
         )}
       </header>
+
+      {banner}
 
       <div className="flex flex-1 flex-col bg-surface">{tab === "activity" ? activity : qa}</div>
 

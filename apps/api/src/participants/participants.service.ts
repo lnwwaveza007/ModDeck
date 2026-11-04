@@ -13,6 +13,7 @@ import { ApiException } from "../common/api-error";
 import type { Prisma } from "../generated/prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { hashToken } from "../realtime/participant-token";
+import { PresenceService } from "../realtime/presence.service";
 import { SessionsService } from "../sessions/sessions.service";
 
 // Participant token lifetime (technical design §3.6: 8 h, sliding).
@@ -54,6 +55,7 @@ export class ParticipantsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly sessions: SessionsService,
+    private readonly presence: PresenceService,
   ) {}
 
   /** GET /pins/{pin}. `token` is the participant cookie, if any. */
@@ -65,13 +67,13 @@ export class ParticipantsService {
         settings: true,
         deck: { select: { title: true } },
         owner: { select: { displayName: true } },
-        _count: { select: { participants: { where: { status: "active" } } } },
       },
     });
     const me = await this.findByToken(token, id);
-    const participantCount = session._count.participants;
-    // A participant who already holds a seat always gets back in (MD-5 §6.5).
-    if (!me && participantCount >= MAX_PARTICIPANTS) {
+    // Only held seats count: someone offline for over 15 min no longer takes a seat (MD-5 §6.5).
+    const participantCount = await this.presence.seatedCount(id);
+    // A participant who holds a seat always gets back in, even when the session is full.
+    if ((!me || !this.presence.holdsSeat(me)) && participantCount >= MAX_PARTICIPANTS) {
       throw new ApiException(409, "SESSION_FULL", "Session is full");
     }
     return {
@@ -133,6 +135,7 @@ export class ParticipantsService {
         (asGuest ? own.loginType === "guest" : own.userId === user!.id)
       ) {
         if (own.status !== "active") throw removed();
+        if (!(await this.presence.canSeat(own, tx))) throw sessionFull();
         await tx.participant.update({
           where: { id: own.id },
           data: { tokenExpiresAt: expiresAt, lastSeenAt: new Date() },
@@ -148,6 +151,7 @@ export class ParticipantsService {
         });
         if (existing) {
           if (existing.status !== "active") throw removed();
+          if (!(await this.presence.canSeat(existing, tx))) throw sessionFull();
           const fresh = randomToken(32);
           const updated = await tx.participant.update({
             where: { id: existing.id },
@@ -162,10 +166,8 @@ export class ParticipantsService {
         }
       }
 
-      const seated = await tx.participant.count({ where: { sessionId, status: "active" } });
-      if (seated >= MAX_PARTICIPANTS) {
-        throw new ApiException(409, "SESSION_FULL", "Session is full");
-      }
+      const seated = await this.presence.seatedCount(sessionId, tx);
+      if (seated >= MAX_PARTICIPANTS) throw sessionFull();
       if (asGuest) {
         const taken = await tx.participant.findFirst({
           where: { sessionId, nickname: { equals: nickname, mode: "insensitive" } },
@@ -236,7 +238,13 @@ export class ParticipantsService {
     if (!token) return null;
     const participant = await this.prisma.participant.findUnique({
       where: { tokenHash: hashToken(token) },
-      select: { sessionId: true, nickname: true, status: true, tokenExpiresAt: true },
+      select: {
+        sessionId: true,
+        nickname: true,
+        status: true,
+        tokenExpiresAt: true,
+        lastSeenAt: true,
+      },
     });
     const valid =
       participant &&
@@ -246,6 +254,8 @@ export class ParticipantsService {
     return valid ? participant : null;
   }
 }
+
+const sessionFull = () => new ApiException(409, "SESSION_FULL", "Session is full");
 
 const removed = () =>
   new ApiException(403, "PARTICIPANT_REMOVED", "You were removed from this session");

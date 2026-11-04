@@ -120,6 +120,10 @@
     "connectedAs": "Connected · {name}",
     "reconnecting": "Reconnecting…",
     "offline": "Offline. Check your internet.",
+    "banner": {
+      "reconnecting": "Reconnecting… You can't send answers yet. What you typed is kept.",
+      "offline": "No internet. You can't send answers yet. What you typed is kept."
+    },
     "lookAtScreen": "Look at the screen",
     "slideOf": "Slide {index} of {total}",
     "startingSoon": "The class starts soon",
@@ -132,6 +136,10 @@
       "removed": {
         "title": "You were removed from this session",
         "body": "Ask the instructor if you think this is a mistake."
+      },
+      "full": {
+        "title": "This session is full",
+        "body": "Your seat was given to someone else after you were offline for 15 minutes. Ask the instructor."
       },
       "ended": {
         "title": "Session ended",

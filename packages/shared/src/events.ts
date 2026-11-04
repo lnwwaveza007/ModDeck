@@ -88,3 +88,15 @@ export type ServerToClientEvents = {
 export interface ClientToServerEvents {
   join: (payload: JoinPayload, ack: (reply: JoinAck) => void) => void;
 }
+
+// ---- Answers: client-generated id for retries (MD-13) ----------------------
+
+// Every answer the client sends (vote, word) carries one `answerId`, made once
+// with crypto.randomUUID(). A retry after a lost ack re-sends the same id, so
+// the server counts the answer once.
+export const answerIdSchema = z.uuid();
+
+// Ack of an answer. `duplicate: true` means the server already had this
+// answerId: the answer counted on the first send and is not counted again.
+export type AnswerAck<R = unknown> =
+  { ok: true; duplicate: boolean; result?: R } | { ok: false; error: ErrorBody };

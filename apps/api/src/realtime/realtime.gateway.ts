@@ -9,9 +9,15 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from "@nestjs/websockets";
-import { joinPayloadSchema, type ErrorBody, type JoinAck } from "@moddeck/shared";
+import {
+  PRESENCE_HEARTBEAT_MS,
+  joinPayloadSchema,
+  type ErrorBody,
+  type JoinAck,
+} from "@moddeck/shared";
 import { MetricsService } from "../metrics/metrics.service";
 import { tokenFromHandshake } from "./participant-token";
+import { PresenceService } from "./presence.service";
 import { RoomAuthError, RoomAuthService } from "./room-auth.service";
 import { RoomEventsService, roomName } from "./room-events.service";
 import type { RealtimeServer, RealtimeSocket } from "./realtime.types";
@@ -34,7 +40,11 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     private readonly auth: RoomAuthService,
     private readonly roomEvents: RoomEventsService,
     private readonly metrics: MetricsService,
+    private readonly presence: PresenceService,
   ) {}
+
+  // One heartbeat timer per connected socket.
+  private readonly heartbeats = new Map<string, NodeJS.Timeout>();
 
   afterInit(server: RealtimeServer) {
     this.roomEvents.attach(server);
@@ -67,10 +77,30 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   handleConnection(client: RealtimeSocket) {
     this.metrics.connections.inc();
     client.onAny((event: string) => this.metrics.messagesReceived.inc({ event }));
+
+    // Presence: the seat hold of 15 min counts from the last time we saw the socket.
+    const { participantId } = client.data.identity;
+    this.touch(participantId);
+    this.heartbeats.set(
+      client.id,
+      setInterval(() => this.touch(participantId), PRESENCE_HEARTBEAT_MS).unref(),
+    );
   }
 
-  handleDisconnect() {
+  handleDisconnect(client: RealtimeSocket) {
     this.metrics.connections.dec();
+    clearInterval(this.heartbeats.get(client.id));
+    this.heartbeats.delete(client.id);
+    // A socket that failed the handshake has no identity.
+    const participantId = client.data.identity?.participantId;
+    if (participantId) this.touch(participantId);
+  }
+
+  // A failed write only makes the hold start a little early, so it is logged, not thrown.
+  private touch(participantId: string) {
+    this.presence.touch(participantId).catch((err: unknown) => {
+      this.logger.warn(`Presence update failed: ${String(err)}`);
+    });
   }
 
   // First message after every (re)connect. Joins the room of the socket's own
