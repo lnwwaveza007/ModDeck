@@ -234,7 +234,7 @@ The three lookups named in the ticket:
 | --- | --- | --- |
 | Session by PIN | `sessions_live_pin_key`: `UNIQUE (pin) WHERE status <> 'ended'`, plus `sessions_pin_idx` on `pin` | `GET /pins/{pin}`, join. The partial unique index stops two open sessions from sharing a PIN. Ended sessions keep their PIN, so the plain index also finds them for the 410 "session ended" answer in the first 24 h |
 | Decks by owner | `decks_owner_id_updated_at_idx` on `(owner_id, updated_at DESC) WHERE deleted_at IS NULL` | `GET /decks` (my decks, newest first, deleted decks left out) |
-| Rows by session ID | `participants (session_id, nickname)` UK, `participants (session_id, user_id)` UK, `activity_runs (session_id, activity_id)` UK, `questions (session_id, created_at)`, `sessions (deck_id, status)`, `sessions (owner_id, started_at DESC)`, and the composite keys of `session_cohosts` and `reaction_counts` | Live screens, rejoin, results, export, history, "live now" count, `DECK_LIVE` check |
+| Rows by session ID | `participants (session_id, nickname) WHERE login_type = 'guest'` UK, `participants (session_id, user_id)` UK, `activity_runs (session_id, activity_id)` UK, `questions (session_id, created_at)`, `sessions (deck_id, status)`, `sessions (owner_id, started_at DESC)`, and the composite keys of `session_cohosts` and `reaction_counts` | Live screens, rejoin, results, export, history, "live now" count, `DECK_LIVE` check |
 
 Other indexes:
 
@@ -252,7 +252,7 @@ Other indexes:
 | A retried word submit is stored once | `word_entries.id` is the client `answerId` (`crypto.randomUUID()`, technical design §2.5) |
 | One upvote per participant per question | PK `question_votes (question_id, participant_id)` |
 | One co-host per session (MD-5 Q17) | UK `session_cohosts.session_id` |
-| Nickname unique in a session (`NICKNAME_TAKEN`) | UK `participants (session_id, nickname)` |
+| Guest nickname unique in a session (`NICKNAME_TAKEN`). SSO names may repeat: two students can share a real name. The join also refuses a guest name that matches anyone in the session, ignoring case | Partial UK `participants (session_id, nickname) WHERE login_type = 'guest'` |
 | An SSO user rejoins as the same participant | UK `participants (session_id, user_id)` (PostgreSQL treats nulls as distinct, so guests are not affected) |
 | Activity state is per session; the deck does not change | `activity_runs`, UK `(session_id, activity_id)` |
 | Vote counts are not stored | No counter column on `activity_options` |
