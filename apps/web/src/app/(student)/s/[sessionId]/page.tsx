@@ -1,17 +1,11 @@
-import { useTranslations } from "next-intl";
-import { LiveShell } from "@/components/shell/LiveShell";
-import { PagePlaceholder } from "@/components/shell/PagePlaceholder";
+import { LiveSession } from "@/components/join/LiveSession";
 
-// MD-15 S06 frame. The session name and connection state come from the socket later.
-export default function LivePage() {
-  const t = useTranslations("pages");
+// MD-15 S06 frame. The participant cookie from the join says who this is.
+export default async function LivePage({ params }: PageProps<"/s/[sessionId]">) {
+  const { sessionId } = await params;
   return (
     <main className="flex h-dvh flex-col">
-      <LiveShell
-        title={t("live.title")}
-        activity={<PagePlaceholder page="live" titled={false} />}
-        qa={<PagePlaceholder page="live" titled={false} />}
-      />
+      <LiveSession sessionId={sessionId} />
     </main>
   );
 }

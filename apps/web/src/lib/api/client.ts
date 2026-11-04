@@ -8,6 +8,7 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost
 
 // Host routes need the host_session cookie, which SSO sets on the web origin. They go through
 // the same-origin /api path like the login link: nginx in production, the Next rewrite in dev.
+// Student join uses it too, so the participant cookie lands on the web origin as well.
 export const HOST_API_BASE_URL = "/api";
 
 /** Error body shared by REST and socket errors (tech design §3.5). */
