@@ -351,7 +351,7 @@ Every route from the [MD-5 sitemap](../ux/md-5-ia-and-flows.md#3-sitemap) is bui
 | Page | Route | Components | State, REST and socket |
 | --- | --- | --- | --- |
 | Landing | `/` | `PinInput`, `Button`, `Banner`, `Tabs` (language) | `prefs` · `GET /pins/{pin}` |
-| Join | `/j/:pin` | `Card`, `Banner`, `Button`, `Input`, `Tabs` (language) | `drafts`, `identity`, `prefs` · `GET /pins/{pin}`, `POST …/participants` |
+| Join | `/j/:pin` | `Card`, `Banner`, `Button`, `Input`, `Tabs` (language) | `drafts`, `identity`, `prefs` · `GET /pins/{pin}`, `POST /pins/{pin}/participants` |
 | Student live screen | `/s/:sessionId` | `ConnectionBanner`, `Tabs`, `Badge`, `WaitingView`, `ActivityRenderer` (`PollOptionButton`, `WordCloudInput`, `PollChart`), `QuestionList` (`QuestionCard`), `AskForm` (`AnonymousToggle`), `ReactionBar`, `RichText` | `connection`, `liveSession`, `myResponses`, `qa`, `drafts` · socket `hello`, `vote`, `word`, `question`, `upvote`, `reaction` |
 | My decks | `/decks` | `Button`, `Card`, `Badge`, `Dialog`, `Input` | TanStack Query `["decks"]` · `GET/POST /decks`, `POST …/copies`, `DELETE /decks/{id}` |
 | Deck editor | `/decks/:deckId` | `Button`, `Banner`, `SlideThumbnail`, `Dialog`, `ImportProgress`, `SlideRenderer`, `RichText`, `Input`, `Toggle` | TanStack Query `["deck", id]` · slides, `slide-order`, `settings`, `imports` · socket `import_progress` |
@@ -479,8 +479,9 @@ Progress is also pushed over the socket (`import_progress`), so the editor does 
 
 | Method | Path | Purpose | Auth | Success | Errors |
 | --- | --- | --- | --- | --- | --- |
-| GET | `/pins/{pin}` | Check a PIN before join: title, `requireLogin`, `allowGuest` | none | 200 | 400 not 6 digits, 404 `PIN_NOT_FOUND`, 410 `SESSION_ENDED` (24 h), 409 `SESSION_FULL`, 429 too many attempts |
-| POST | `/sessions/{sessionId}/participants` | Join. Guest: `{ nickname }`. SSO user: no body (uses the login). Sets the participant cookie | none / host cookie | 201 (new) or 200 (rejoin, same participant) | 403 `LOGIN_REQUIRED`, 409 `SESSION_FULL`, 409 `NICKNAME_TAKEN`, 422 `NICKNAME_INVALID`, 403 `PARTICIPANT_REMOVED` |
+| GET | `/pins/{pin}` | Check a PIN before join: title, host name, participant count, `requireLogin`, and `joined` when this browser already holds a seat. The session id is not sent before the join | none | 200 | 404 `NOT_FOUND` (unknown or not 6 digits), 410 `SESSION_ENDED` (24 h), 409 `SESSION_FULL` (unless already joined), 429 `TOO_MANY_ATTEMPTS` |
+| POST | `/pins/{pin}/participants` | Join. Guest: `{ nickname }`. SSO user: no body (uses the login). Sets the participant cookie. Joins by PIN, so the session id stays private until the student is in | none / host cookie | 201 (new) or 200 (rejoin, same participant) | 401 no login and no nickname, 403 `LOGIN_REQUIRED`, 409 `SESSION_FULL`, 409 `NICKNAME_TAKEN`, 422 `NICKNAME_INVALID`, 403 `PARTICIPANT_REMOVED`, 429 `TOO_MANY_ATTEMPTS` |
+| GET | `/participants/me` | The participant of this cookie, the session title and status, slide count and current slide (late join) | participant | 200 | 401, 403 `PARTICIPANT_REMOVED`, 410 `SESSION_ENDED` |
 | GET | `/sessions/{sessionId}/participants` | Participant list with online / offline | owner | 200 | — |
 | PATCH | `/sessions/{sessionId}/participants/{participantId}` | Rename (to "Guest N") | owner | 200 | 422 |
 | DELETE | `/sessions/{sessionId}/participants/{participantId}` | Remove a participant and block the device token for this session | owner | 204 | — |
@@ -562,7 +563,7 @@ One error body for REST and socket errors:
 ### 3.6 Example: guest join
 
 ```http
-POST /api/v1/sessions/ses_7Q2k/participants
+POST /api/v1/pins/482914/participants
 Content-Type: application/json
 
 { "nickname": "ปลา" }

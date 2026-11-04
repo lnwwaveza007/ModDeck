@@ -301,7 +301,10 @@ model Participant {
   questions     Question[]
   questionVotes QuestionVote[]
 
-  @@unique([sessionId, nickname]) // NICKNAME_TAKEN
+  // NICKNAME_TAKEN applies to guests only. An SSO participant shows the real
+  // name from KMUTT, and two students can share one. The join also refuses a
+  // guest name that matches anyone in the session, ignoring case.
+  @@unique([sessionId, nickname], map: "participants_session_id_nickname_key", where: raw("login_type = 'guest'"))
   @@unique([sessionId, userId]) // an SSO user rejoins as the same participant
   @@index([userId])
   @@map("participants")

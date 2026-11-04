@@ -46,7 +46,11 @@ export class AuthController {
 
   @Get("login")
   login(@Query("returnTo") returnTo: string | undefined, @Res() res: Response) {
-    const { url, tx } = this.oidc.start(sanitizeReturnTo(returnTo));
+    const safeReturnTo = sanitizeReturnTo(returnTo);
+    // A student on the join page gets the guest option back instead of a 503.
+    const join = joinPath(safeReturnTo);
+    if (!this.cfg.sso && join) return res.redirect(`${join}?sso_error=sso_unavailable`);
+    const { url, tx } = this.oidc.start(safeReturnTo);
     res.cookie(TX_COOKIE, encodeTx(tx), txCookieOptions(this.cfg));
     res.redirect(url);
   }
@@ -61,6 +65,7 @@ export class AuthController {
       return this.fail(
         res,
         sso.appBaseUrl,
+        tx?.returnTo,
         query.error === "access_denied" ? "access_denied" : "sso_error",
       );
     }
@@ -70,7 +75,7 @@ export class AuthController {
       typeof query.state !== "string" ||
       !safeEqual(query.state, tx.state)
     ) {
-      return this.fail(res, sso.appBaseUrl, "invalid_state");
+      return this.fail(res, sso.appBaseUrl, tx?.returnTo, "invalid_state");
     }
 
     try {
@@ -84,10 +89,10 @@ export class AuthController {
     } catch (err) {
       if (err instanceof IdTokenValidationError) {
         this.log.warn(`ID token rejected: ${err.reason}`);
-        return this.fail(res, sso.appBaseUrl, "invalid_token");
+        return this.fail(res, sso.appBaseUrl, tx.returnTo, "invalid_token");
       }
       this.log.error("Login failed", err instanceof Error ? err.stack : String(err));
-      return this.fail(res, sso.appBaseUrl, "login_failed");
+      return this.fail(res, sso.appBaseUrl, tx.returnTo, "login_failed");
     }
   }
 
@@ -105,7 +110,16 @@ export class AuthController {
     return user;
   }
 
-  private fail(res: Response, appBaseUrl: string, code: string) {
+  // A student who started on /j/:pin goes back there, where the guest option
+  // is offered (MD-5 §6.6). A host goes back to the login page.
+  private fail(res: Response, appBaseUrl: string, returnTo: string | undefined, code: string) {
+    const join = returnTo ? joinPath(returnTo) : null;
+    if (join) return res.redirect(`${appBaseUrl}${join}?sso_error=${code}`);
     return res.redirect(`${appBaseUrl}/login?error=${code}`);
   }
+}
+
+/** "/j/123456" when the login started on a join page, else null. */
+function joinPath(returnTo: string): string | null {
+  return /^\/j\/\d{6}(?=[?#]|$)/.exec(returnTo)?.[0] ?? null;
 }

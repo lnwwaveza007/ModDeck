@@ -53,9 +53,62 @@
       "endedTitle": "Session ended",
       "endedBody": "This session has ended. Thanks for joining.",
       "invalidTitle": "No session found",
-      "invalidBody": "Check the PIN on the screen and try again.",
-      "joinTitle": "Join session {pin}",
-      "signInUnavailable": "Participant sign-in is not available yet."
+      "invalidBody": "Check the PIN on the screen and try again."
+    },
+    "pin": "PIN {pin}",
+    "liveCount": "Live · {count, plural, =0 {no one has joined yet} one {# participant} other {# participants}}",
+    "joinAs": "Join as",
+    "kmutt": "Log in with your KMUTT account",
+    "guest": "Join as a guest (choose a nickname)",
+    "privacy": "If you join with KMUTT, your poll answers are saved with your student ID. Questions sent as anonymous never show your name to anyone.",
+    "loginRequired": "This class needs a KMUTT login. Guests can't join.",
+    "joining": "Joining…",
+    "retry": "Try again",
+    "otherPin": "Enter another PIN",
+    "nickname": {
+      "title": "Choose a nickname",
+      "body": "This name is for this class only. Classmates see it when you ask a question with your name.",
+      "label": "Nickname",
+      "help": "2–20 characters: Thai, English or digits",
+      "submit": "Join",
+      "back": "Back",
+      "errors": {
+        "TOO_SHORT": "Use at least 2 characters.",
+        "TOO_LONG": "Use 20 characters or fewer.",
+        "INVALID_CHARS": "Use only Thai or English letters, digits and spaces.",
+        "RESERVED": "Choose another name.",
+        "TAKEN": "Someone in this class already uses this name. Choose another one."
+      }
+    },
+    "sso": {
+      "title": "KMUTT sign-in didn't work",
+      "reasons": {
+        "access_denied": "The KMUTT sign-in was cancelled.",
+        "sso_unavailable": "KMUTT sign-in isn't available right now.",
+        "default": "KMUTT sign-in didn't finish."
+      },
+      "guestOffer": "You can join as a guest instead.",
+      "retry": "Try signing in again"
+    },
+    "full": {
+      "title": "This class is full",
+      "body": "{title} takes up to {max} people. Ask the instructor for a seat, or wait a moment and try again.",
+      "thisClass": "This class"
+    },
+    "tooMany": {
+      "title": "Too many wrong PINs",
+      "body": "Wait {seconds} seconds, then try again."
+    },
+    "removed": {
+      "title": "You were removed from this session",
+      "body": "Ask the instructor if you think this is a mistake."
+    },
+    "network": {
+      "title": "Can't reach ModDeck",
+      "body": "Check your internet connection and try again."
+    },
+    "errors": {
+      "generic": "Something went wrong. Try again."
     }
   },
   "live": {
@@ -63,7 +116,32 @@
     "menu": "Menu",
     "tabs": "Tabs",
     "activity": "Activity",
-    "qa": "Q&A"
+    "qa": "Q&A",
+    "connectedAs": "Connected · {name}",
+    "reconnecting": "Reconnecting…",
+    "offline": "Offline. Check your internet.",
+    "lookAtScreen": "Look at the screen",
+    "slideOf": "Slide {index} of {total}",
+    "startingSoon": "The class starts soon",
+    "enterPin": "Enter a PIN",
+    "stopped": {
+      "notJoined": {
+        "title": "Join this session first",
+        "body": "Enter the PIN on the screen to join."
+      },
+      "removed": {
+        "title": "You were removed from this session",
+        "body": "Ask the instructor if you think this is a mistake."
+      },
+      "ended": {
+        "title": "Session ended",
+        "body": "This session has ended. Thanks for joining."
+      },
+      "network": {
+        "title": "Can't reach ModDeck",
+        "body": "Check your internet connection, then reload the page."
+      }
+    }
   },
   "host": {
     "live": "LIVE",

@@ -121,20 +121,20 @@ describe("SessionsService end flow", () => {
   });
 });
 
-describe("SessionsService.byPin", () => {
-  it("returns status only, never the session id", async () => {
+describe("SessionsService.openByPin", () => {
+  it("returns the open session", async () => {
     const { service } = setup({ status: "live" }, null);
-    await expect(service.byPin(PIN)).resolves.toEqual({ status: "live" });
+    await expect(service.openByPin(PIN)).resolves.toEqual({ id: SESSION, status: "live" });
   });
 
   it("answers 410 for an ended session and finishes it when its window has lapsed", async () => {
     const { service, session } = setup({ status: "ended" }, null);
-    await expectApiError(service.byPin(PIN), 410, "SESSION_ENDED");
+    await expectApiError(service.openByPin(PIN), 410, "SESSION_ENDED");
     expect(session.updateMany).toHaveBeenCalled();
   });
 
   it("answers 404 for an unknown PIN", async () => {
     const { service } = setup(null, null);
-    await expectApiError(service.byPin(PIN), 404, "NOT_FOUND");
+    await expectApiError(service.openByPin(PIN), 404, "NOT_FOUND");
   });
 });

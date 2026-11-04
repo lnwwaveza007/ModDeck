@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { JoinSessionStatus } from "@/components/shell/JoinSessionStatus";
+import { JoinFlow } from "@/components/join/JoinFlow";
 import { LanguageSwitch } from "@/components/shell/LanguageSwitch";
 
-export default async function JoinPage({ params }: PageProps<"/j/[pin]">) {
+// QR target and PIN entry result (MD-5 §6, MD-15 S03). KMUTT SSO returns here with
+// ?sso=1 to finish the join, or with ?sso_error=<code> when the login failed.
+export default async function JoinPage({ params, searchParams }: PageProps<"/j/[pin]">) {
   const { pin } = await params;
+  const query = await searchParams;
+  const ssoError = typeof query.sso_error === "string" ? query.sso_error : undefined;
   const t = await getTranslations("join");
   return (
     <>
@@ -30,8 +34,8 @@ export default async function JoinPage({ params }: PageProps<"/j/[pin]">) {
         </Link>
         <LanguageSwitch />
       </header>
-      <main className="flex flex-1 flex-col bg-slate-100 p-6">
-        <JoinSessionStatus pin={pin} />
+      <main className="flex flex-1 flex-col">
+        <JoinFlow pin={pin} sso={query.sso === "1"} ssoError={ssoError} />
       </main>
     </>
   );
