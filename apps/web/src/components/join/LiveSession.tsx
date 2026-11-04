@@ -6,17 +6,20 @@ import { useEffect, useState } from "react";
 import type { ParticipantMe } from "@moddeck/shared";
 import { LiveShell } from "@/components/shell/LiveShell";
 import { PagePlaceholder } from "@/components/shell/PagePlaceholder";
+import { Banner } from "@/components/ui/Banner";
 import { buttonClass } from "@/components/ui/Button";
 import { ApiError } from "@/lib/api/client";
 import { getParticipantMe } from "@/lib/api/participants";
 import { LiveConnection, type ConnectionStatus } from "@/lib/realtime/live-connection";
+import { LiveStatusProvider } from "@/lib/realtime/live-status";
 
-type Stop = "notJoined" | "removed" | "ended" | "network";
+type Stop = "notJoined" | "removed" | "ended" | "full" | "network";
 
 function stopFor(error: unknown): Stop {
   if (!(error instanceof ApiError)) return "network";
   if (error.code === "PARTICIPANT_REMOVED") return "removed";
   if (error.code === "SESSION_ENDED") return "ended";
+  if (error.code === "SESSION_FULL") return "full";
   if (error.status === 401) return "notJoined";
   return "network";
 }
@@ -54,7 +57,8 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
           sessionId,
           onStatus: (next) => {
             setStatus(next);
-            if (next === "ended") setStop("ended");
+            // `ended` also follows a refusal (removed, full): the reason already set stays.
+            if (next === "ended") setStop((current) => current ?? "ended");
           },
           onSnapshot: () => void refresh(),
           onEvent: (event) => {
@@ -64,6 +68,7 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
           onError: (error) => {
             if (error.code === "PARTICIPANT_REMOVED") setStop("removed");
             if (error.code === "SESSION_ENDED") setStop("ended");
+            if (error.code === "SESSION_FULL") setStop("full");
           },
         });
         connection.connect();
@@ -94,22 +99,34 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
         ? t("connecting")
         : t(status === "offline" ? "offline" : "reconnecting");
 
+  // Answers are paused until the server can confirm them (MD-5 rule 6). The controls read
+  // the same status through useCanSend() and disable themselves.
+  const banner =
+    status === "reconnecting" || status === "offline" ? (
+      <Banner tone="warning" aria-live="polite">
+        {t(status === "offline" ? "banner.offline" : "banner.reconnecting")}
+      </Banner>
+    ) : null;
+
   return (
-    <LiveShell
-      title={me.title}
-      status={statusText}
-      activity={
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
-          <p className="text-xl font-semibold">{t("lookAtScreen")}</p>
-          <p className="text-muted">
-            {slideIndex === null
-              ? t("startingSoon")
-              : t("slideOf", { index: slideIndex + 1, total: me.slideCount })}
-          </p>
-        </div>
-      }
-      qa={<PagePlaceholder page="live" titled={false} />}
-    />
+    <LiveStatusProvider status={status}>
+      <LiveShell
+        title={me.title}
+        status={statusText}
+        banner={banner}
+        activity={
+          <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
+            <p className="text-xl font-semibold">{t("lookAtScreen")}</p>
+            <p className="text-muted">
+              {slideIndex === null
+                ? t("startingSoon")
+                : t("slideOf", { index: slideIndex + 1, total: me.slideCount })}
+            </p>
+          </div>
+        }
+        qa={<PagePlaceholder page="live" titled={false} />}
+      />
+    </LiveStatusProvider>
   );
 }
 

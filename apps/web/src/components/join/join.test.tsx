@@ -195,6 +195,49 @@ describe("LiveSession", () => {
     ...overrides,
   });
 
+  it("shows the reconnecting banner while the connection is down, and hides it after rejoin", async () => {
+    api.me.mockResolvedValue(me());
+    renderWithIntl(<LiveSession sessionId="s1" />, "en");
+    await screen.findByText("INT365 Software Engineering");
+
+    act(() => live.options!.onStatus!("online"));
+    expect(screen.queryByText(/You can't send answers yet/)).toBeNull();
+
+    act(() => live.options!.onStatus!("reconnecting"));
+    expect(screen.getByText(/Reconnecting… You can't send answers yet/)).toBeVisible();
+
+    act(() => live.options!.onStatus!("offline"));
+    expect(screen.getByText(/No internet\. You can't send answers yet/)).toBeVisible();
+
+    act(() => live.options!.onStatus!("online"));
+    expect(screen.queryByText(/You can't send answers yet/)).toBeNull();
+  });
+
+  it("tells a student whose seat was taken that the session is full", async () => {
+    api.me.mockResolvedValue(me());
+    renderWithIntl(<LiveSession sessionId="s1" />, "en");
+    await screen.findByText("INT365 Software Engineering");
+
+    // LiveConnection reports the error, then ends: the status change must not hide the reason.
+    act(() => {
+      live.options!.onError!({ code: "SESSION_FULL", message: "full" });
+      live.options!.onStatus!("ended");
+    });
+    expect(screen.getByText("This session is full")).toBeVisible();
+  });
+
+  it("keeps the removed message when the connection ends after it", async () => {
+    api.me.mockResolvedValue(me());
+    renderWithIntl(<LiveSession sessionId="s1" />, "en");
+    await screen.findByText("INT365 Software Engineering");
+
+    act(() => {
+      live.options!.onError!({ code: "PARTICIPANT_REMOVED", message: "removed" });
+      live.options!.onStatus!("ended");
+    });
+    expect(screen.getByText("You were removed from this session")).toBeVisible();
+  });
+
   it("starts a late joiner on the current slide and follows the class", async () => {
     api.me.mockResolvedValue(me());
     renderWithIntl(<LiveSession sessionId="s1" />, "en");

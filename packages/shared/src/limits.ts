@@ -11,3 +11,11 @@ export const EVENT_LOG_SIZE = 500;
 
 // HttpOnly cookie that holds the participant token (MD-7, MD-13).
 export const PARTICIPANT_COOKIE = "moddeck_pt";
+
+// An offline participant keeps their seat this long (MD-5 rule 9, Q22). After
+// it the seat counts as free for a new person.
+export const SEAT_HOLD_MS = 15 * 60 * 1000;
+
+// A connected socket refreshes Participant.lastSeenAt this often, so the seat
+// hold clock starts from the last moment the participant was really online.
+export const PRESENCE_HEARTBEAT_MS = 60 * 1000;
