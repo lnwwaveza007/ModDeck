@@ -162,6 +162,16 @@ describe("host login (e2e)", () => {
     expect(res.headers.location).toBe(`${APP}/login?error=invalid_state`);
   });
 
+  it("sends a student whose login failed back to the join page", async () => {
+    const { txCookie } = await startLogin("/j/482914?sso=1");
+    const res = await request(app.getHttpServer())
+      .get("/auth/callback")
+      .query({ error: "access_denied" })
+      .set("Cookie", txCookie!.split(";")[0]);
+    expect(res.status).toBe(302);
+    expect(res.headers.location).toBe(`${APP}/j/482914?sso_error=access_denied`);
+  });
+
   it("drops an expired host session", async () => {
     const user = await prisma.user.upsert({
       where: { ssoSubject: SUBJECT },
@@ -199,5 +209,13 @@ describe("host login without SSO configured (e2e)", () => {
     await request(app.getHttpServer()).get("/health").expect(200);
     await request(app.getHttpServer()).get("/auth/login").expect(503);
     await request(app.getHttpServer()).get("/auth/me").expect(401);
+  });
+
+  it("sends a student back to the join page instead of a 503", async () => {
+    const res = await request(app.getHttpServer())
+      .get("/auth/login")
+      .query({ returnTo: "/j/482914?sso=1" })
+      .expect(302);
+    expect(res.headers.location).toBe("/j/482914?sso_error=sso_unavailable");
   });
 });

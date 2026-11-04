@@ -8,6 +8,7 @@ import { AuthModule } from "./auth/auth.module";
 import { DecksModule } from "./decks/decks.module";
 import { SlidesModule } from "./slides/slides.module";
 import { SessionsModule } from "./sessions/sessions.module";
+import { ParticipantsModule } from "./participants/participants.module";
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { SessionsModule } from "./sessions/sessions.module";
     DecksModule,
     SlidesModule,
     SessionsModule,
+    ParticipantsModule,
   ],
   controllers: [HealthController],
 })

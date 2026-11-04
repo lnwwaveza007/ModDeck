@@ -187,8 +187,9 @@ export class SessionsService {
     return { status: "ended" as const };
   }
 
-  // Public lookup: returns status only. Session id stays private to the host.
-  async byPin(pin: string) {
+  // The open session behind a PIN, for the join flow (ParticipantsService). The
+  // id stays on the server until the student has joined.
+  async openByPin(pin: string) {
     const session = await this.prisma.session.findFirst({
       where: { pin },
       orderBy: { startedAt: "desc" },
@@ -207,6 +208,6 @@ export class SessionsService {
       await this.finishEnd(session.ownerId, session.id);
       throw new ApiException(410, "SESSION_ENDED", "Session ended");
     }
-    return { status: session.status };
+    return { id: session.id, status: session.status };
   }
 }
