@@ -15,6 +15,7 @@ export type ShortcutCommand =
   | "overlay"
   | "blank"
   | "join" // join info with the QR code on the audience screen
+  | "joinBar" // the small PIN bar in the corner of the audience screen
   | "fullscreen"
   | "help";
 
@@ -29,6 +30,7 @@ export const SHORTCUT_LIST: { command: ShortcutCommand; keys: string[] }[] = [
   { command: "overlay", keys: ["O"] },
   { command: "blank", keys: ["B"] },
   { command: "join", keys: ["J"] },
+  { command: "joinBar", keys: ["H"] },
   { command: "fullscreen", keys: ["F"] },
   { command: "help", keys: ["?"] },
 ];
@@ -78,6 +80,8 @@ export function shortcutFor(event: KeyLike): ShortcutCommand | null {
       return "blank";
     case "j":
       return "join";
+    case "h":
+      return "joinBar";
     case "f":
       return "fullscreen";
   }
