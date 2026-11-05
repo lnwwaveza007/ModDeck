@@ -5,6 +5,9 @@ import { io, type Socket } from "socket.io-client";
 // (packages/shared). The participant token travels in its HttpOnly cookie.
 export type SessionSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
+/** "host": presenter control and the audience screen, signed in with the host login cookie. */
+export type SocketRole = "participant" | "host";
+
 // Socket.IO reads a URL path as a namespace, so connect to the api's origin
 // only. NEXT_PUBLIC_API_URL is "/api" behind nginx (same origin, /socket.io/
 // proxied) and "http://localhost:4000" in local dev.
@@ -15,6 +18,13 @@ export function socketOrigin(
   return new URL(apiUrl, base).origin;
 }
 
-export function createSessionSocket(origin: string = socketOrigin()): SessionSocket {
-  return io(origin, { withCredentials: true, autoConnect: false });
+export function createSessionSocket(
+  origin: string = socketOrigin(),
+  role: SocketRole = "participant",
+): SessionSocket {
+  return io(origin, {
+    withCredentials: true,
+    autoConnect: false,
+    ...(role === "host" ? { auth: { role } } : {}),
+  });
 }

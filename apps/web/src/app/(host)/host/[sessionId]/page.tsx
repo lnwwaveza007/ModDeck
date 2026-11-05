@@ -1,6 +1,6 @@
-import { SessionLobby } from "@/components/shell/SessionLobby";
+import { PresenterControl } from "@/components/presenter/PresenterControl";
 
 export default async function PresenterPage({ params }: PageProps<"/host/[sessionId]">) {
   const { sessionId } = await params;
-  return <SessionLobby sessionId={sessionId} />;
+  return <PresenterControl sessionId={sessionId} />;
 }

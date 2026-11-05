@@ -160,9 +160,6 @@
       "loading": "Loading session…",
       "loadError": "Could not load this session. Try refreshing.",
       "online": "{count} online",
-      "ending": "Session ending",
-      "undoIn": "You can undo for {seconds} seconds.",
-      "undo": "Undo end",
       "joinAt": "Join at {url} or scan the QR code",
       "enterPin": "Enter this PIN",
       "participantsJoined": "{count} participants joined",
@@ -171,7 +168,9 @@
       "qrFailed": "QR code unavailable",
       "scanToJoin": "Scan to join",
       "endSession": "End Session",
-      "holdHint": "Hold for 2 seconds to end the session."
+      "holdHint": "Hold for 2 seconds to end the session.",
+      "keepHolding": "Keep holding…",
+      "endingNow": "Ending…"
     }
   },
   "decks": {
@@ -413,16 +412,180 @@
     }
   },
   "pages": {
-    "landing": { "title": "Join a class" },
-    "login": { "title": "Host login" },
-    "decks": { "title": "My decks" },
-    "deckEditor": { "title": "Deck editor" },
-    "sessions": { "title": "Session history" },
-    "sessionResults": { "title": "Session results" },
-    "presenter": { "title": "Presenter control" },
-    "cohostQa": { "title": "Q&A" },
-    "join": { "title": "Join session" },
-    "live": { "title": "Live session" },
-    "screen": { "title": "Audience screen" }
+    "landing": {
+      "title": "Join a class"
+    },
+    "login": {
+      "title": "Host login"
+    },
+    "decks": {
+      "title": "My decks"
+    },
+    "deckEditor": {
+      "title": "Deck editor"
+    },
+    "sessions": {
+      "title": "Session history"
+    },
+    "sessionResults": {
+      "title": "Session results"
+    },
+    "presenter": {
+      "title": "Presenter control"
+    },
+    "cohostQa": {
+      "title": "Q&A"
+    },
+    "join": {
+      "title": "Join session"
+    },
+    "live": {
+      "title": "Live session"
+    },
+    "screen": {
+      "title": "Audience screen"
+    }
+  },
+  "presenter": {
+    "loading": "Loading session…",
+    "loadError": {
+      "notFound": "This session is not yours, or it does not exist.",
+      "network": "Could not load this session. Check your connection and refresh."
+    },
+    "live": "LIVE",
+    "elapsed": "Session time",
+    "participants": "{count, plural, one {# participant} other {# participants}}",
+    "connection": {
+      "connecting": "Connecting…",
+      "online": "Connected",
+      "reconnecting": "Reconnecting…",
+      "offline": "Offline",
+      "ended": "Disconnected"
+    },
+    "openScreen": "Open audience screen",
+    "ended": "This session has ended.",
+    "current": "Current slide",
+    "nowShowing": "Now showing · slide {index} of {total}",
+    "blanked": "screen is blank",
+    "next": "Next",
+    "slide": "Slide {index}",
+    "lastSlide": "This is the last slide",
+    "previous": "Previous slide",
+    "nextButton": "Next",
+    "blank": "Blank screen",
+    "joinScreen": "Join screen",
+    "noActivity": "Content slide. Polls and word clouds get their controls here.",
+    "qa": {
+      "title": "Q&A",
+      "soon": "Student questions will appear here."
+    },
+    "singleDisplay": {
+      "title": "Only one display?",
+      "body": "Open the audience screen, press F for full screen, and run the lecture with the keys. Press O for the presenter overlay and ? for every shortcut."
+    },
+    "stage": {
+      "kind": {
+        "poll": "Live Poll · answer on your phone",
+        "word_cloud": "Word Cloud · answer on your phone"
+      },
+      "state": {
+        "draft": "Starting soon",
+        "live": "Open",
+        "closed": "Closed",
+        "results_shown": "Results"
+      },
+      "noVotes": "No votes yet",
+      "noWords": "No words yet"
+    },
+    "activity": {
+      "label": "Activity controls",
+      "kind": {
+        "poll": "Live Poll",
+        "word_cloud": "Word Cloud"
+      },
+      "state": {
+        "draft": "Not started",
+        "live": "Open",
+        "closed": "Closed",
+        "results_shown": "Results shown"
+      },
+      "action": {
+        "start": "Start",
+        "stop": "Stop",
+        "show_results": "Show results",
+        "reopen": "Reopen"
+      },
+      "timer": "Timer",
+      "noTimer": "No timer",
+      "customTimer": "Custom…",
+      "seconds": "Seconds",
+      "timerRange": "Pick a timer from {min} to {max} seconds.",
+      "timeLeft": "{time} left",
+      "editWording": "Edit wording",
+      "hint": {
+        "draft": "Students see the question only. Nothing opens until you press Start.",
+        "live": "Students can answer now. Stop closes voting; Show results closes it and shows the results.",
+        "closed": "Voting is closed and the results are hidden.",
+        "results_shown": "The results are on screen. Reopen to take more answers."
+      }
+    },
+    "wording": {
+      "title": "Edit wording",
+      "hint": "You can fix the wording while the activity runs. Options cannot be added, removed or reordered until the session ends.",
+      "prompt": "Question",
+      "options": "Options",
+      "option": "Option {letter}",
+      "save": "Save",
+      "cancel": "Cancel",
+      "locked": "This activity has started: only the wording can change.",
+      "failed": "Could not save. Try again."
+    },
+    "strip": {
+      "label": "Slides",
+      "goTo": "Go to slide {index}"
+    },
+    "shortcuts": {
+      "title": "Keyboard shortcuts",
+      "next": "Next slide",
+      "previous": "Previous slide",
+      "first": "First slide",
+      "last": "Last slide",
+      "toggleActivity": "Start, stop or reopen the activity",
+      "showResults": "Show results",
+      "overlay": "Presenter overlay (audience screen)",
+      "blank": "Blank screen",
+      "join": "Join screen with QR code",
+      "fullscreen": "Full screen (audience screen)",
+      "help": "This list"
+    },
+    "errors": {
+      "generic": "That did not work. Try again.",
+      "SESSION_ENDED": "The session has ended.",
+      "INVALID_TRANSITION": "The activity changed in the meantime. The screen now shows its state.",
+      "ACTIVITY_LOCKED": "This activity has started: only the wording can change.",
+      "NETWORK_ERROR": "No connection to ModDeck. Check your internet."
+    }
+  },
+  "screen": {
+    "loading": "Loading…",
+    "loadError": {
+      "notFound": "Open the audience screen from presenter control, signed in as the host.",
+      "network": "Could not load this session. Check the connection and refresh."
+    },
+    "ended": "Session ended. Thanks for joining.",
+    "blanked": "The screen is blank.",
+    "reconnecting": "Reconnecting…",
+    "joinAt": "Join at {url} or scan the QR code",
+    "enterPin": "Enter this PIN",
+    "qrAlt": "QR code to join session {pin}",
+    "overlay": {
+      "label": "Presenter overlay",
+      "live": "LIVE",
+      "slide": "Slide {index}/{total}",
+      "hide": "hide",
+      "participants": "{count, plural, one {# participant} other {# participants}}",
+      "next": "Next: slide {index}",
+      "lastSlide": "Last slide"
+    }
   }
 }
