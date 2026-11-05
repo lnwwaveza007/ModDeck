@@ -346,7 +346,7 @@ flowchart TD
     J --> J2["Background import, progress per page"]
     J2 --> J3["Image slides appended to deck"]
     H -->|activity| K{"Activity type"}
-    K -->|Live Poll| L["Question + 2-10 options, single or multiple choice"]
+    K -->|Live Poll| L["Question + 2-8 options, single or multiple choice"]
     K -->|Word Cloud| M["Prompt + max entries per person"]
     I --> N
     J3 --> N
@@ -394,7 +394,7 @@ flowchart TD
 | Login         | SSO redirect, then back to the page the host asked for. A failed login shows an error page with "Try again".                                                                                                     |
 | Create deck   | Only a name is required. A new deck starts with one blank title slide.                                                                                                                                           |
 | PDF import    | Upload a PDF, max 50 MB and 150 pages (Q6). The host can keep editing while import runs. Each page becomes one image slide, added at the end of the deck or after the selected slide. Failed pages show a retry. |
-| Add activity  | Live Poll: question (text, code, or math), 2–10 options, single or multiple choice, "Allow answer change" (default off). Word Cloud: prompt, max entries per person (1–3, default 1), max 25 characters per entry.                                    |
+| Add activity  | Live Poll: question (text, code, or math), 2–8 options, single or multiple choice, "Allow answer change" (default off). Word Cloud: prompt, max entries per person (1–3, default 1), max 25 characters per entry.                                    |
 | Validation    | A poll with an empty question or fewer than 2 options is "incomplete". The host cannot start a session while any activity is incomplete. The editor lists the slides to fix.                                    |
 | Start session | Copies the deck settings into the session. Assigns a PIN. The deck stays editable within the limits in 4.3.                                                                                                     |
 | Present       | Arrow keys or buttons move slides. By default, moving to an activity slide does not start it; the host presses "Start". With "auto-start activities" on, the activity goes live when its slide is shown (Q2).   |
