@@ -474,6 +474,9 @@
     "nextButton": "Next",
     "blank": "Blank screen",
     "joinScreen": "Join screen",
+    "joinBar": "PIN bar",
+    "joinShown": "join screen is showing",
+    "showSlide": "Show slide",
     "noActivity": "Content slide. Polls and word clouds get their controls here.",
     "qa": {
       "title": "Q&A",
@@ -555,6 +558,7 @@
       "overlay": "Presenter overlay (audience screen)",
       "blank": "Blank screen",
       "join": "Join screen with QR code",
+      "joinBar": "Show or hide the PIN bar",
       "fullscreen": "Full screen (audience screen)",
       "help": "This list"
     },
@@ -575,8 +579,11 @@
     "ended": "Session ended. Thanks for joining.",
     "blanked": "The screen is blank.",
     "reconnecting": "Reconnecting…",
-    "joinAt": "Join at {url} or scan the QR code",
-    "enterPin": "Enter this PIN",
+    "endedJoined": "{count, plural, one {# person} other {# people}} joined",
+    "joinOpen": "Open <b>{url}</b> on your phone",
+    "joinPin": "Enter the PIN",
+    "joinScan": "or scan with your phone camera",
+    "joined": "<b>{count}</b> joined",
     "qrAlt": "QR code to join session {pin}",
     "overlay": {
       "label": "Presenter overlay",

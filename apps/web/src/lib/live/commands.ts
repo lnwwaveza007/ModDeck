@@ -24,7 +24,9 @@ export function runLiveCommand(
   const activity = state.slides[state.currentIndex]?.activity;
   switch (command) {
     case "next":
-      controls.next();
+      // From the join screen, Next first shows the slide under it, so the room never misses it.
+      if (layers[0].join) layers[1]({ join: false });
+      else controls.next();
       return true;
     case "previous":
       controls.previous();
@@ -53,6 +55,9 @@ export function runLiveCommand(
       return true;
     case "join":
       layers[1]({ join: !layers[0].join });
+      return true;
+    case "joinBar":
+      layers[1]({ joinBar: !layers[0].joinBar });
       return true;
     default:
       return false;

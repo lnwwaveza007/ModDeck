@@ -318,6 +318,8 @@ Rule: the student never navigates between slides. The host controls what the pho
 | Floating reactions      | Only when the host turns reactions on (default off, Q14). Emojis float up in the bottom-right corner only, at 60% opacity, never over the middle of the slide. Max 30 at one time. Hidden while a poll is live and code or math is on the slide. |
 | "Session ended" card    | After the host ends the session                                                             |
 
+The deck has no separate lobby slide, so the first slide is the lobby. The full join screen covers it until the host moves on. The first Next closes the join screen and shows the first slide; it does not change slide. `J` opens the join screen again at any time and `H` hides or shows the corner bar. Blank and join settings are per browser and survive a refresh.
+
 ---
 
 ## 4. Host flow

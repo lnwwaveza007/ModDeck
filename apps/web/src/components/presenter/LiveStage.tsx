@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { ActivityRunDto, LiveSlide } from "@moddeck/shared";
+import type { ActivityRunDto, LiveActivity, LiveSlide } from "@moddeck/shared";
 import { RichText } from "@/components/content/RichText";
 import { SlideRenderer } from "@/components/content/SlideRenderer";
 import { cn } from "@/lib/cn";
@@ -86,32 +86,99 @@ function ActivityView({
         )}
       </div>
       <RichText source={activity.prompt} className="text-[4cqw] leading-[1.3] font-semibold" />
-      {activity.type === "poll" ? (
-        <ol className="flex flex-col gap-[1.2cqw]">
-          {activity.options.map((option, index) => (
-            <li
-              key={option.id}
-              className="flex items-center gap-[1.6cqw] rounded-[1.2cqw] border-[0.15cqw] border-neutral-200 px-[1.8cqw] py-[1cqw] text-[2.6cqw]"
-            >
-              <span
-                className={cn(
-                  "grid size-[4.2cqw] shrink-0 place-items-center rounded-[0.9cqw] font-bold text-white",
-                  optionColor(index),
-                )}
-              >
-                {optionLetter(index)}
-              </span>
-              <RichText source={option.label} className="min-w-0 flex-1" />
-            </li>
-          ))}
-        </ol>
+      {state === "results_shown" ? (
+        <ActivityResults activity={activity} />
+      ) : activity.type === "poll" ? (
+        <PollOptions options={activity.options} />
       ) : null}
-      {state === "results_shown" && (
-        // Answers are counted once students can send them; until then a run has none.
-        <p className="mt-auto text-center text-[2.4cqw] text-muted">
-          {t(activity.type === "poll" ? "noVotes" : "noWords")}
-        </p>
-      )}
     </div>
+  );
+}
+
+// More options than this would run off a 16:9 stage at the normal size, and the audience cannot
+// scroll a projector.
+const DENSE_OPTIONS = 6;
+
+function OptionKey({ index, dense }: { index: number; dense: boolean }) {
+  return (
+    <span
+      className={cn(
+        "grid shrink-0 place-items-center rounded-[0.9cqw] font-bold text-white",
+        dense ? "size-[3cqw]" : "size-[4.2cqw]",
+        optionColor(index),
+      )}
+    >
+      {optionLetter(index)}
+    </span>
+  );
+}
+
+function PollOptions({ options }: { options: LiveActivity["options"] }) {
+  const dense = options.length > DENSE_OPTIONS;
+  return (
+    <ol className={cn("grid grid-cols-2", dense ? "gap-[0.8cqw]" : "gap-[1.2cqw]")}>
+      {options.map((option, index) => (
+        <li
+          key={option.id}
+          className={cn(
+            "flex min-w-0 items-center gap-[1.6cqw] rounded-[1.2cqw] border-[0.15cqw] border-neutral-200 px-[1.8cqw]",
+            dense ? "py-[0.5cqw] text-[2.1cqw]" : "py-[1cqw] text-[2.6cqw]",
+          )}
+        >
+          <OptionKey index={index} dense={dense} />
+          <RichText source={option.label} className="min-w-0 flex-1" />
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/**
+ * The result area (MD-15 P04, P05, P-Zero-responses). Students cannot answer yet, so a run has no
+ * answers and this is the empty state. The live chart and word cloud replace it.
+ */
+function ActivityResults({ activity }: { activity: LiveActivity }) {
+  const t = useTranslations("presenter.stage");
+  if (activity.type !== "poll") {
+    return (
+      <p className="m-auto text-center text-[2.4cqw] font-semibold text-neutral-700">
+        {t("noWords")}
+      </p>
+    );
+  }
+  const dense = activity.options.length > DENSE_OPTIONS;
+  return (
+    <>
+      <ol
+        className={cn(
+          dense ? "grid grid-cols-2 gap-x-[2.4cqw] gap-y-[0.8cqw]" : "flex flex-col gap-[1.4cqw]",
+        )}
+      >
+        {activity.options.map((option, index) => (
+          <li
+            key={option.id}
+            className={cn(
+              "grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)_auto] items-center gap-[1.6cqw]",
+              dense ? "text-[1.8cqw]" : "text-[2.4cqw]",
+            )}
+          >
+            <span className="flex min-w-0 items-center gap-[1.1cqw]">
+              <OptionKey index={index} dense={dense} />
+              <RichText source={option.label} className="min-w-0 flex-1" />
+            </span>
+            <span
+              className={cn(
+                "rounded-[0.6cqw] border-[0.15cqw] border-dashed border-neutral-300 bg-neutral-100",
+                dense ? "h-[2.4cqw]" : "h-[4cqw]",
+              )}
+            />
+            <span className="font-bold text-neutral-500 tabular-nums">0%</span>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-auto text-center text-[2cqw] font-semibold text-neutral-700">
+        {t("noVotes")}
+      </p>
+    </>
   );
 }

@@ -91,6 +91,8 @@ export function useLiveSession(
       setView(value);
       setSlides(value.slides);
       setRuns(runsById(value.runs));
+      // A refresh after the end: the socket would refuse to join, so read it from here too.
+      if (value.status === "ended") setEnded(true);
       if (!sending.current) setCurrentId(value.currentSlideId ?? value.slides[0]?.id ?? null);
       setLoadError(null);
       return value;

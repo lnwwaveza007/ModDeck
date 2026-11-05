@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import type { ActivityRunDto, LiveSessionView, LiveSlide, RoomEvent } from "@moddeck/shared";
 import { ApiError } from "@/lib/api/client";
 import { actOnActivity, editActivityWording, getLiveSession, moveToSlide } from "@/lib/api/live";
@@ -112,6 +112,7 @@ async function renderPresenter(value = view()) {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  localStorage.clear();
   live.options = undefined;
   api.session.mockResolvedValue({
     id: "s1",
@@ -141,7 +142,9 @@ describe("PresenterControl", () => {
   });
 
   it("moves slides with the arrows, space and the slide strip", async () => {
-    await renderPresenter();
+    await renderPresenter(view({ currentSlideId: "slide-0" }));
+    press("ArrowRight"); // the first press only closes the lobby join screen
+    expect(api.move).not.toHaveBeenCalled();
     press("ArrowRight");
     expect(api.move).toHaveBeenLastCalledWith("s1", "slide-poll");
     expect(screen.getByText("Now showing · slide 2 of 3")).toBeInTheDocument();
@@ -159,6 +162,33 @@ describe("PresenterControl", () => {
       "aria-current",
       "true",
     );
+  });
+
+  it("says when the join screen is up, and Next shows the slide under it", async () => {
+    await renderPresenter();
+    expect(screen.getByText("· join screen is showing")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Join screen/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Show slide/ }));
+    expect(api.move).not.toHaveBeenCalled();
+    expect(screen.queryByText("· join screen is showing")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /^Next/ }));
+    expect(api.move).toHaveBeenLastCalledWith("s1", "slide-poll");
+  });
+
+  it("hides the PIN bar from its button", async () => {
+    await renderPresenter();
+    const button = screen.getByRole("button", { name: /PIN bar/ });
+    expect(button).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(button);
+    expect(button).toHaveAttribute("aria-pressed", "false");
+    expect(JSON.parse(localStorage.getItem("moddeck:screen:s1")!)).toMatchObject({
+      joinBar: false,
+    });
   });
 
   it("follows a slide change made in another window", async () => {
@@ -353,6 +383,7 @@ describe("AudienceScreen", () => {
 
   it("works from the keyboard on a single display, with the O overlay", async () => {
     await renderScreen();
+    press("ArrowRight"); // closes the lobby join screen
     press("ArrowRight");
     expect(api.move).toHaveBeenLastCalledWith("s1", "slide-poll");
 
@@ -390,13 +421,108 @@ describe("AudienceScreen", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("blanks the screen with B and shows the join screen with J", async () => {
+  it("opens on the join screen, with the PIN, QR code and joined count", async () => {
+    await renderScreen();
+    expect(screen.getByText("Enter the PIN")).toBeInTheDocument();
+    expect(await screen.findByAltText("QR code to join session 482914")).toBeInTheDocument();
+    expect(screen.getByText("localhost:3000")).toBeInTheDocument();
+    expect(screen.getByText("12")).toBeInTheDocument();
+  });
+
+  it("shows the first slide on Next, and only then moves the room", async () => {
+    await renderScreen();
+    press(" ");
+    expect(screen.queryByText("Enter the PIN")).not.toBeInTheDocument();
+    expect(api.move).not.toHaveBeenCalled();
+    expect(screen.getByText("482 914")).toBeInTheDocument(); // the corner bar
+    press(" ");
+    expect(api.move).toHaveBeenLastCalledWith("s1", "slide-poll");
+  });
+
+  it("closes the join screen when the room moves, and does not bring it back", async () => {
+    await renderScreen();
+    await waitFor(() => expect(live.options).toBeDefined());
+    roomEvent("slide_changed", { slideId: "slide-2", index: 2 });
+    expect(screen.queryByText("Enter the PIN")).not.toBeInTheDocument();
+    roomEvent("slide_changed", { slideId: "slide-0", index: 0 }, 2);
+    expect(screen.queryByText("Enter the PIN")).not.toBeInTheDocument();
+  });
+
+  it("starts without the join screen when the room is past the first slide", async () => {
+    await renderScreen(view({ currentSlideId: "slide-2" }));
+    expect(screen.queryByText("Enter the PIN")).not.toBeInTheDocument();
+  });
+
+  it("toggles the join screen with J and the PIN bar with H", async () => {
+    await renderScreen(view({ currentSlideId: "slide-2" }));
+    press("j");
+    expect(screen.getByText("Enter the PIN")).toBeInTheDocument();
+    press("j");
+    expect(screen.queryByText("Enter the PIN")).not.toBeInTheDocument();
+    expect(screen.getByText("482 914")).toBeInTheDocument();
+    press("h");
+    expect(screen.queryByText("482 914")).not.toBeInTheDocument();
+    press("h");
+    expect(screen.getByText("482 914")).toBeInTheDocument();
+  });
+
+  it("blanks the screen with B", async () => {
     await renderScreen();
     press("b");
     expect(screen.getByText("The screen is blank.")).toBeInTheDocument();
+    expect(screen.queryByText("482 914")).not.toBeInTheDocument();
     press("b");
-    press("j");
-    expect(await screen.findByText("Enter this PIN")).toBeInTheDocument();
+    expect(screen.getByText("482 914")).toBeInTheDocument();
+  });
+
+  it("recovers the slide, activity state and layers after a refresh", async () => {
+    const value = view({ currentSlideId: "slide-poll", runs: [run("live")] });
+    await renderScreen(value);
+    press("h");
+    press("b");
+    cleanup();
+
+    api.view.mockResolvedValue(value);
+    renderWithIntl(<AudienceScreen sessionId="s1" />, "en");
+    expect(await screen.findByText("The screen is blank.")).toBeInTheDocument();
+    press("b");
+    expect(screen.getByText("Open")).toBeInTheDocument();
+    expect(screen.getByText("Which one?")).toBeInTheDocument();
+    expect(screen.queryByText("482 914")).not.toBeInTheDocument();
+  });
+
+  it("follows a layer change made in another window", async () => {
+    await renderScreen(view({ currentSlideId: "slide-2" }));
+    act(() => {
+      localStorage.setItem("moddeck:screen:s1", JSON.stringify({ join: true }));
+      window.dispatchEvent(new StorageEvent("storage", { key: "moddeck:screen:s1" }));
+    });
+    expect(screen.getByText("Enter the PIN")).toBeInTheDocument();
+  });
+
+  it("shows the ended card after a refresh of an ended session", async () => {
+    api.view.mockResolvedValue(view({ status: "ended" }));
+    renderWithIntl(<AudienceScreen sessionId="s1" />, "en");
+    expect(await screen.findByText("Session ended. Thanks for joining.")).toBeInTheDocument();
+    expect(screen.getByText("INT365 Reactive Forms")).toBeInTheDocument();
+    expect(screen.getByText("12 people joined")).toBeInTheDocument();
+  });
+
+  it("shows empty poll results until answers can be counted", async () => {
+    await renderScreen(view({ currentSlideId: "slide-poll", runs: [run("results_shown")] }));
+    expect(screen.getByText("No votes yet")).toBeInTheDocument();
+    expect(screen.getByText("Alpha")).toBeInTheDocument();
+    expect(screen.getAllByText("0%")).toHaveLength(2);
+  });
+
+  it("shows the reconnecting status only when the connection is lost", async () => {
+    await renderScreen(view({ currentSlideId: "slide-2" }));
+    await waitFor(() => expect(live.options).toBeDefined());
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    act(() => live.options?.onStatus?.("reconnecting"));
+    expect(screen.getByRole("status")).toHaveTextContent("Reconnecting…");
+    act(() => live.options?.onStatus?.("online"));
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
   it("asks for the host login when the session is not reachable", async () => {

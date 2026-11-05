@@ -19,6 +19,7 @@ const key = (
 describe("shortcutFor", () => {
   it("moves slides with the arrows, space and page keys", () => {
     expect(shortcutFor(key("ArrowRight"))).toBe("next");
+    expect(shortcutFor(key("h"))).toBe("joinBar");
     expect(shortcutFor(key(" "))).toBe("next");
     expect(shortcutFor(key("PageDown"))).toBe("next");
     expect(shortcutFor(key("ArrowLeft"))).toBe("previous");

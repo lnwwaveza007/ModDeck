@@ -44,7 +44,11 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
   const onError = (error: unknown) => toast(t(`errors.${errorKey(error)}`), { tone: "error" });
   const [state, controls] = useLiveSession(sessionId, { onError });
   const end = useSessionEnd(sessionId);
-  const layers = useScreenLayers(sessionId);
+  const layers = useScreenLayers(
+    sessionId,
+    state.slides[state.currentIndex]?.id ?? null,
+    state.currentIndex === 0,
+  );
   const [help, setHelp] = useState(false);
   const [editing, setEditing] = useState(false);
   const durationRef = useRef<number | undefined | null>(undefined);
@@ -127,6 +131,7 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
                 <p className="text-sm">
                   <b>{t("nowShowing", { index: currentIndex + 1, total: slides.length })}</b>
                   {screen.blank && <span className="ml-2 text-warning-800">· {t("blanked")}</span>}
+                  {screen.join && <span className="ml-2 text-warning-800">· {t("joinShown")}</span>}
                 </p>
                 {current && (
                   <LiveStage
@@ -163,10 +168,10 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
                     variant="secondary"
                     size="lg"
                     className="flex-1"
-                    disabled={!next}
-                    onClick={controls.next}
+                    disabled={!next && !screen.join}
+                    onClick={() => runLiveCommand("next", state, controls, layers)}
                   >
-                    {t("nextButton")} → <Kbd>Space</Kbd>
+                    {screen.join ? t("showSlide") : t("nextButton")} → <Kbd>Space</Kbd>
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -183,6 +188,13 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
                     onClick={() => setScreen({ join: !screen.join })}
                   >
                     {t("joinScreen")} <Kbd>J</Kbd>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    aria-pressed={screen.joinBar}
+                    onClick={() => setScreen({ joinBar: !screen.joinBar })}
+                  >
+                    {t("joinBar")} <Kbd>H</Kbd>
                   </Button>
                 </div>
               </section>
