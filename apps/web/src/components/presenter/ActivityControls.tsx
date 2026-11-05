@@ -10,7 +10,10 @@ import {
   type ActivityAction,
   type ActivityRunDto,
   type LiveActivity,
+  type PollTally,
 } from "@moddeck/shared";
+import { RichText } from "@/components/content/RichText";
+import { PollChart } from "@/components/poll/PollChart";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { formatDuration, secondsLeft } from "@/lib/live/clock";
@@ -29,6 +32,7 @@ const ACTION_KEY: Record<ActivityAction, string> = {
   stop: "A",
   reopen: "A",
   show_results: "S",
+  hide_results: "S",
 };
 
 /** Timer choice: no timer, a preset, or a custom number of seconds. */
@@ -43,12 +47,16 @@ export function parseTimer(choice: TimerChoice, custom: string): number | undefi
 }
 
 /**
- * MD-15 H05/H07 activity control card: the state, the buttons for it, and the countdown. An
+ * MD-15 H05/H07 activity control card: the state, the buttons for it, the countdown, and the live
+ * chart. This chart is for the host: it always shows, whatever the audience screen shows. An
  * activity starts only when the host presses Start: showing its slide does nothing.
  */
 export function ActivityControls({
   activity,
   run,
+  tally,
+  liveChart,
+  onLiveChart,
   now,
   onAct,
   onEditWording,
@@ -56,6 +64,9 @@ export function ActivityControls({
 }: {
   activity: LiveActivity;
   run: ActivityRunDto;
+  tally: PollTally;
+  liveChart: boolean;
+  onLiveChart: () => void;
   now: number;
   onAct: (action: ActivityAction, durationSeconds?: number) => Promise<void>;
   onEditWording: () => void;
@@ -97,8 +108,9 @@ export function ActivityControls({
     >
       <div className="flex flex-wrap items-center gap-3">
         <Badge tone={STATE_TONE[run.state]}>{t(`state.${run.state}`)}</Badge>
-        <h2 className="min-w-0 flex-1 truncate font-semibold">
-          {t(`kind.${activity.type}`)} · {activity.prompt}
+        <h2 className="flex min-w-0 flex-1 items-baseline gap-1 font-semibold">
+          <span className="shrink-0">{t(`kind.${activity.type}`)} ·</span>
+          <RichText source={activity.prompt} className="min-w-0 flex-1" />
         </h2>
         {left !== null && (
           <span
@@ -171,6 +183,21 @@ export function ActivityControls({
         </p>
       )}
       <p className="text-sm text-muted">{t(`hint.${run.state}`)}</p>
+      {activity.type === "poll" && run.state !== "draft" && (
+        <div className="flex flex-col gap-3 border-t border-neutral-200 pt-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="mr-auto text-sm font-semibold tabular-nums">
+              {t("answered", { count: tally.answered })}
+            </p>
+            {run.state === "live" && (
+              <Button variant="ghost" aria-pressed={liveChart} onClick={onLiveChart}>
+                {t("liveChart")} <Kbd>L</Kbd>
+              </Button>
+            )}
+          </div>
+          <PollChart options={activity.options} tally={tally} scale="panel" />
+        </div>
+      )}
     </section>
   );
 }

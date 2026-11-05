@@ -85,7 +85,7 @@ function slide(seq: number, index = seq): RoomEvent {
     seq,
     sessionId: SESSION,
     at: 0,
-    data: { slideId: `s${index}`, index },
+    data: { slideId: `s${index}`, index, activity: null },
   };
 }
 

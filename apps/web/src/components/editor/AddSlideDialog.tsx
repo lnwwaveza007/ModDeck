@@ -7,8 +7,8 @@ import { KindIcon, type TileKind } from "./KindIcon";
 
 /**
  * MD-15 H03 add-slide panel: a blank slide to fill with elements, then the activities. Live Poll
- * and Word Cloud add an activity slide now (R1-13 and R1-16 bring their editors); Q&A is a slot
- * for later.
+ * and Word Cloud add an activity slide (R1-16 brings the word cloud editor); Q&A is a slot for
+ * later.
  */
 export function AddSlideDialog({
   onAdd,

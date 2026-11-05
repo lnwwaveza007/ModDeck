@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
-import type { ParticipantMe } from "@moddeck/shared";
+import { useEffect, useRef, useState } from "react";
+import type { ParticipantMe, SlideActivityView, VoteResult } from "@moddeck/shared";
 import { LiveShell } from "@/components/shell/LiveShell";
 import { PagePlaceholder } from "@/components/shell/PagePlaceholder";
 import { Banner } from "@/components/ui/Banner";
@@ -11,7 +11,9 @@ import { buttonClass } from "@/components/ui/Button";
 import { ApiError } from "@/lib/api/client";
 import { getParticipantMe } from "@/lib/api/participants";
 import { LiveConnection, type ConnectionStatus } from "@/lib/realtime/live-connection";
+import { applyRoomEvent } from "@/lib/live/student-activity";
 import { LiveStatusProvider } from "@/lib/realtime/live-status";
+import { PollActivity, type SendVote } from "./PollActivity";
 
 type Stop = "notJoined" | "removed" | "ended" | "full" | "network";
 
@@ -26,8 +28,8 @@ function stopFor(error: unknown): Stop {
 
 /**
  * Student live screen (MD-15 S06). A late joiner starts from the slide the class is
- * on now: /participants/me gives it, then the socket keeps it current. Live polls
- * and word clouds plug in here when they are built.
+ * on now: /participants/me gives it, then the socket keeps it current. A poll on the
+ * current slide shows here once the host has started it. Word clouds plug in here too.
  */
 export function LiveSession({ sessionId }: { sessionId: string }) {
   const t = useTranslations("live");
@@ -35,14 +37,25 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
   const [stop, setStop] = useState<Stop | null>(null);
   const [status, setStatus] = useState<ConnectionStatus>("connecting");
   const [slideIndex, setSlideIndex] = useState<number | null>(null);
+  const [activity, setActivity] = useState<SlideActivityView | null>(null);
+  // Run id → the answer the server confirmed. The phone keeps it when the room moves on and back.
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const live = useRef<LiveConnection | undefined>(undefined);
 
   useEffect(() => {
     let active = true;
     let connection: LiveConnection | undefined;
     // Re-reads where the class is, for a snapshot after a (re)join.
+    const apply = (value: ParticipantMe) => {
+      setSlideIndex(value.currentSlide?.index ?? null);
+      setActivity(value.currentActivity);
+      const runId = value.currentActivity?.run?.activityRunId;
+      const answer = value.currentActivity?.myOptionId;
+      if (runId && answer) setAnswers((current) => ({ ...current, [runId]: answer }));
+    };
     const refresh = () =>
       getParticipantMe().then(
-        (value) => active && setSlideIndex(value.currentSlide?.index ?? null),
+        (value) => active && apply(value),
         () => undefined,
       );
 
@@ -52,7 +65,7 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
         // The cookie belongs to another session: this browser has not joined this one.
         if (value.sessionId !== sessionId) return setStop("notJoined");
         setMe(value);
-        setSlideIndex(value.currentSlide?.index ?? null);
+        apply(value);
         connection = new LiveConnection({
           sessionId,
           onStatus: (next) => {
@@ -63,6 +76,7 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
           onSnapshot: () => void refresh(),
           onEvent: (event) => {
             if (event.type === "slide_changed") setSlideIndex(event.data.index);
+            setActivity((current) => applyRoomEvent(current, event));
             if (event.type === "session_ended") setStop("ended");
           },
           onError: (error) => {
@@ -71,6 +85,7 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
             if (error.code === "SESSION_FULL") setStop("full");
           },
         });
+        live.current = connection;
         connection.connect();
       },
       (error: unknown) => {
@@ -79,6 +94,7 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
     );
     return () => {
       active = false;
+      live.current = undefined;
       connection?.close();
     };
   }, [sessionId]);
@@ -91,6 +107,13 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
       </p>
     );
   }
+
+  const sendVote: SendVote = async (payload) => {
+    if (!live.current) throw new Error("Not connected");
+    return live.current.send<VoteResult>("vote", payload);
+  };
+  const run = activity?.run;
+  const showPoll = activity?.activity.type === "poll" && run && run.state !== "draft";
 
   const statusText =
     status === "online"
@@ -115,14 +138,25 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
         status={statusText}
         banner={banner}
         activity={
-          <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
-            <p className="text-xl font-semibold">{t("lookAtScreen")}</p>
-            <p className="text-muted">
-              {slideIndex === null
-                ? t("startingSoon")
-                : t("slideOf", { index: slideIndex + 1, total: me.slideCount })}
-            </p>
-          </div>
+          showPoll ? (
+            <PollActivity
+              view={activity}
+              myOptionId={answers[run.activityRunId] ?? null}
+              onAnswered={(optionId) =>
+                setAnswers((current) => ({ ...current, [run.activityRunId]: optionId }))
+              }
+              send={sendVote}
+            />
+          ) : (
+            <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
+              <p className="text-xl font-semibold">{t("lookAtScreen")}</p>
+              <p className="text-muted">
+                {slideIndex === null
+                  ? t("startingSoon")
+                  : t("slideOf", { index: slideIndex + 1, total: me.slideCount })}
+              </p>
+            </div>
+          )
         }
         qa={<PagePlaceholder page="live" titled={false} />}
       />

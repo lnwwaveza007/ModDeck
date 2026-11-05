@@ -13,6 +13,8 @@ export interface ScreenLayers {
   join: boolean;
   /** The small corner bar with the join address and PIN (MD-15 P02). */
   joinBar: boolean;
+  /** The chart while voting is open. Starts from the session's "show results live" setting. */
+  liveChart: boolean;
 }
 
 const keyOf = (sessionId: string) => `moddeck:screen:${sessionId}`;
@@ -68,6 +70,7 @@ export function useScreenLayers(
   sessionId: string,
   slideId: string | null,
   onFirstSlide: boolean,
+  showResultsLive = false,
 ): [ScreenLayers, (next: Partial<ScreenLayers>) => void] {
   const key = keyOf(sessionId);
   const raw = useSyncExternalStore(
@@ -80,6 +83,7 @@ export function useScreenLayers(
     blank: stored.blank ?? false,
     join: stored.join ?? onFirstSlide,
     joinBar: stored.joinBar ?? true,
+    liveChart: stored.liveChart ?? showResultsLive,
   };
 
   const shownSlide = useRef(slideId);
