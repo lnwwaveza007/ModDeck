@@ -26,6 +26,8 @@ describe("activity state machine", () => {
     expect(nextActivityState("draft", "reopen")).toBeNull();
     expect(nextActivityState("results_shown", "stop")).toBeNull();
     expect(nextActivityState("results_shown", "show_results")).toBeNull();
+    expect(nextActivityState("results_shown", "hide_results")).toBe("closed");
+    expect(nextActivityState("closed", "hide_results")).toBeNull();
     expect(nextActivityState("live", "reopen")).toBeNull();
   });
 
@@ -33,7 +35,7 @@ describe("activity state machine", () => {
     expect(availableActivityActions("draft")).toEqual(["start"]);
     expect(availableActivityActions("live")).toEqual(["stop", "show_results"]);
     expect(availableActivityActions("closed")).toEqual(["show_results", "reopen"]);
-    expect(availableActivityActions("results_shown")).toEqual(["reopen"]);
+    expect(availableActivityActions("results_shown")).toEqual(["hide_results", "reopen"]);
   });
 });
 

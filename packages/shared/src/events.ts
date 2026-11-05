@@ -5,6 +5,7 @@
 
 import { z } from "zod";
 import type { ErrorBody } from "./errors";
+import type { PollTally, SlideActivityView } from "./live";
 
 // ---- Client -> server ----------------------------------------------------
 
@@ -27,13 +28,15 @@ export type ActivityRunState = "draft" | "live" | "closed" | "results_shown";
 // Data of each event broadcast to a session room. These events are numbered
 // and kept in the replay log.
 export interface RoomEventData {
-  slide_changed: { slideId: string; index: number };
+  // `activity`: the activity on that slide, so 300 phones need no request of their own to draw it.
+  slide_changed: { slideId: string; index: number; activity: SlideActivityView | null };
   // `endsAt`: countdown end in ms since epoch (server clock), or null without a timer.
   activity_state: {
     activityId: string;
     activityRunId: string;
     state: ActivityRunState;
     endsAt: number | null;
+    reopened: boolean;
   };
   // The host fixed the wording of an activity during the session.
   activity_edited: {
@@ -41,8 +44,8 @@ export interface RoomEventData {
     prompt: string;
     options: { id: string; label: string }[];
   };
-  // Coalesced per room, max 1 per 50 ms (MD-8).
-  vote_update: { activityRunId: string; votes: Record<string, number>; answered: number };
+  // Sent in batches, at most one per VOTE_BATCH_MS for each run.
+  vote_update: { activityRunId: string } & PollTally;
   word_update: { activityRunId: string; words: { text: string; count: number }[] };
   participant_count: { online: number; total: number };
   session_ended: { reason: "host" | "timeout" };
@@ -102,6 +105,7 @@ export type ServerToClientEvents = {
 
 export interface ClientToServerEvents {
   join: (payload: JoinPayload, ack: (reply: JoinAck) => void) => void;
+  vote: (payload: VotePayload, ack: (reply: AnswerAck<VoteResult>) => void) => void;
 }
 
 // ---- Answers: client-generated id for retries (MD-13) ----------------------
@@ -110,6 +114,19 @@ export interface ClientToServerEvents {
 // with crypto.randomUUID(). A retry after a lost ack re-sends the same id, so
 // the server counts the answer once.
 export const answerIdSchema = z.uuid();
+
+// A student's vote. A list because multiple choice comes later: today it holds one option.
+export const votePayloadSchema = z.object({
+  activityRunId: z.uuid(),
+  optionIds: z.array(z.uuid()).length(1),
+  answerId: answerIdSchema,
+});
+export type VotePayload = z.infer<typeof votePayloadSchema>;
+
+/** What counts for this student now. It differs from what they sent when their answer is locked. */
+export interface VoteResult {
+  optionIds: string[];
+}
 
 // Ack of an answer. `duplicate: true` means the server already had this
 // answerId: the answer counted on the first send and is not counted again.

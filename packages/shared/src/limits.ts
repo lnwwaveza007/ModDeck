@@ -9,6 +9,10 @@ export const MAX_PARTICIPANTS = 300;
 // further behind than this gets a snapshot instead.
 export const EVENT_LOG_SIZE = 500;
 
+// Vote counts go to a room at most this often per poll (100 to 200 ms, R1-13). Votes that arrive in
+// between travel together in the next update.
+export const VOTE_BATCH_MS = 150;
+
 // HttpOnly cookie that holds the participant token (MD-7, MD-13).
 export const PARTICIPANT_COOKIE = "moddeck_pt";
 

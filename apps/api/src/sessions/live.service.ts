@@ -9,22 +9,15 @@ import {
 } from "@moddeck/shared";
 import { z } from "zod";
 import { ApiException } from "../common/api-error";
-import type { ActivityRun } from "../generated/prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
+import { PollFlusherService } from "../realtime/poll-flusher.service";
+import { PollStoreService, runRowSelect, toRunDto } from "../realtime/poll-store.service";
 import { RoomEventsService } from "../realtime/room-events.service";
+import { VoteBatcherService } from "../realtime/vote-batcher.service";
 import { toSlideDto } from "../slides/slide.mapper";
 
 const uuid = z.uuid();
 const sessionNotFound = () => new ApiException(404, "NOT_FOUND", "Session not found");
-
-type RunRow = Pick<ActivityRun, "id" | "activityId" | "state" | "endsAt">;
-
-const toRunDto = (run: RunRow): ActivityRunDto => ({
-  activityId: run.activityId,
-  activityRunId: run.id,
-  state: run.state,
-  endsAt: run.endsAt ? run.endsAt.getTime() : null,
-});
 
 /**
  * Running a live session from presenter control: which slide the room is on, and the state of
@@ -41,6 +34,9 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly prisma: PrismaService,
     private readonly events: RoomEventsService,
+    private readonly polls: PollStoreService,
+    private readonly flusher: PollFlusherService,
+    private readonly voteBatcher: VoteBatcherService,
   ) {}
 
   // After a restart, arm the countdowns that are still running.
@@ -70,6 +66,7 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
               id: true,
               type: true,
               prompt: true,
+              allowAnswerChange: true,
               options: { orderBy: { position: "asc" }, select: { id: true, label: true } },
             },
           },
@@ -77,10 +74,13 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
       }),
       this.prisma.activityRun.findMany({
         where: { sessionId },
-        select: { id: true, activityId: true, state: true, endsAt: true },
+        select: { ...runRowSelect, activity: { select: { type: true } } },
       }),
       this.prisma.participant.count({ where: { sessionId, status: "active" } }),
     ]);
+
+    const pollRuns = runs.filter((run) => run.activity.type === "poll");
+    const tallies = await Promise.all(pollRuns.map((run) => this.polls.tally(sessionId, run.id)));
 
     return {
       id: session.id,
@@ -93,13 +93,12 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
       serverNow: Date.now(),
       currentSlideId: session.currentSlideId,
       slides: slides.map((slide): LiveSlide => {
-        const { id, position, kind, elements } = toSlideDto({
-          ...slide,
-          activity: slide.activity && { type: slide.activity.type, prompt: slide.activity.prompt },
-        });
+        const { id, position, kind, elements } = toSlideDto(slide);
         return { id, position, kind, elements, activity: slide.activity };
       }),
       runs: runs.map(toRunDto),
+      tallies: Object.fromEntries(pollRuns.map((run, i) => [run.id, tallies[i]])),
+      showResultsLive: (session.settings as { showResultsLive?: boolean }).showResultsLive === true,
       participantCount,
     };
   }
@@ -127,6 +126,7 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
     await this.events.publish(sessionId, "slide_changed", {
       slideId: slide.id,
       index: slide.position,
+      activity: await this.polls.slideActivity(sessionId, slide.id),
     });
     return { currentSlideId: slide.id, index: slide.position };
   }
@@ -142,7 +142,7 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
     const activity = uuid.safeParse(activityId).success
       ? await this.prisma.activity.findFirst({
           where: { id: activityId, slide: { deckId: session.deckId } },
-          select: { id: true },
+          select: { id: true, type: true },
         })
       : null;
     if (!activity) throw new ApiException(404, "NOT_FOUND", "Activity not found");
@@ -150,7 +150,7 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
     await this.expireDue(sessionId);
     const run = await this.prisma.activityRun.findUnique({
       where: { sessionId_activityId: { sessionId, activityId } },
-      select: { id: true, activityId: true, state: true, endsAt: true },
+      select: runRowSelect,
     });
     const from: ActivityRunState = run?.state ?? "draft";
     const to = nextActivityState(from, action);
@@ -177,12 +177,12 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
       ...(to !== "live" && from === "live" && { closedAt: now }),
     };
 
-    let updated: RunRow;
+    let updated: NonNullable<typeof run>;
     if (!run) {
       try {
         updated = await this.prisma.activityRun.create({
           data: { sessionId, activityId, ...data },
-          select: { id: true, activityId: true, state: true, endsAt: true },
+          select: runRowSelect,
         });
       } catch (error) {
         // Another request created the run first (a double click): its state wins.
@@ -196,14 +196,30 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
         data,
       });
       if (count === 0) throw this.raced(action);
-      updated = { ...run, state: to, endsAt };
+      updated = {
+        ...run,
+        state: to,
+        endsAt,
+        lastReopenedAt: action === "reopen" ? now : run.lastReopenedAt,
+      };
     }
 
     this.disarm(updated.id);
     if (endsAt) this.arm(sessionId, updated.id, endsAt);
     const dto = toRunDto(updated);
+    if (activity.type === "poll") await this.applyToPoll(sessionId, updated.id, to);
     await this.events.publish(sessionId, "activity_state", dto);
+    if (activity.type === "poll") await this.voteBatcher.publishNow(sessionId, updated.id);
     return dto;
+  }
+
+  /**
+   * Redis takes the new state first, so no vote gets in after a close. The room then hears of a
+   * close only when every answer is in PostgreSQL (technical design §5.3).
+   */
+  private async applyToPoll(sessionId: string, runId: string, state: ActivityRunState) {
+    await this.polls.syncRun(sessionId, runId);
+    if (state !== "live") await this.flusher.finalFlush(sessionId);
   }
 
   // ----- countdown timer -----
@@ -237,9 +253,12 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
     if (count === 0) return;
     const run = await this.prisma.activityRun.findUniqueOrThrow({
       where: { id: runId },
-      select: { id: true, activityId: true, state: true, endsAt: true },
+      select: { ...runRowSelect, activity: { select: { type: true } } },
     });
+    const poll = run.activity.type === "poll";
+    if (poll) await this.applyToPoll(sessionId, runId, run.state);
     await this.events.publish(sessionId, "activity_state", toRunDto(run));
+    if (poll) await this.voteBatcher.publishNow(sessionId, runId);
   }
 
   /** Stops every run whose countdown has passed, in case no timer fired (a restart, a crash). */
@@ -266,6 +285,7 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
         status: true,
         deckId: true,
         startedAt: true,
+        settings: true,
         currentSlideId: true,
         deck: { select: { title: true } },
       },

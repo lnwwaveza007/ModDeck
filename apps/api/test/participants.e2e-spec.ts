@@ -352,6 +352,7 @@ describe("student join (e2e)", () => {
         status: "live",
         slideCount: 3,
         currentSlide: { id: slideIds[1], index: 1 },
+        currentActivity: null,
       });
 
       // The live socket accepts the cookie and starts from the current slide.

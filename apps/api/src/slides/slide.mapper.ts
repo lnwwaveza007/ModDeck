@@ -6,9 +6,18 @@ import {
 } from "@moddeck/shared";
 import type { Prisma } from "../generated/prisma/client";
 
-// Slide rows always come with the activity wording, so the editor can name an activity slide.
+// Slide rows always come with the activity wording, so the editor can show and edit it.
 export const slideArgs = {
-  include: { activity: { select: { type: true, prompt: true } } },
+  include: {
+    activity: {
+      select: {
+        id: true,
+        type: true,
+        prompt: true,
+        options: { orderBy: { position: "asc" }, select: { id: true, label: true } },
+      },
+    },
+  },
 } satisfies Prisma.SlideDefaultArgs;
 
 type SlideRow = Prisma.SlideGetPayload<typeof slideArgs>;
@@ -36,7 +45,12 @@ export function toSlideDto(slide: SlideRow): SlideDto {
     position: slide.position,
     kind,
     elements: kind === "content" ? readElements(slide.elements) : [],
-    activity: slide.activity,
+    activity: slide.activity && {
+      id: slide.activity.id,
+      type: slide.activity.type,
+      prompt: slide.activity.prompt,
+      options: slide.activity.options,
+    },
     updatedAt: slide.updatedAt.toISOString(),
   };
 }

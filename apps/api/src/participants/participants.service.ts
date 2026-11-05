@@ -13,6 +13,7 @@ import { ApiException } from "../common/api-error";
 import type { Prisma } from "../generated/prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { hashToken } from "../realtime/participant-token";
+import { PollStoreService } from "../realtime/poll-store.service";
 import { PresenceService } from "../realtime/presence.service";
 import { SessionsService } from "../sessions/sessions.service";
 
@@ -56,6 +57,7 @@ export class ParticipantsService {
     private readonly prisma: PrismaService,
     private readonly sessions: SessionsService,
     private readonly presence: PresenceService,
+    private readonly polls: PollStoreService,
   ) {}
 
   /** GET /pins/{pin}. `token` is the participant cookie, if any. */
@@ -225,12 +227,19 @@ export class ParticipantsService {
           })
         : Promise.resolve(0),
     ]);
+    const view = session.currentSlide
+      ? await this.polls.slideActivity(participant.sessionId, session.currentSlide.id)
+      : null;
+    const myOptionId = view?.run
+      ? await this.polls.answerOf(participant.sessionId, view.run.activityRunId, participant.id)
+      : null;
     return {
       ...toResult(participant),
       title: session.deck.title,
       status: session.status,
       slideCount,
       currentSlide: session.currentSlide ? { id: session.currentSlide.id, index } : null,
+      currentActivity: view && { ...view, myOptionId },
     };
   }
 

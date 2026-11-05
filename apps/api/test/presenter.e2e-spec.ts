@@ -238,7 +238,7 @@ describe("presenter control (e2e)", () => {
         .expect(200, { currentSlideId: target.id, index: 2 });
 
       for (const { e, at } of await Promise.all([onScreen, onPhone])) {
-        expect(e.data).toEqual({ slideId: target.id, index: 2 });
+        expect(e.data).toMatchObject({ slideId: target.id, index: 2 });
         expect(at - sentAt).toBeLessThan(FOLLOW_BUDGET_MS);
       }
       const view = (await as(hostA, api().get(`/sessions/${sessionId}/live`)).expect(200))
@@ -283,6 +283,7 @@ describe("presenter control (e2e)", () => {
         id: poll.id,
         type: "poll",
         prompt: "Which one?",
+        allowAnswerChange: false,
         options: poll.options.map(({ id, label }) => ({ id, label })),
       });
       expect(view.currentSlideId).toBe(view.slides[0].id);

@@ -3,6 +3,8 @@ import { ApiException } from "../common/api-error";
 import type { PrismaService } from "../prisma/prisma.service";
 import type { RoomEventsService } from "../realtime/room-events.service";
 import { SessionsService } from "./sessions.service";
+import type { PollFlusherService } from "../realtime/poll-flusher.service";
+import type { PollStoreService } from "../realtime/poll-store.service";
 
 const OWNER = "owner-1";
 const SESSION = "session-1";
@@ -25,10 +27,14 @@ function setup(row: Partial<Row> | null) {
     del: jest.fn(async () => 1),
   };
   const events = { publish: jest.fn(async () => undefined) };
+  const polls = { syncRun: jest.fn(async () => true) };
+  const flusher = { finalFlush: jest.fn(async () => undefined) };
   const service = new SessionsService(
-    { session } as unknown as PrismaService,
+    { session, activityRun: { findMany: jest.fn(async () => []) } } as unknown as PrismaService,
     redis as unknown as Redis,
     events as unknown as RoomEventsService,
+    polls as unknown as PollStoreService,
+    flusher as unknown as PollFlusherService,
   );
   return { service, session, redis, events };
 }

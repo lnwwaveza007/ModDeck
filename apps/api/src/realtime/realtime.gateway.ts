@@ -12,15 +12,20 @@ import {
 import {
   PRESENCE_HEARTBEAT_MS,
   joinPayloadSchema,
+  votePayloadSchema,
+  type AnswerAck,
   type ErrorBody,
   type JoinAck,
+  type VoteResult,
 } from "@moddeck/shared";
 import { MetricsService } from "../metrics/metrics.service";
 import { hostTokenFromHandshake, tokenFromHandshake, wantsHostRole } from "./participant-token";
+import { PollStoreService } from "./poll-store.service";
 import { PresenceService } from "./presence.service";
 import { RoomAuthError, RoomAuthService } from "./room-auth.service";
 import { RoomEventsService, roomName } from "./room-events.service";
 import type { RealtimeServer, RealtimeSocket, SocketData } from "./realtime.types";
+import { VoteBatcherService } from "./vote-batcher.service";
 
 interface EnginePacketSource {
   on(event: "packetCreate", cb: (packet: { type: string }) => void): void;
@@ -41,6 +46,8 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     private readonly roomEvents: RoomEventsService,
     private readonly metrics: MetricsService,
     private readonly presence: PresenceService,
+    private readonly polls: PollStoreService,
+    private readonly voteBatcher: VoteBatcherService,
   ) {}
 
   // One heartbeat timer per connected socket.
@@ -150,6 +157,53 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     return { ok: true, ...state };
   }
 
+  // A student's vote. The ack is what lets the phone say "Answer sent" (MD-5 rule 6). The session
+  // and the participant come from the handshake, never from the payload.
+  @SubscribeMessage("vote")
+  async handleVote(
+    @ConnectedSocket() client: RealtimeSocket,
+    @MessageBody() payload: unknown,
+  ): Promise<AnswerAck<VoteResult>> {
+    const { identity } = client.data;
+    if (identity.role !== "participant") {
+      return voteError("ROOM_FORBIDDEN", "Only a participant can vote");
+    }
+    const parsed = votePayloadSchema.safeParse(payload);
+    if (!parsed.success) {
+      return voteError(
+        "INVALID_PAYLOAD",
+        "vote needs { activityRunId: uuid, optionIds: [uuid], answerId: uuid }",
+      );
+    }
+    const { activityRunId, optionIds, answerId } = parsed.data;
+    try {
+      const outcome = await this.polls.submit(
+        identity.sessionId,
+        identity.participantId,
+        activityRunId,
+        optionIds[0],
+        answerId,
+      );
+      switch (outcome.status) {
+        case "accepted":
+          this.voteBatcher.schedule(identity.sessionId, activityRunId);
+          return { ok: true, duplicate: false, result: { optionIds: [outcome.optionId] } };
+        case "duplicate":
+          return { ok: true, duplicate: true, result: { optionIds: [outcome.optionId] } };
+        case "closed":
+          return voteError("ACTIVITY_CLOSED", "Voting has closed");
+        case "bad_option":
+          return voteError("INVALID_PAYLOAD", "The option is not in this poll");
+        case "not_found":
+          return voteError("NOT_FOUND", "This poll is not running in your session");
+      }
+    } catch (err) {
+      // Safe to send again: the answerId keeps it from counting twice.
+      this.logger.error(`Vote failed: ${String(err)}`);
+      return voteError("INTERNAL", "Could not save the vote");
+    }
+  }
+
   private async reject(
     client: RealtimeSocket,
     sessionId: string | null,
@@ -160,6 +214,10 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     client.emit("error", { ...error, seq });
     return { ok: false, error };
   }
+}
+
+function voteError(code: ErrorBody["code"], message: string): AnswerAck<VoteResult> {
+  return { ok: false, error: { code, message } };
 }
 
 function toErrorBody(err: unknown): ErrorBody {
