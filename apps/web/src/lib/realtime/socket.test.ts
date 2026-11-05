@@ -17,6 +17,15 @@ describe("createSessionSocket", () => {
     socket.close();
   });
 
+  it("asks for the host role only when told to", () => {
+    const student = createSessionSocket("http://localhost:4000");
+    const host = createSessionSocket("http://localhost:4000", "host");
+    expect(student.auth).toBeFalsy();
+    expect(host.auth).toEqual({ role: "host" });
+    student.close();
+    host.close();
+  });
+
   it("uses the shared event schema", () => {
     // The same schema the api validates `join` with.
     expect(

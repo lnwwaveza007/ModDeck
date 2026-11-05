@@ -1,15 +1,17 @@
 import { Injectable } from "@nestjs/common";
 import type { ErrorCode } from "@moddeck/shared";
+import { AuthService } from "../auth/auth.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { hashToken } from "./participant-token";
 import { PresenceService } from "./presence.service";
 
-// Who a socket is. Set once in the handshake and never taken from a payload,
-// so a socket can only ever join the room of its own token's session.
-export interface SocketIdentity {
-  participantId: string;
-  sessionId: string;
-}
+// Who a socket is. Set once in the handshake and never taken from a payload.
+// A participant can only ever join the room of its own token's session. A host
+// (presenter control, audience screen) can join the rooms of sessions they own,
+// checked at join time.
+export type SocketIdentity =
+  | { role: "participant"; participantId: string; sessionId: string }
+  | { role: "host"; userId: string };
 
 export class RoomAuthError extends Error {
   constructor(
@@ -25,6 +27,7 @@ export class RoomAuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly presence: PresenceService,
+    private readonly auth: AuthService,
   ) {}
 
   async authenticate(token: string | undefined, now = new Date()): Promise<SocketIdentity> {
@@ -55,6 +58,26 @@ export class RoomAuthService {
     if (!(await this.presence.canSeat(participant, this.prisma, now))) {
       throw new RoomAuthError("SESSION_FULL", "Session is full");
     }
-    return { participantId: participant.id, sessionId: participant.sessionId };
+    return { role: "participant", participantId: participant.id, sessionId: participant.sessionId };
+  }
+
+  /** The host login cookie. The socket does not renew it: the REST calls of the same page do. */
+  async authenticateHost(token: string | undefined): Promise<SocketIdentity> {
+    if (!token) throw new RoomAuthError("UNAUTHORIZED", "Missing host login");
+    const result = await this.auth.authenticate(token);
+    if (!result) throw new RoomAuthError("UNAUTHORIZED", "Host login has expired");
+    return { role: "host", userId: result.user.id };
+  }
+
+  /** A host may join the room of a session they own while it is open. */
+  async assertHostCanJoin(userId: string, sessionId: string): Promise<void> {
+    const session = await this.prisma.session.findUnique({
+      where: { id: sessionId },
+      select: { ownerId: true, endedAt: true },
+    });
+    if (!session || session.ownerId !== userId) {
+      throw new RoomAuthError("ROOM_FORBIDDEN", "This session belongs to another host");
+    }
+    if (session.endedAt) throw new RoomAuthError("SESSION_ENDED", "Session has ended");
   }
 }

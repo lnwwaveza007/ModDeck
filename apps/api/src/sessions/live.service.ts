@@ -1,0 +1,288 @@
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+import {
+  nextActivityState,
+  type ActivityActionBody,
+  type ActivityRunDto,
+  type ActivityRunState,
+  type LiveSessionView,
+  type LiveSlide,
+} from "@moddeck/shared";
+import { z } from "zod";
+import { ApiException } from "../common/api-error";
+import type { ActivityRun } from "../generated/prisma/client";
+import { PrismaService } from "../prisma/prisma.service";
+import { RoomEventsService } from "../realtime/room-events.service";
+import { toSlideDto } from "../slides/slide.mapper";
+
+const uuid = z.uuid();
+const sessionNotFound = () => new ApiException(404, "NOT_FOUND", "Session not found");
+
+type RunRow = Pick<ActivityRun, "id" | "activityId" | "state" | "endsAt">;
+
+const toRunDto = (run: RunRow): ActivityRunDto => ({
+  activityId: run.activityId,
+  activityRunId: run.id,
+  state: run.state,
+  endsAt: run.endsAt ? run.endsAt.getTime() : null,
+});
+
+/**
+ * Running a live session from presenter control: which slide the room is on, and the state of
+ * each activity (start, stop, show results, reopen, countdown timer). Every change is broadcast
+ * to the session room, so the audience screen and the student phones follow.
+ */
+@Injectable()
+export class LiveService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(LiveService.name);
+  // Countdown timers of this instance, by run id. Every instance arms the timers it knows of;
+  // the guarded write in expire() makes sure only one of them stops the activity.
+  private readonly timers = new Map<string, NodeJS.Timeout>();
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly events: RoomEventsService,
+  ) {}
+
+  // After a restart, arm the countdowns that are still running.
+  async onModuleInit() {
+    const runs = await this.prisma.activityRun.findMany({
+      where: { state: "live", endsAt: { not: null }, session: { status: { not: "ended" } } },
+      select: { id: true, sessionId: true, endsAt: true },
+    });
+    for (const run of runs) this.arm(run.sessionId, run.id, run.endsAt!);
+  }
+
+  onModuleDestroy() {
+    for (const timer of this.timers.values()) clearTimeout(timer);
+    this.timers.clear();
+  }
+
+  async view(ownerId: string, sessionId: string): Promise<LiveSessionView> {
+    const session = await this.ownedSession(ownerId, sessionId);
+    await this.expireDue(sessionId);
+    const [slides, runs, participantCount] = await Promise.all([
+      this.prisma.slide.findMany({
+        where: { deckId: session.deckId },
+        orderBy: { position: "asc" },
+        include: {
+          activity: {
+            select: {
+              id: true,
+              type: true,
+              prompt: true,
+              options: { orderBy: { position: "asc" }, select: { id: true, label: true } },
+            },
+          },
+        },
+      }),
+      this.prisma.activityRun.findMany({
+        where: { sessionId },
+        select: { id: true, activityId: true, state: true, endsAt: true },
+      }),
+      this.prisma.participant.count({ where: { sessionId, status: "active" } }),
+    ]);
+
+    return {
+      id: session.id,
+      deckId: session.deckId,
+      pin: session.pin,
+      status: session.status,
+      title: session.deck.title,
+      joinUrl: `${process.env.WEB_ORIGIN ?? "http://localhost:3000"}/j/${session.pin}`,
+      startedAt: session.startedAt.toISOString(),
+      serverNow: Date.now(),
+      currentSlideId: session.currentSlideId,
+      slides: slides.map((slide): LiveSlide => {
+        const { id, position, kind, elements } = toSlideDto({
+          ...slide,
+          activity: slide.activity && { type: slide.activity.type, prompt: slide.activity.prompt },
+        });
+        return { id, position, kind, elements, activity: slide.activity };
+      }),
+      runs: runs.map(toRunDto),
+      participantCount,
+    };
+  }
+
+  /** Moves the room to a slide of the session's deck. Showing an activity never starts it. */
+  async moveTo(ownerId: string, sessionId: string, slideId: string) {
+    const session = await this.ownedSession(ownerId, sessionId);
+    this.assertOpen(session.status);
+    const slide = uuid.safeParse(slideId).success
+      ? await this.prisma.slide.findFirst({
+          where: { id: slideId, deckId: session.deckId },
+          select: { id: true, position: true },
+        })
+      : null;
+    if (!slide) {
+      throw new ApiException(422, "INVALID_PAYLOAD", "The slide is not in this deck", {
+        field: "currentSlideId",
+      });
+    }
+    await this.prisma.session.update({
+      where: { id: sessionId },
+      data: { currentSlideId: slide.id },
+      select: { id: true },
+    });
+    await this.events.publish(sessionId, "slide_changed", {
+      slideId: slide.id,
+      index: slide.position,
+    });
+    return { currentSlideId: slide.id, index: slide.position };
+  }
+
+  async act(
+    ownerId: string,
+    sessionId: string,
+    activityId: string,
+    { action, durationSeconds }: ActivityActionBody,
+  ): Promise<ActivityRunDto> {
+    const session = await this.ownedSession(ownerId, sessionId);
+    this.assertOpen(session.status);
+    const activity = uuid.safeParse(activityId).success
+      ? await this.prisma.activity.findFirst({
+          where: { id: activityId, slide: { deckId: session.deckId } },
+          select: { id: true },
+        })
+      : null;
+    if (!activity) throw new ApiException(404, "NOT_FOUND", "Activity not found");
+
+    await this.expireDue(sessionId);
+    const run = await this.prisma.activityRun.findUnique({
+      where: { sessionId_activityId: { sessionId, activityId } },
+      select: { id: true, activityId: true, state: true, endsAt: true },
+    });
+    const from: ActivityRunState = run?.state ?? "draft";
+    const to = nextActivityState(from, action);
+    if (!to) {
+      throw new ApiException(
+        409,
+        "INVALID_TRANSITION",
+        `Cannot ${action} an activity that is ${from}`,
+        {
+          state: from,
+          action,
+        },
+      );
+    }
+
+    const now = new Date();
+    const endsAt =
+      to === "live" && durationSeconds ? new Date(now.getTime() + durationSeconds * 1000) : null;
+    const data = {
+      state: to,
+      endsAt,
+      ...(action === "start" && { firstOpenedAt: now }),
+      ...(action === "reopen" && { lastReopenedAt: now }),
+      ...(to !== "live" && from === "live" && { closedAt: now }),
+    };
+
+    let updated: RunRow;
+    if (!run) {
+      try {
+        updated = await this.prisma.activityRun.create({
+          data: { sessionId, activityId, ...data },
+          select: { id: true, activityId: true, state: true, endsAt: true },
+        });
+      } catch (error) {
+        // Another request created the run first (a double click): its state wins.
+        if ((error as { code?: string }).code === "P2002") throw this.raced(action);
+        throw error;
+      }
+    } else {
+      // Guarded on the state we read, so two presses at once cannot both apply.
+      const { count } = await this.prisma.activityRun.updateMany({
+        where: { id: run.id, state: from },
+        data,
+      });
+      if (count === 0) throw this.raced(action);
+      updated = { ...run, state: to, endsAt };
+    }
+
+    this.disarm(updated.id);
+    if (endsAt) this.arm(sessionId, updated.id, endsAt);
+    const dto = toRunDto(updated);
+    await this.events.publish(sessionId, "activity_state", dto);
+    return dto;
+  }
+
+  // ----- countdown timer -----
+
+  private arm(sessionId: string, runId: string, endsAt: Date) {
+    this.disarm(runId);
+    const delay = Math.max(0, endsAt.getTime() - Date.now());
+    const timer = setTimeout(() => {
+      this.timers.delete(runId);
+      this.expire(sessionId, runId, endsAt).catch((err: unknown) => {
+        this.logger.error(
+          `Could not stop activity run ${runId} at the end of its timer: ${String(err)}`,
+        );
+      });
+    }, delay);
+    timer.unref();
+    this.timers.set(runId, timer);
+  }
+
+  private disarm(runId: string) {
+    clearTimeout(this.timers.get(runId));
+    this.timers.delete(runId);
+  }
+
+  /** Stops the run if it is still live on the same countdown. Only one instance wins the write. */
+  private async expire(sessionId: string, runId: string, endsAt: Date) {
+    const { count } = await this.prisma.activityRun.updateMany({
+      where: { id: runId, state: "live", endsAt },
+      data: { state: "closed", endsAt: null, closedAt: new Date() },
+    });
+    if (count === 0) return;
+    const run = await this.prisma.activityRun.findUniqueOrThrow({
+      where: { id: runId },
+      select: { id: true, activityId: true, state: true, endsAt: true },
+    });
+    await this.events.publish(sessionId, "activity_state", toRunDto(run));
+  }
+
+  /** Stops every run whose countdown has passed, in case no timer fired (a restart, a crash). */
+  private async expireDue(sessionId: string) {
+    const due = await this.prisma.activityRun.findMany({
+      where: { sessionId, state: "live", endsAt: { lte: new Date() } },
+      select: { id: true, endsAt: true },
+    });
+    for (const run of due) {
+      this.disarm(run.id);
+      await this.expire(sessionId, run.id, run.endsAt!);
+    }
+  }
+
+  // ----- guards -----
+
+  private async ownedSession(ownerId: string, sessionId: string) {
+    if (!uuid.safeParse(sessionId).success) throw sessionNotFound();
+    const session = await this.prisma.session.findFirst({
+      where: { id: sessionId, ownerId },
+      select: {
+        id: true,
+        pin: true,
+        status: true,
+        deckId: true,
+        startedAt: true,
+        currentSlideId: true,
+        deck: { select: { title: true } },
+      },
+    });
+    if (!session) throw sessionNotFound();
+    return session;
+  }
+
+  private assertOpen(status: string) {
+    if (status === "ended") throw new ApiException(409, "SESSION_ENDED", "The session has ended");
+  }
+
+  private raced(action: string) {
+    return new ApiException(
+      409,
+      "INVALID_TRANSITION",
+      `Another change reached the activity before this ${action}`,
+    );
+  }
+}

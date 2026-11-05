@@ -1,16 +1,29 @@
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import {
+  activityActionBodySchema,
+  currentSlideBodySchema,
+  type ActivityActionBody,
+} from "@moddeck/shared";
 import { z } from "zod";
 import { AuthGuard } from "../auth/auth.guard";
 import { CurrentUser } from "../auth/current-user.decorator";
 import type { AuthUser } from "../auth/auth.types";
 import { ZodBody } from "../common/api-error";
+import { LiveService } from "./live.service";
 import { SessionsService } from "./sessions.service";
 
-const sessionStateSchema = z.object({ status: z.enum(["live", "ended"]) });
+// PATCH /sessions/{id} takes one change at a time: end the session, or move to a slide.
+const sessionPatchSchema = z.union([
+  z.object({ status: z.literal("ended") }).strict(),
+  currentSlideBodySchema.strict(),
+]);
 
 @Controller()
 export class SessionsController {
-  constructor(private readonly sessions: SessionsService) {}
+  constructor(
+    private readonly sessions: SessionsService,
+    private readonly live: LiveService,
+  ) {}
 
   @Post("decks/:deckId/sessions")
   @UseGuards(AuthGuard)
@@ -30,14 +43,33 @@ export class SessionsController {
     return this.sessions.get(user.id, id);
   }
 
+  // Presenter control and the audience screen start from this, then follow the socket.
+  @Get("sessions/:sessionId/live")
+  @UseGuards(AuthGuard)
+  liveView(@CurrentUser() user: AuthUser, @Param("sessionId") id: string) {
+    return this.live.view(user.id, id);
+  }
+
   @Patch("sessions/:sessionId")
   @UseGuards(AuthGuard)
-  updateState(
+  update(
     @CurrentUser() user: AuthUser,
     @Param("sessionId") id: string,
-    @Body(new ZodBody(sessionStateSchema)) body: z.infer<typeof sessionStateSchema>,
+    @Body(new ZodBody(sessionPatchSchema)) body: z.infer<typeof sessionPatchSchema>,
   ) {
-    if (body.status === "ended") return this.sessions.requestEnd(user.id, id);
-    return this.sessions.undoEnd(user.id, id);
+    if ("currentSlideId" in body) return this.live.moveTo(user.id, id, body.currentSlideId);
+    return this.sessions.end(user.id, id);
+  }
+
+  // Start, stop, show results, reopen (with an optional countdown).
+  @Patch("sessions/:sessionId/activities/:activityId")
+  @UseGuards(AuthGuard)
+  act(
+    @CurrentUser() user: AuthUser,
+    @Param("sessionId") id: string,
+    @Param("activityId") activityId: string,
+    @Body(new ZodBody(activityActionBodySchema)) body: ActivityActionBody,
+  ) {
+    return this.live.act(user.id, id, activityId, body);
   }
 }

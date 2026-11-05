@@ -16,7 +16,7 @@ import {
   type SessionSnapshot,
   type StatePayload,
 } from "@moddeck/shared";
-import { createSessionSocket, type SessionSocket } from "./socket";
+import { createSessionSocket, type SessionSocket, type SocketRole } from "./socket";
 
 export type ConnectionStatus = "connecting" | "online" | "reconnecting" | "offline" | "ended";
 
@@ -31,6 +31,8 @@ export interface LiveConnectionOptions {
   onSnapshot?: (snapshot: SessionSnapshot) => void;
   onStatus?: (status: ConnectionStatus) => void;
   onError?: (error: ErrorBody) => void;
+  /** "host" for presenter control and the audience screen. */
+  role?: SocketRole;
   /** Injected in tests. */
   socket?: SessionSocket;
 }
@@ -68,7 +70,7 @@ export class LiveConnection {
   private onlineWaiters: { resolve: () => void; reject: (error: SendError) => void }[] = [];
 
   constructor(private readonly options: LiveConnectionOptions) {
-    this.socket = options.socket ?? createSessionSocket();
+    this.socket = options.socket ?? createSessionSocket(undefined, options.role);
     this.seq = options.lastSeq ?? 0;
   }
 

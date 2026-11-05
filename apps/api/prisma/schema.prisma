@@ -320,6 +320,7 @@ model ActivityRun {
   firstOpenedAt  DateTime?        @map("first_opened_at") @db.Timestamptz(3)
   lastReopenedAt DateTime?        @map("last_reopened_at") @db.Timestamptz(3)
   closedAt       DateTime?        @map("closed_at") @db.Timestamptz(3)
+  endsAt         DateTime?        @map("ends_at") @db.Timestamptz(3) // countdown end while live
 
   session     Session     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   activity    Activity    @relation(fields: [activityId], references: [id], onDelete: Cascade)

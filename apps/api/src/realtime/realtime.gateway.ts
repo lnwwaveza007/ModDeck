@@ -16,11 +16,11 @@ import {
   type JoinAck,
 } from "@moddeck/shared";
 import { MetricsService } from "../metrics/metrics.service";
-import { tokenFromHandshake } from "./participant-token";
+import { hostTokenFromHandshake, tokenFromHandshake, wantsHostRole } from "./participant-token";
 import { PresenceService } from "./presence.service";
 import { RoomAuthError, RoomAuthService } from "./room-auth.service";
 import { RoomEventsService, roomName } from "./room-events.service";
-import type { RealtimeServer, RealtimeSocket } from "./realtime.types";
+import type { RealtimeServer, RealtimeSocket, SocketData } from "./realtime.types";
 
 interface EnginePacketSource {
   on(event: "packetCreate", cb: (packet: { type: string }) => void): void;
@@ -49,11 +49,15 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   afterInit(server: RealtimeServer) {
     this.roomEvents.attach(server);
 
-    // Handshake: a socket without a valid participant token never connects.
-    // The rejection reaches the client as connect_error with `data.code`.
+    // Handshake: a socket without a valid participant token (or, when it asks
+    // for the host role, a valid host login) never connects. The rejection
+    // reaches the client as connect_error with `data.code`.
     server.use((socket, next) => {
-      this.auth
-        .authenticate(tokenFromHandshake(socket.handshake))
+      const { handshake } = socket;
+      const identity = wantsHostRole(handshake)
+        ? this.auth.authenticateHost(hostTokenFromHandshake(handshake))
+        : this.auth.authenticate(tokenFromHandshake(handshake));
+      identity
         .then((identity) => {
           socket.data.identity = identity;
           next();
@@ -79,7 +83,10 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     client.onAny((event: string) => this.metrics.messagesReceived.inc({ event }));
 
     // Presence: the seat hold of 15 min counts from the last time we saw the socket.
-    const { participantId } = client.data.identity;
+    // A host holds no seat.
+    const { identity } = client.data;
+    if (identity.role !== "participant") return;
+    const { participantId } = identity;
     this.touch(participantId);
     this.heartbeats.set(
       client.id,
@@ -92,8 +99,8 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     clearInterval(this.heartbeats.get(client.id));
     this.heartbeats.delete(client.id);
     // A socket that failed the handshake has no identity.
-    const participantId = client.data.identity?.participantId;
-    if (participantId) this.touch(participantId);
+    const identity = client.data.identity as SocketData["identity"] | undefined;
+    if (identity?.role === "participant") this.touch(identity.participantId);
   }
 
   // A failed write only makes the hold start a little early, so it is logged, not thrown.
@@ -104,26 +111,37 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   }
 
   // First message after every (re)connect. Joins the room of the socket's own
-  // session and returns the state to continue from (MD-13).
+  // session (a host: of a session they own) and returns the state to continue
+  // from (MD-13).
   @SubscribeMessage("join")
   async handleJoin(
     @ConnectedSocket() client: RealtimeSocket,
     @MessageBody() payload: unknown,
   ): Promise<JoinAck> {
-    const { sessionId } = client.data.identity;
+    const { identity } = client.data;
 
     const parsed = joinPayloadSchema.safeParse(payload);
     if (!parsed.success) {
-      return this.reject(client, {
+      return this.reject(client, null, {
         code: "INVALID_PAYLOAD",
         message: "join needs { sessionId: uuid, lastSeq?: integer >= 0 }",
       });
     }
-    if (parsed.data.sessionId !== sessionId) {
-      return this.reject(client, {
+    const { sessionId } = parsed.data;
+    if (identity.role === "participant" && sessionId !== identity.sessionId) {
+      return this.reject(client, identity.sessionId, {
         code: "ROOM_FORBIDDEN",
         message: "The participant token does not belong to this session",
       });
+    }
+    if (identity.role === "host") {
+      try {
+        await this.auth.assertHostCanJoin(identity.userId, sessionId);
+      } catch (err) {
+        if (!(err instanceof RoomAuthError)) throw err;
+        // Another host's session: its seq is none of this socket's business.
+        return this.reject(client, null, toErrorBody(err));
+      }
     }
 
     await client.join(roomName(sessionId));
@@ -132,8 +150,13 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     return { ok: true, ...state };
   }
 
-  private async reject(client: RealtimeSocket, error: ErrorBody): Promise<JoinAck> {
-    const seq = await this.roomEvents.currentSeq(client.data.identity.sessionId);
+  private async reject(
+    client: RealtimeSocket,
+    sessionId: string | null,
+    error: ErrorBody,
+  ): Promise<JoinAck> {
+    const own = client.data.identity.role === "participant" ? client.data.identity.sessionId : null;
+    const seq = await this.roomEvents.currentSeq(sessionId ?? own ?? "");
     client.emit("error", { ...error, seq });
     return { ok: false, error };
   }

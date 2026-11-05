@@ -1,12 +1,7 @@
-import { PagePlaceholder } from "@/components/shell/PagePlaceholder";
+import { AudienceScreen } from "@/components/presenter/AudienceScreen";
 
-// MD-15 P01–P07: a 16:9 white stage, centred and letterboxed on any projector.
-export default function ScreenPage() {
-  return (
-    <div className="grid flex-1 place-items-center bg-neutral-900">
-      <div className="flex aspect-video max-h-screen w-full max-w-[calc(100vh*16/9)] flex-col bg-background">
-        <PagePlaceholder page="screen" />
-      </div>
-    </div>
-  );
+// MD-15 P01–P07: a 16:9 stage, centred and letterboxed on any projector.
+export default async function ScreenPage({ params }: PageProps<"/screen/[sessionId]">) {
+  const { sessionId } = await params;
+  return <AudienceScreen sessionId={sessionId} />;
 }

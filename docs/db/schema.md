@@ -185,6 +185,7 @@ erDiagram
         timestamptz first_opened_at
         timestamptz last_reopened_at
         timestamptz closed_at
+        timestamptz ends_at
     }
     answers {
         uuid activity_run_id PK,FK

@@ -10,7 +10,7 @@ const PIN = "123456";
 
 type Row = { id: string; ownerId: string; status: string; endedAt: Date | null; pin: string };
 
-function setup(row: Partial<Row> | null, deadline: string | null = null) {
+function setup(row: Partial<Row> | null) {
   const current: Row | null = row
     ? { id: SESSION, ownerId: OWNER, status: "live", endedAt: null, pin: PIN, ...row }
     : null;
@@ -20,7 +20,7 @@ function setup(row: Partial<Row> | null, deadline: string | null = null) {
     updateMany: jest.fn(async () => ({ count: 1 })),
   };
   const redis = {
-    get: jest.fn(async () => deadline),
+    get: jest.fn(async () => null),
     set: jest.fn(async () => "OK"),
     del: jest.fn(async () => 1),
   };
@@ -44,97 +44,46 @@ async function expectApiError(promise: Promise<unknown>, status: number, code: s
   expect((error as ApiException).getResponse()).toMatchObject({ error: { code } });
 }
 
-const future = () => String(Date.now() + 30_000);
-const past = () => String(Date.now() - 1_000);
-
-describe("SessionsService end flow", () => {
-  it("requestEnd marks ended and starts the 60 s undo window", async () => {
-    const { service, session, redis } = setup({});
-    const result = await service.requestEnd(OWNER, SESSION);
-
-    expect(session.update).toHaveBeenCalledWith({
-      where: { id: SESSION },
-      data: { status: "ended" },
-    });
-    expect(redis.set).toHaveBeenCalledWith(
-      `session-ending:${SESSION}`,
-      expect.any(String),
-      "EX",
-      86400,
-    );
-    expect(result).toMatchObject({ status: "ended", undoSeconds: 60 });
-  });
-
-  it("undoEnd inside the window sets status back to live", async () => {
-    const { service, session, redis } = setup({ status: "ended" }, future());
-    const result = await service.undoEnd(OWNER, SESSION);
+describe("SessionsService.end", () => {
+  it("ends the session at once, frees the PIN and tells the room", async () => {
+    const { service, session, redis, events } = setup({});
+    await expect(service.end(OWNER, SESSION)).resolves.toEqual({ status: "ended" });
 
     expect(session.updateMany).toHaveBeenCalledWith({
-      where: { id: SESSION, ownerId: OWNER, status: "ended", endedAt: null },
-      data: { status: "live" },
+      where: { id: SESSION, endedAt: null },
+      data: expect.objectContaining({ status: "ended", endReason: "host" }),
     });
-    expect(redis.del).toHaveBeenCalledWith(`session-ending:${SESSION}`);
-    expect(result).toEqual({ status: "live" });
-  });
-
-  it("undoEnd after the window throws 409 UNDO_EXPIRED", async () => {
-    const { service, session } = setup({ status: "ended" }, past());
-    await expectApiError(service.undoEnd(OWNER, SESSION), 409, "UNDO_EXPIRED");
-    expect(session.updateMany).not.toHaveBeenCalled();
-  });
-
-  it("undoEnd loses the race when finish already set endedAt", async () => {
-    const { service, session } = setup({ status: "ended" }, future());
-    session.updateMany.mockResolvedValueOnce({ count: 0 });
-    await expectApiError(service.undoEnd(OWNER, SESSION), 409, "UNDO_EXPIRED");
-  });
-
-  it("finishEnd while the window is still open throws and writes nothing", async () => {
-    const { service, session, events } = setup({ status: "ended" }, future());
-    await expectApiError(service.finishEnd(OWNER, SESSION), 409, "UNDO_EXPIRED");
-    expect(session.updateMany).not.toHaveBeenCalled();
-    expect(events.publish).not.toHaveBeenCalled();
-  });
-
-  it("finishEnd after the window sets endedAt and publishes session_ended", async () => {
-    const { service, session, events } = setup({ status: "ended" }, past());
-    await service.finishEnd(OWNER, SESSION);
-
-    expect(session.updateMany).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ endReason: "host" }) }),
-    );
+    expect(redis.del).toHaveBeenCalledWith(`session-pin:${PIN}`);
     expect(events.publish).toHaveBeenCalledWith(SESSION, "session_ended", { reason: "host" });
   });
 
-  it("finishEnd with a lost Redis deadline finishes instead of getting stuck", async () => {
-    const { service, session } = setup({ status: "ended" }, null);
-    await service.finishEnd(OWNER, SESSION);
-    expect(session.updateMany).toHaveBeenCalled();
+  it("does nothing more when the session has already ended", async () => {
+    const { service, session, events } = setup({ status: "ended", endedAt: new Date() });
+    session.updateMany.mockResolvedValueOnce({ count: 0 });
+    await expect(service.end(OWNER, SESSION)).resolves.toEqual({ status: "ended" });
+    expect(events.publish).not.toHaveBeenCalled();
   });
 
-  it("requestEnd on an ended session with a lost deadline finishes it", async () => {
-    const { service, session } = setup({ status: "ended" }, null);
-    const result = await service.requestEnd(OWNER, SESSION);
-
-    expect(session.updateMany).toHaveBeenCalled();
-    expect(result).toEqual({ status: "ended", endingAt: null, undoSeconds: 0 });
+  it("answers 404 for a session of another host", async () => {
+    const { service } = setup(null);
+    await expectApiError(service.end(OWNER, SESSION), 404, "NOT_FOUND");
   });
 });
 
 describe("SessionsService.openByPin", () => {
   it("returns the open session", async () => {
-    const { service } = setup({ status: "live" }, null);
+    const { service } = setup({ status: "live" });
     await expect(service.openByPin(PIN)).resolves.toEqual({ id: SESSION, status: "live" });
   });
 
-  it("answers 410 for an ended session and finishes it when its window has lapsed", async () => {
-    const { service, session } = setup({ status: "ended" }, null);
+  it("answers 410 for an ended session and finishes one left half-ended", async () => {
+    const { service, session } = setup({ status: "ended" });
     await expectApiError(service.openByPin(PIN), 410, "SESSION_ENDED");
     expect(session.updateMany).toHaveBeenCalled();
   });
 
   it("answers 404 for an unknown PIN", async () => {
-    const { service } = setup(null, null);
+    const { service } = setup(null);
     await expectApiError(service.openByPin(PIN), 404, "NOT_FOUND");
   });
 });

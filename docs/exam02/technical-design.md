@@ -390,7 +390,7 @@ flowchart TB
         Auth["AuthModule<br/>OIDC login, cookies, guards"]
         Deck["DeckModule<br/>decks, slides, activities, settings"]
         Import["ImportModule<br/>PDF upload, job status"]
-        Session["SessionModule<br/>start, end, undo, PIN, co-host"]
+        Session["SessionModule<br/>start, end, PIN, co-host"]
         Part["ParticipantModule<br/>join, rename, remove"]
         Act["ActivityModule<br/>activity runs, results"]
         QA["QaModule<br/>questions, upvotes, moderation"]
@@ -442,8 +442,9 @@ Paths are relative to `/api/v1`. "Errors" lists the main non-2xx codes. The comm
 | POST | `/decks/{deckId}/copies` | Duplicate a deck | owner | 201 + `Location` | — |
 | GET / PUT | `/decks/{deckId}/settings` | Session defaults: require KMUTT login, Q&A on, anonymous allowed, show results live, auto-start, reactions | owner | 200 | 422 |
 | POST | `/decks/{deckId}/slides` | Add a slide (content, poll, word cloud) at a position | owner | 201 | 422 invalid content |
-| PATCH | `/decks/{deckId}/slides/{slideId}` | Save the canvas of a content slide: `{ elements }`, the whole list back to front (text, code, formula, image, each with position and size). Activity wording is edited with the activity endpoints | owner | 200 | 422 invalid element or activity slide |
-| DELETE | `/decks/{deckId}/slides/{slideId}` | Delete a slide | owner | 204 | 409 `ACTIVITY_LOCKED` (activity slide while live) |
+| PATCH | `/decks/{deckId}/slides/{slideId}` | Save the canvas of a content slide: `{ elements }`, the whole list back to front (text, code, formula, image, each with position and size). Activity wording is edited with `…/activity` below | owner | 200 | 422 invalid element or activity slide |
+| PATCH | `/decks/{deckId}/slides/{slideId}/activity` | Wording of a poll or word cloud: `{ prompt, options? }`, options as the whole list (`id` keeps one, no `id` adds one). After the activity starts in an open session, only the wording changes; open sessions get `activity_edited` | owner | 200 | 409 `ACTIVITY_LOCKED` (options added, removed or reordered after start, or an option with past answers removed), 422 |
+| DELETE | `/decks/{deckId}/slides/{slideId}` | Delete a slide | owner | 204 | 409 `ACTIVITY_LOCKED` (activity slide while its deck has a session that has not ended) |
 | POST | `/decks/{deckId}/slides/{slideId}/copies` | Duplicate a slide; the copy sits right after it | owner | 201 + `Location` | 404 |
 | PUT | `/decks/{deckId}/slide-order` | Reorder: full list of slide IDs | owner | 200 | 422 list does not match |
 | POST | `/decks/{deckId}/slide-images` | Upload an image (`multipart/form-data`, field `file`; PNG, JPEG, WebP or GIF, 5 MB). An image element then points at the returned `imageRef` | owner | 201 `{ imageRef }` | 413 over 5 MB, 415 not an image, 422 no file |
@@ -466,11 +467,12 @@ Progress is also pushed over the socket (`import_progress`), so the editor does 
 | POST | `/decks/{deckId}/sessions` | Start a session: copy settings, assign PIN | owner | 201 `{ sessionId, pin }` | 422 `DECK_INCOMPLETE` with the slides to fix, 409 import still running |
 | GET | `/sessions` | Session history, newest first | host | 200 | — |
 | GET | `/sessions/{sessionId}` | Session detail and current state | owner, cohost | 200 | 404 |
-| PATCH | `/sessions/{sessionId}` | `status: "ended"` (end), `status: "live"` (undo within 60 s), current slide, live settings (reactions, Q&A open) | owner | 200 | 409 `UNDO_EXPIRED`, 409 `SESSION_ENDED` |
+| PATCH | `/sessions/{sessionId}` | `status: "ended"` (ends at once and broadcasts `session_ended`; the 2 s hold on End Session is the guard, no undo), `currentSlideId` (move the room, broadcast as `slide_changed`; never starts an activity), live settings (reactions, Q&A open) | owner | 200 | 409 `SESSION_ENDED`, 422 slide not in the deck |
+| GET | `/sessions/{sessionId}/live` | Presenter control and audience screen start state: slides with activities and options, current slide, activity runs (state, `endsAt`), participant count, server clock | owner | 200 | 404 |
 | POST | `/sessions/{sessionId}/cohosts` | Invite one co-host (KMUTT account or link) | owner | 201 | 409 `COHOST_EXISTS` |
 | DELETE | `/sessions/{sessionId}/cohosts/{userId}` | Remove co-host | owner | 204 | — |
 | POST | `/sessions/{sessionId}/takeovers` | Co-host takes over after the owner is away for 2 min | cohost | 201 | 409 `OWNER_ONLINE` |
-| PATCH | `/sessions/{sessionId}/activities/{activityId}` | Change activity state: `live`, `closed`, `results_shown` (start, close, show / hide, reopen) | owner | 200 | 409 `INVALID_TRANSITION` (see MD-5 §7.1) |
+| PATCH | `/sessions/{sessionId}/activities/{activityId}` | `{ action, durationSeconds? }`: `start` (draft → live), `stop` (live → closed), `show_results` (live or closed → results_shown), `reopen` (closed or results_shown → live). `durationSeconds` (5–3600, start or reopen only) sets a countdown; at zero the server stops the activity. Broadcast as `activity_state` | owner | 200 | 409 `INVALID_TRANSITION`, 409 `SESSION_ENDED` |
 | GET | `/sessions/{sessionId}/activities/{activityId}/results` | Counts or word list | owner, cohost | 200 | — |
 | PATCH | `/sessions/{sessionId}/activities/{activityId}/words/{wordKey}` | Hide or show one Word Cloud word | owner | 200 | 404 |
 | GET | `/sessions/{sessionId}/export` | ZIP: `responses.csv`, `questions.csv` (UTF-8 with BOM) | owner | 200 `application/zip` | — |
@@ -501,7 +503,7 @@ All live traffic uses one Socket.IO namespace (`/`). Each session is one room. E
 
 | Direction | Event | Payload (main fields) | Notes |
 | --- | --- | --- | --- |
-| C → S | `join` | `sessionId`, `lastSeq` (token from the cookie or `auth.token` in the handshake) | First message after every (re)connect. A socket without a valid token is refused at the handshake; a `sessionId` other than the token's gets `ROOM_FORBIDDEN` |
+| C → S | `join` | `sessionId`, `lastSeq` (token from the cookie or `auth.token` in the handshake) | First message after every (re)connect. A socket without a valid token is refused at the handshake; a `sessionId` other than the token's gets `ROOM_FORBIDDEN`. Presenter control and the audience screen connect with `auth: { role: "host" }` and the host login cookie, and may join only a session they own |
 | S → C | `state` | `mode: "replay" \| "snapshot"`, `seq`, `events[]` or `snapshot` | Also returned in the `join` ack. Replay if `lastSeq` is still in the log (cap 500 events), else snapshot |
 | C → S | `vote` | `activityRunId`, `optionIds[]`, `answerId` | Ack: `{ ok, duplicate }`. Lua script, one answer per participant (MD-9). Default: the first answer counts and a second vote returns `duplicate` (the fastest path, proven in MD-9). If the host turns on "allow answer change" for this poll, a new vote replaces the old one until the poll closes |
 | C → S | `word` | `activityRunId`, `text`, `answerId` | Ack, limit per person |
@@ -509,7 +511,8 @@ All live traffic uses one Socket.IO namespace (`/`). Each session is one room. E
 | C → S | `upvote` | `questionId`, `on: true \| false` | Ack |
 | C → S | `reaction` | `emoji` | 1 per s, no ack needed |
 | S → C | `slide_changed` | `slideId`, `index` | |
-| S → C | `activity_state` | `activityId`, `state` | |
+| S → C | `activity_state` | `activityId`, `activityRunId`, `state`, `endsAt` (countdown end or null) | |
+| S → C | `activity_edited` | `activityId`, `prompt`, `options` | The host fixed the wording during the session |
 | S → C | `vote_update` | `votes` (tally), `answered`, `batch` | **Coalesced per room, max 1 per 50 ms** (MD-8 fix). Leading edge in a quiet room (MD-8 §11) |
 | S → C | `word_update` | `words[]` with counts | Coalesced like votes |
 | S → C | `question_posted` / `question_updated` | question fields (author hidden if anonymous) | |
@@ -550,7 +553,7 @@ One error body for REST and socket errors:
 | 401 Unauthorized | No or expired login / participant token |
 | 403 Forbidden | Logged in but not allowed (co-host changing slides, removed participant, login required) |
 | 404 Not Found | Resource or PIN does not exist |
-| 409 Conflict | State conflict: `SESSION_FULL`, `NICKNAME_TAKEN`, `ACTIVITY_LOCKED`, `INVALID_TRANSITION`, `UNDO_EXPIRED`, `DECK_LIVE` |
+| 409 Conflict | State conflict: `SESSION_FULL`, `NICKNAME_TAKEN`, `ACTIVITY_LOCKED`, `INVALID_TRANSITION`, `DECK_LIVE` |
 | 410 Gone | PIN of a session that ended in the last 24 h |
 | 413 Payload Too Large | PDF over 50 MB |
 | 415 Unsupported Media Type | Upload is not a PDF |

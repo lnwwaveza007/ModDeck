@@ -9,7 +9,9 @@ import type { ErrorBody } from "./errors";
 // ---- Client -> server ----------------------------------------------------
 
 // First message after every (re)connect. The token comes from the handshake
-// (cookie or `auth.token`), not from this payload. `lastSeq` is the last
+// (cookie or `auth.token`), not from this payload. The host's presenter and
+// audience screen connect with `auth: { role: "host" }` and the host login
+// cookie instead, and may join only a session they own. `lastSeq` is the last
 // event the client applied; the server replays everything after it.
 export const joinPayloadSchema = z.object({
   sessionId: z.uuid(),
@@ -26,7 +28,19 @@ export type ActivityRunState = "draft" | "live" | "closed" | "results_shown";
 // and kept in the replay log.
 export interface RoomEventData {
   slide_changed: { slideId: string; index: number };
-  activity_state: { activityId: string; activityRunId: string; state: ActivityRunState };
+  // `endsAt`: countdown end in ms since epoch (server clock), or null without a timer.
+  activity_state: {
+    activityId: string;
+    activityRunId: string;
+    state: ActivityRunState;
+    endsAt: number | null;
+  };
+  // The host fixed the wording of an activity during the session.
+  activity_edited: {
+    activityId: string;
+    prompt: string;
+    options: { id: string; label: string }[];
+  };
   // Coalesced per room, max 1 per 50 ms (MD-8).
   vote_update: { activityRunId: string; votes: Record<string, number>; answered: number };
   word_update: { activityRunId: string; words: { text: string; count: number }[] };
@@ -39,6 +53,7 @@ export type RoomEventType = keyof RoomEventData;
 export const ROOM_EVENT_TYPES = [
   "slide_changed",
   "activity_state",
+  "activity_edited",
   "vote_update",
   "word_update",
   "participant_count",

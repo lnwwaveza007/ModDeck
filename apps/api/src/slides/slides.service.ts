@@ -1,7 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import {
   DECK_SLIDES_MAX,
+  POLL_OPTIONS_MAX,
+  POLL_OPTIONS_MIN,
   isActivityKind,
+  type ActivityWordingBody,
+  type LiveActivity,
   type SlideCreateBody,
   type SlideDto,
   type SlideElement,
@@ -10,6 +14,7 @@ import { z } from "zod";
 import { ApiException } from "../common/api-error";
 import type { Prisma } from "../generated/prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
+import { RoomEventsService } from "../realtime/room-events.service";
 import { slideArgs, toSlideDto } from "./slide.mapper";
 
 const uuid = z.uuid();
@@ -33,7 +38,10 @@ const toJson = (elements: SlideElement[]): Prisma.InputJsonValue =>
 /** Slide rules of the deck editor: positions stay 0..n-1 with no gaps after every change. */
 @Injectable()
 export class SlidesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly events: RoomEventsService,
+  ) {}
 
   async create(ownerId: string, deckId: string, body: SlideCreateBody): Promise<SlideDto> {
     return this.prisma.$transaction(async (tx) => {
@@ -94,7 +102,7 @@ export class SlidesService {
     await this.prisma.$transaction(async (tx) => {
       await this.requireDeck(tx, ownerId, deckId);
       const slide = await this.requireSlide(tx, deckId, slideId);
-      if (isActivityKind(toKind(slide.kind))) await this.requireNotLive(tx, slideId);
+      if (isActivityKind(toKind(slide.kind))) await this.requireNoOpenSession(tx, deckId);
       await tx.slide.delete({ where: { id: slideId } });
       await tx.slide.updateMany({
         where: { deckId, position: { gt: slide.position } },
@@ -182,13 +190,135 @@ export class SlidesService {
     await this.prisma.$transaction((tx) => this.requireDeck(tx, ownerId, deckId));
   }
 
-  /** A live run on the activity keeps its slide in place (technical design §3.3). */
-  private async requireNotLive(tx: Prisma.TransactionClient, slideId: string) {
-    const live = await tx.activityRun.count({
-      where: { activity: { slideId }, state: "live", session: { status: { not: "ended" } } },
+  /**
+   * The wording of a poll or word cloud. While the activity has started in a session that is
+   * still open, only the wording can change: the same options in the same order, so answers
+   * already given still point at what the students chose. Open sessions of the deck get the new
+   * wording at once (activity_edited).
+   */
+  async updateActivity(
+    ownerId: string,
+    deckId: string,
+    slideId: string,
+    body: ActivityWordingBody,
+  ): Promise<LiveActivity> {
+    const { activity, sessionIds } = await this.prisma.$transaction(async (tx) => {
+      await this.requireDeck(tx, ownerId, deckId);
+      const slide = await this.requireSlide(tx, deckId, slideId);
+      const current = await tx.activity.findUnique({
+        where: { slideId: slide.id },
+        include: { options: { orderBy: { position: "asc" } } },
+      });
+      if (!current) throw invalid("activity", "not_activity", "Only an activity slide has wording");
+
+      const options = body.options;
+      if (current.type === "word_cloud" && options?.length) {
+        throw invalid("options", "not_poll", "A word cloud has no options");
+      }
+      if (current.type === "poll" && options) {
+        if (options.length < POLL_OPTIONS_MIN || options.length > POLL_OPTIONS_MAX) {
+          throw invalid(
+            "options",
+            "count",
+            `A poll has ${POLL_OPTIONS_MIN} to ${POLL_OPTIONS_MAX} options`,
+          );
+        }
+        const known = new Map(current.options.map((option) => [option.id, option]));
+        if (options.some((option) => option.id && !known.has(option.id))) {
+          throw invalid("options", "unknown_option", "An option id is not in this poll");
+        }
+        const sameOptions =
+          options.length === current.options.length &&
+          options.every((option, i) => option.id === current.options[i].id);
+        if (!sameOptions) {
+          if (await this.hasStarted(tx, current.id)) {
+            throw new ApiException(
+              409,
+              "ACTIVITY_LOCKED",
+              "This activity has started: only its wording can change until the session ends",
+            );
+          }
+          const kept = new Set(options.flatMap((option) => (option.id ? [option.id] : [])));
+          const removed = current.options.filter((option) => !kept.has(option.id)).map((o) => o.id);
+          // Answers from past sessions hang off their option: removing it would erase them.
+          if (removed.length && (await tx.answer.count({ where: { optionId: { in: removed } } }))) {
+            throw new ApiException(
+              409,
+              "ACTIVITY_LOCKED",
+              "An option with answers from a past session cannot be removed",
+            );
+          }
+          await tx.activityOption.deleteMany({ where: { id: { in: removed } } });
+        }
+        for (const [position, option] of options.entries()) {
+          if (option.id) {
+            await tx.activityOption.update({
+              where: { id: option.id },
+              data: { label: option.label, position },
+              select: { id: true },
+            });
+          } else {
+            await tx.activityOption.create({
+              data: { activityId: current.id, label: option.label, position },
+              select: { id: true },
+            });
+          }
+        }
+      }
+
+      const updated = await tx.activity.update({
+        where: { id: current.id },
+        data: { prompt: body.prompt },
+        select: {
+          id: true,
+          type: true,
+          prompt: true,
+          options: { orderBy: { position: "asc" }, select: { id: true, label: true } },
+        },
+      });
+      await tx.slide.update({
+        where: { id: slide.id },
+        data: { updatedAt: new Date() },
+        select: { id: true },
+      });
+      await this.touchDeck(tx, deckId);
+      const open = await tx.session.findMany({
+        where: { deckId, status: { not: "ended" } },
+        select: { id: true },
+      });
+      return { activity: updated as LiveActivity, sessionIds: open.map((session) => session.id) };
     });
-    if (live > 0) {
-      throw new ApiException(409, "ACTIVITY_LOCKED", "This activity is live in a session");
+
+    for (const sessionId of sessionIds) {
+      await this.events.publish(sessionId, "activity_edited", {
+        activityId: activity.id,
+        prompt: activity.prompt,
+        options: activity.options,
+      });
+    }
+    return activity;
+  }
+
+  /** Started in a session that is still open: left draft there. */
+  private async hasStarted(tx: Prisma.TransactionClient, activityId: string) {
+    const runs = await tx.activityRun.count({
+      where: { activityId, state: { not: "draft" }, session: { status: { not: "ended" } } },
+    });
+    return runs > 0;
+  }
+
+  /**
+   * An activity slide stays in place while its deck has a live session (technical design §3.3),
+   * whether or not the activity has started yet: the host may still reach it.
+   */
+  private async requireNoOpenSession(tx: Prisma.TransactionClient, deckId: string) {
+    const open = await tx.session.count({ where: { deckId, status: { not: "ended" } } });
+    if (open > 0) {
+      throw new ApiException(
+        409,
+        "ACTIVITY_LOCKED",
+        "End the live session before deleting an activity slide",
+      );
     }
   }
 

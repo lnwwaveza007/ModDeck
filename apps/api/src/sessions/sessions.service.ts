@@ -7,8 +7,6 @@ import { REDIS } from "../redis/redis.module";
 import { RoomEventsService } from "../realtime/room-events.service";
 
 const pinKey = (pin: string) => `session-pin:${pin}`;
-const endingKey = (id: string) => `session-ending:${id}`;
-const UNDO_SECONDS = 60;
 
 @Injectable()
 export class SessionsService {
@@ -115,76 +113,38 @@ export class SessionsService {
       },
     });
     if (!session) throw new ApiException(404, "NOT_FOUND", "Session not found");
-    const endingAt = await this.redis.get(endingKey(sessionId));
     return {
       ...session,
       participantCount: session._count.participants,
-      endingAt: endingAt ? Number(endingAt) : null,
       // Lets the lobby correct for a browser clock that differs from the server.
       serverNow: Date.now(),
       joinUrl: `${process.env.WEB_ORIGIN ?? "http://localhost:3000"}/j/${session.pin}`,
     };
   }
 
-  async requestEnd(ownerId: string, sessionId: string) {
-    const existing = await this.prisma.session.findFirst({
-      where: { id: sessionId, ownerId },
-      select: { id: true, status: true, endedAt: true },
-    });
-    if (!existing) throw new ApiException(404, "NOT_FOUND", "Session not found");
-    if (existing.status === "ended") {
-      if (existing.endedAt) return { status: "ended" as const, endingAt: null, undoSeconds: 0 };
-      const currentDeadline = await this.redis.get(endingKey(sessionId));
-      if (!currentDeadline || Number(currentDeadline) <= Date.now()) {
-        await this.finishEnd(ownerId, sessionId);
-        return { status: "ended" as const, endingAt: null, undoSeconds: 0 };
-      }
-      return {
-        status: "ended" as const,
-        endingAt: currentDeadline ? Number(currentDeadline) : null,
-        undoSeconds: UNDO_SECONDS,
-      };
-    }
-    const deadline = Date.now() + UNDO_SECONDS * 1000;
-    await this.redis.set(endingKey(sessionId), String(deadline), "EX", 86400);
-    await this.prisma.session.update({ where: { id: sessionId }, data: { status: "ended" } });
-    return { status: "ended" as const, endingAt: deadline, undoSeconds: UNDO_SECONDS };
-  }
-
-  async undoEnd(ownerId: string, sessionId: string) {
-    const deadline = await this.redis.get(endingKey(sessionId));
-    if (!deadline || Number(deadline) <= Date.now())
-      throw new ApiException(409, "UNDO_EXPIRED", "The undo window has expired");
-    // Guarded write: a concurrent finish that already set endedAt must win.
-    const { count } = await this.prisma.session.updateMany({
-      where: { id: sessionId, ownerId, status: "ended", endedAt: null },
-      data: { status: "live" },
-    });
-    if (count === 0) throw new ApiException(409, "UNDO_EXPIRED", "The undo window has expired");
-    await this.redis.del(endingKey(sessionId));
-    return { status: "live" as const };
-  }
-
-  async finishEnd(ownerId: string, sessionId: string) {
+  /**
+   * Ends the session now. The 2 s hold on the End Session button is the guard against an
+   * accidental end, so there is no undo window. Safe to repeat: a second call changes nothing.
+   */
+  async end(ownerId: string, sessionId: string) {
     const session = await this.prisma.session.findFirst({
-      where: { id: sessionId, ownerId, status: "ended" },
-      select: { id: true, pin: true, endedAt: true },
+      where: { id: sessionId, ownerId },
+      select: { id: true, pin: true },
     });
-    if (!session) throw new ApiException(404, "NOT_FOUND", "Ended session not found");
-    if (session.endedAt) return { status: "ended" as const };
-    // A missing deadline means the Redis key was lost. The undo window can no
-    // longer be honored, so finish now instead of leaving the session stuck.
-    const deadline = await this.redis.get(endingKey(sessionId));
-    if (deadline && Number(deadline) > Date.now())
-      throw new ApiException(409, "UNDO_EXPIRED", "The undo window is still open");
-    const { count } = await this.prisma.session.updateMany({
-      where: { id: sessionId, ownerId, status: "ended", endedAt: null },
-      data: { endedAt: new Date(), endReason: "host" },
-    });
-    if (count === 0) throw new ApiException(409, "UNDO_EXPIRED", "The session was reopened");
-    await this.redis.del(endingKey(sessionId), pinKey(session.pin));
-    await this.events.publish(sessionId, "session_ended", { reason: "host" });
+    if (!session) throw new ApiException(404, "NOT_FOUND", "Session not found");
+    await this.finish(session);
     return { status: "ended" as const };
+  }
+
+  /** Guarded write: only the first caller ends the session and tells the room. */
+  private async finish(session: { id: string; pin: string }) {
+    const { count } = await this.prisma.session.updateMany({
+      where: { id: session.id, endedAt: null },
+      data: { status: "ended", endedAt: new Date(), endReason: "host" },
+    });
+    if (count === 0) return;
+    await this.redis.del(pinKey(session.pin));
+    await this.events.publish(session.id, "session_ended", { reason: "host" });
   }
 
   // The open session behind a PIN, for the join flow (ParticipantsService). The
@@ -193,19 +153,12 @@ export class SessionsService {
     const session = await this.prisma.session.findFirst({
       where: { pin },
       orderBy: { startedAt: "desc" },
-      select: { id: true, ownerId: true, status: true, endedAt: true },
+      select: { id: true, pin: true, status: true, endedAt: true },
     });
     if (!session) throw new ApiException(404, "NOT_FOUND", "No session found");
     if (session.status === "ended") {
-      const deadline = await this.redis.get(endingKey(session.id));
-      if (!session.endedAt && (!deadline || Number(deadline) <= Date.now())) {
-        await this.finishEnd(session.ownerId, session.id);
-      }
-      throw new ApiException(410, "SESSION_ENDED", "Session ended");
-    }
-    const deadline = await this.redis.get(endingKey(session.id));
-    if (deadline && Number(deadline) <= Date.now()) {
-      await this.finishEnd(session.ownerId, session.id);
+      // Left over from the old undo window: marked ended but never finished.
+      if (!session.endedAt) await this.finish(session);
       throw new ApiException(410, "SESSION_ENDED", "Session ended");
     }
     return { id: session.id, status: session.status };
