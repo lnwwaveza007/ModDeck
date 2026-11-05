@@ -96,11 +96,7 @@ describe("activityWordingBodySchema", () => {
     expect(
       activityWordingBodySchema.safeParse({
         prompt: "Q",
-        options: [
-          { id, label: "Red" },
-          { id: other, label: "Blue" },
-          { label: "New" },
-        ],
+        options: [{ id, label: "Red" }, { id: other, label: "Blue" }, { label: "New" }],
       }).success,
     ).toBe(true);
   });
