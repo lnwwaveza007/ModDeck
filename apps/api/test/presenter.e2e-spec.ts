@@ -412,6 +412,21 @@ describe("presenter control (e2e)", () => {
       }).expect(409);
     });
 
+    it("refuses a list that repeats an option id, and keeps the poll whole", async () => {
+      const { deck, poll } = await liveSession();
+      const [first] = poll.options;
+      await editPoll(deck.id, deck.slides[1].id, {
+        prompt: "Q",
+        options: [
+          { id: first.id, label: "A" },
+          { id: first.id, label: "A again" },
+        ],
+      }).expect(422);
+
+      const stored = await prisma.activityOption.count({ where: { activityId: poll.id } });
+      expect(stored).toBe(2);
+    });
+
     it("allows option changes before the activity starts", async () => {
       const { deck, poll } = await liveSession();
       const [first, second] = poll.options;

@@ -80,4 +80,28 @@ describe("activityWordingBodySchema", () => {
       activityWordingBodySchema.safeParse({ prompt: "Q", options: [{ label: " " }] }).success,
     ).toBe(false);
   });
+
+  it("rejects the same option id twice", () => {
+    const id = "0190f2a4-7b1c-7000-8000-000000000001";
+    const other = "0190f2a4-7b1c-7000-8000-000000000002";
+    expect(
+      activityWordingBodySchema.safeParse({
+        prompt: "Q",
+        options: [
+          { id, label: "Red" },
+          { id, label: "Blue" },
+        ],
+      }).success,
+    ).toBe(false);
+    expect(
+      activityWordingBodySchema.safeParse({
+        prompt: "Q",
+        options: [
+          { id, label: "Red" },
+          { id: other, label: "Blue" },
+          { label: "New" },
+        ],
+      }).success,
+    ).toBe(true);
+  });
 });

@@ -83,6 +83,15 @@ export const activityWordingBodySchema = z.object({
       }),
     )
     .max(POLL_OPTIONS_MAX)
+    // A repeated id would make one option stand for two, and the server would then drop the poll
+    // below POLL_OPTIONS_MIN without noticing.
+    .refine(
+      (options) => {
+        const ids = options.flatMap((option) => (option.id ? [option.id] : []));
+        return new Set(ids).size === ids.length;
+      },
+      { message: "Each option id may appear only once", path: ["options"] },
+    )
     .optional(),
 });
 export type ActivityWordingBody = z.infer<typeof activityWordingBodySchema>;
