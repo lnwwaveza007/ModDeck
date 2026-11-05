@@ -348,7 +348,7 @@ describe("slides (e2e)", () => {
     await as(hostA, api().delete(`/decks/${deck.id}/slides/${a.id}`)).expect(404);
   });
 
-  it("refuses to delete an activity slide while its activity is live", async () => {
+  it("refuses to delete an activity slide while its deck has a live session", async () => {
     const deck = await createDeck();
     const poll = await addSlide(deck.id, { kind: "poll" });
     const activity = await prisma.activity.findUniqueOrThrow({ where: { slideId: poll.id } });
@@ -362,7 +362,14 @@ describe("slides (e2e)", () => {
     const res = await as(hostA, api().delete(`/decks/${deck.id}/slides/${poll.id}`)).expect(409);
     expect(res.body.error.code).toBe("ACTIVITY_LOCKED");
 
+    // A closed activity is still locked: the session is open.
     await prisma.activityRun.update({ where: { id: run.id }, data: { state: "closed" } });
+    await as(hostA, api().delete(`/decks/${deck.id}/slides/${poll.id}`)).expect(409);
+
+    await prisma.session.update({
+      where: { id: session.id },
+      data: { status: "ended", endedAt: new Date() },
+    });
     await as(hostA, api().delete(`/decks/${deck.id}/slides/${poll.id}`)).expect(204);
   });
 

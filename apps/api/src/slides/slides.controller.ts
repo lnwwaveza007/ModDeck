@@ -18,9 +18,12 @@ import {
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
   SLIDE_IMAGE_MAX_BYTES,
+  activityWordingBodySchema,
   slideCreateBodySchema,
   slideOrderBodySchema,
   slidePatchBodySchema,
+  type ActivityWordingBody,
+  type LiveActivity,
   type SlideCreateBody,
   type SlideDto,
   type SlideImageDto,
@@ -66,6 +69,17 @@ export class SlidesController {
     @Body(new ZodBody(slidePatchBodySchema)) body: SlidePatchBody,
   ): Promise<SlideDto> {
     return this.slides.updateElements(user.id, deckId, slideId, body.elements);
+  }
+
+  // Wording of a poll or word cloud. After the activity starts, only the wording can change.
+  @Patch("slides/:slideId/activity")
+  updateActivity(
+    @CurrentUser() user: AuthUser,
+    @Param("deckId") deckId: string,
+    @Param("slideId") slideId: string,
+    @Body(new ZodBody(activityWordingBodySchema)) body: ActivityWordingBody,
+  ): Promise<LiveActivity> {
+    return this.slides.updateActivity(user.id, deckId, slideId, body);
   }
 
   @Delete("slides/:slideId")
