@@ -29,6 +29,14 @@ const ERROR_KEYS = [
 ] as const;
 type ErrorKey = (typeof ERROR_KEYS)[number] | "generic";
 
+/** Widest 16:9 stage that fits the box on both axes, so the host screen never needs scrolling. */
+const FIT_STAGE = "lg:w-[min(100cqw,calc(100cqh*16/9))]";
+
+/** Gives a stage the leftover height on large screens (`cqh`), and the full width below that. */
+function StageBox({ children }: { children: (fit: string) => React.ReactNode }) {
+  return <div className="lg:min-h-0 lg:flex-1 lg:[container-type:size]">{children(FIT_STAGE)}</div>;
+}
+
 function errorKey(error: unknown): ErrorKey {
   const code = error instanceof ApiError ? error.code : "";
   return (ERROR_KEYS as readonly string[]).includes(code) ? (code as ErrorKey) : "generic";
@@ -84,8 +92,8 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
   const [screen, setScreen] = layers;
 
   return (
-    <div className="flex min-h-screen flex-col bg-neutral-100 text-foreground">
-      <header className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-neutral-200 bg-background px-6 py-3">
+    <div className="flex min-h-screen flex-col bg-neutral-100 text-foreground lg:h-dvh lg:min-h-[42rem]">
+      <header className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-neutral-200 bg-background px-6 py-2">
         <span className="rounded-full bg-error-600 px-3 py-0.5 text-sm font-bold text-white">
           {t("live")}
         </span>
@@ -122,40 +130,53 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
         <EndSessionButton ending={end.ending} onEnd={() => void end.end().catch(onError)} />
       </header>
 
-      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-5 p-6">
+      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-4 p-4 lg:px-6">
         {state.ended && (
           <p role="status" className="rounded-xl bg-neutral-200 px-5 py-3 font-semibold">
             {t("ended")}
           </p>
         )}
 
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <main className="flex min-w-0 flex-col gap-5">
-            <div className="grid gap-5 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-              <section aria-label={t("current")} className="flex flex-col gap-2">
+        <div className="grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_320px] lg:grid-rows-[minmax(0,1fr)]">
+          <main className="flex min-w-0 flex-col gap-4 lg:min-h-0">
+            <div className="grid gap-4 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:min-h-0 lg:flex-1 lg:grid-rows-[minmax(0,1fr)]">
+              <section aria-label={t("current")} className="flex min-w-0 flex-col gap-2 lg:min-h-0">
                 <p className="text-sm">
                   <b>{t("nowShowing", { index: currentIndex + 1, total: slides.length })}</b>
                   {screen.blank && <span className="ml-2 text-warning-800">· {t("blanked")}</span>}
                   {screen.join && <span className="ml-2 text-warning-800">· {t("joinShown")}</span>}
                 </p>
                 {current && (
-                  <LiveStage
-                    slide={current}
-                    run={run ?? undefined}
-                    tally={tally}
-                    liveChart={screen.liveChart}
-                    now={now}
-                    className="shadow-sm"
-                  />
+                  <StageBox>
+                    {(fit) => (
+                      <LiveStage
+                        slide={current}
+                        run={run ?? undefined}
+                        tally={tally}
+                        liveChart={screen.liveChart}
+                        now={now}
+                        className={cn("shadow-sm", fit)}
+                      />
+                    )}
+                  </StageBox>
                 )}
               </section>
-              <section aria-label={t("next")} className="flex flex-col gap-2">
+              <section aria-label={t("next")} className="flex min-w-0 flex-col gap-2 lg:min-h-0">
                 <p className="text-sm">
                   <b>{t("next")}</b>
                   {next && ` · ${t("slide", { index: currentIndex + 2 })}`}
                 </p>
                 {next ? (
-                  <LiveStage slide={next} now={now} thumbnail className="opacity-90" />
+                  <StageBox>
+                    {(fit) => (
+                      <LiveStage
+                        slide={next}
+                        now={now}
+                        thumbnail
+                        className={cn("opacity-90", fit)}
+                      />
+                    )}
+                  </StageBox>
                 ) : (
                   <div className="grid aspect-video place-items-center rounded-lg border border-dashed border-neutral-300 text-sm text-muted">
                     {t("lastSlide")}
@@ -227,7 +248,7 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
             )}
           </main>
 
-          <aside className="flex flex-col gap-5">
+          <aside className="flex flex-col gap-4 lg:min-h-0 lg:overflow-y-auto">
             <section
               aria-label={t("qa.title")}
               className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-background p-5"

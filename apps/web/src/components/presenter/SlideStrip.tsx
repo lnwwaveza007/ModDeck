@@ -34,8 +34,8 @@ export function SlideStrip({
   }, [currentIndex]);
 
   return (
-    <nav aria-label={t("label")} className="rounded-xl border border-neutral-200 bg-background p-3">
-      <ol className="flex gap-3 overflow-x-auto pb-1">
+    <nav aria-label={t("label")} className="rounded-xl border border-neutral-200 bg-background p-2">
+      <ol className="flex gap-3 overflow-x-auto">
         {slides.map((slide, index) => {
           const current = index === currentIndex;
           const state = slide.activity ? runOf(runs, slide.activity.id).state : null;
