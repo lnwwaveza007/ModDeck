@@ -83,12 +83,18 @@ jobs:
         env:
           STAGING_HOST: ${{ vars.STAGING_HOST }}
           POSTGRES_PASSWORD: ${{ secrets.STAGING_POSTGRES_PASSWORD }}
+          ENTRA_TENANT_ID: ${{ secrets.STAGING_ENTRA_TENANT_ID }}
+          ENTRA_CLIENT_ID: ${{ secrets.STAGING_ENTRA_CLIENT_ID }}
+          ENTRA_CLIENT_SECRET: ${{ secrets.STAGING_ENTRA_CLIENT_SECRET }}
         run: |
           image="${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/moddeck"
           umask 077
           cat > "$DEPLOY_DIR/.env" <<EOF
           STAGING_HOST=${STAGING_HOST}
           POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+          ENTRA_TENANT_ID=${ENTRA_TENANT_ID}
+          ENTRA_CLIENT_ID=${ENTRA_CLIENT_ID}
+          ENTRA_CLIENT_SECRET=${ENTRA_CLIENT_SECRET}
           API_IMAGE=${image}-api:${GITHUB_SHA}
           WEB_IMAGE=${image}-web:${GITHUB_SHA}
           EOF

@@ -43,6 +43,11 @@ To use a real certificate instead, put `fullchain.pem` and `privkey.pem` in `/op
 | -------- | --------------------------- | ------------------------------------------------ |
 | Variable | `STAGING_HOST`              | Same value as on the VM                          |
 | Secret   | `STAGING_POSTGRES_PASSWORD` | Long random string. Do not change it after the first deploy: Postgres keeps the first one. |
+| Secret   | `STAGING_ENTRA_TENANT_ID`   | KMUTT SSO (Entra ID) tenant ID. Optional: SSO stays off (login returns 503) while this is empty. |
+| Secret   | `STAGING_ENTRA_CLIENT_ID`   | Entra app client ID. Required when the tenant ID is set. |
+| Secret   | `STAGING_ENTRA_CLIENT_SECRET` | Entra app client secret. |
+
+The deploy job writes these three into `/opt/moddeck/.env` as `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID` and `ENTRA_CLIENT_SECRET`. Register `https://<STAGING_HOST>/api/auth/callback` as a redirect URI in the Entra app.
 
 **Settings > Actions > General > Fork pull request workflows from outside collaborators**: choose **Require approval for all outside collaborators**. The repo is public and the VM runs a self-hosted runner, so a fork PR must never run on it without review.
 
