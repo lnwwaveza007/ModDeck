@@ -129,6 +129,21 @@ function ElementFrame({
   );
 }
 
+/** Italic, underline and strikethrough of a text element, as CSS. Missing means off. */
+export function textEffectStyle(element: {
+  italic?: boolean;
+  underline?: boolean;
+  strike?: boolean;
+}): CSSProperties {
+  const lines = [element.underline && "underline", element.strike && "line-through"].filter(
+    Boolean,
+  );
+  return {
+    fontStyle: element.italic ? "italic" : "normal",
+    textDecorationLine: lines.length > 0 ? lines.join(" ") : "none",
+  };
+}
+
 /** The content of one element, without its frame. */
 export function ElementContent({
   element,
@@ -150,6 +165,7 @@ export function ElementContent({
             fontSize,
             textAlign: element.align,
             fontWeight: element.bold ? 700 : 400,
+            ...textEffectStyle(element),
             lineHeight: 1.4,
           }}
         >

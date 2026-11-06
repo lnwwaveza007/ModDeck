@@ -1,5 +1,5 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
-import type { DeckSummary } from "@moddeck/shared";
+import type { DeckSummary, SlideDto } from "@moddeck/shared";
 import { ToastProvider } from "@/components/ui/Toast";
 import { ApiError } from "@/lib/api/client";
 import { createDeck, deleteDeck, duplicateDeck, listDecks, renameDeck } from "@/lib/api/decks";
@@ -30,6 +30,7 @@ function deck(overrides: Partial<DeckSummary> = {}): DeckSummary {
     slideCount: 18,
     sessionCount: 2,
     liveSessions: [],
+    firstSlide: null,
     createdAt: "2026-10-01T03:00:00.000Z",
     updatedAt: "2026-10-20T03:00:00.000Z",
     ...overrides,
@@ -102,6 +103,67 @@ describe("DeckList", () => {
     openMenu(live.title);
     expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
     expect(screen.getByText("End the live session to delete")).toBeInTheDocument();
+  });
+
+  it("draws the first slide as the card's thumbnail, and the title when that slide is blank", async () => {
+    const titleSlide: SlideDto = {
+      id: "s1",
+      position: 0,
+      kind: "content",
+      elements: [
+        {
+          id: "0192f3a4-0000-7000-8000-0000000000a1",
+          type: "text",
+          x: 10,
+          y: 10,
+          w: 80,
+          text: "# Template Syntax",
+          size: 4,
+          bold: true,
+          align: "left",
+        },
+      ],
+      activity: null,
+      updatedAt: "2026-10-31T03:00:00.000Z",
+    };
+    const poll: SlideDto = {
+      ...titleSlide,
+      id: "s2",
+      kind: "poll",
+      elements: [],
+      activity: { id: "a1", type: "poll", prompt: "Which one?", options: [] },
+    };
+    const withSlide = deck({ firstSlide: titleSlide });
+    const withPoll = deck({ id: "d2", title: "Quiz deck", firstSlide: poll });
+    const blank = deck({
+      id: "d3",
+      title: "Blank deck",
+      firstSlide: { ...titleSlide, elements: [] },
+    });
+    api.list.mockResolvedValue([withSlide, withPoll, blank, w08]);
+    renderList();
+    await screen.findByRole("link", { name: withSlide.title });
+
+    // The slide is drawn, hidden from screen readers like any thumbnail.
+    const slideCard = card(withSlide.title);
+    const thumb = slideCard.querySelector("[data-element-id]");
+    expect(thumb).toHaveTextContent("Template Syntax");
+    expect(thumb?.closest("[aria-hidden='true']")).not.toBeNull();
+    expect(card("Quiz deck")).toHaveTextContent("Which one?");
+
+    // A blank first slide, or none at all, shows the title instead.
+    expect(card("Blank deck").querySelector("[data-element-id]")).toBeNull();
+    expect(card("Blank deck").querySelector("p[aria-hidden='true']")).toHaveTextContent(
+      "Blank deck",
+    );
+    expect(card(w08.title).querySelector("p[aria-hidden='true']")).toHaveTextContent(w08.title);
+  });
+
+  it("keeps the LIVE badge over the thumbnail", async () => {
+    api.list.mockResolvedValue([{ ...live, firstSlide: null }]);
+    renderList();
+    await screen.findByRole("link", { name: live.title });
+    expect(card(live.title)).toHaveTextContent("LIVE");
   });
 
   it("filters by title and says when nothing matches", async () => {

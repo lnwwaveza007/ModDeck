@@ -1012,3 +1012,221 @@ describe("DeckEditor: undo and redo", () => {
     expect(undoButton()).toBeDisabled();
   });
 });
+
+describe("DeckEditor: text effects", () => {
+  it("turns italic, underline and strikethrough on and off, shows them and saves them", async () => {
+    await renderEditor();
+    drag(frame(T1), 0, 0);
+    const italic = within(panel()).getByRole("button", { name: "Italic" });
+    const underline = within(panel()).getByRole("button", { name: "Underline" });
+    const strike = within(panel()).getByRole("button", { name: "Strikethrough" });
+    expect(italic).toHaveAttribute("aria-pressed", "false");
+
+    fireEvent.click(italic);
+    fireEvent.click(underline);
+    fireEvent.click(strike);
+    expect(italic).toHaveAttribute("aria-pressed", "true");
+    const text = frame(T1).firstElementChild as HTMLElement;
+    expect(text.style.fontStyle).toBe("italic");
+    expect(text.style.textDecorationLine).toBe("underline line-through");
+
+    await flush();
+    expect(find(lastSaved(), T1)).toMatchObject({ italic: true, underline: true, strike: true });
+
+    fireEvent.click(strike);
+    expect(text.style.textDecorationLine).toBe("underline");
+    await flush();
+    expect(find(lastSaved(), T1)).toMatchObject({ italic: true, underline: true, strike: false });
+  });
+
+  it("works from the Thai interface too", async () => {
+    await renderEditor([first], "th");
+    drag(frame(T1), 0, 0);
+    fireEvent.click(within(panel()).getByRole("button", { name: "ตัวเอียง" }));
+    await flush();
+    expect(find(lastSaved(), T1)).toMatchObject({ italic: true });
+  });
+});
+
+describe("DeckEditor: selecting a group", () => {
+  /** A press on an element with Shift held, which adds it to the selection. */
+  const shiftClick = (id: string) => {
+    fireEvent.pointerDown(frame(id), {
+      clientX: 500,
+      clientY: 300,
+      button: 0,
+      pointerId: 1,
+      shiftKey: true,
+    });
+    fireEvent.pointerUp(stage(), { pointerId: 1 });
+  };
+  const select = (...ids: string[]) => {
+    drag(frame(ids[0]), 0, 0);
+    ids.slice(1).forEach(shiftClick);
+  };
+  const groupHeading = (count: number) =>
+    within(panel()).getByRole("heading", { name: `${count} elements selected` });
+
+  it("adds to the selection with Shift and takes an element out with Shift again", async () => {
+    await renderEditor();
+    select(T1, C1);
+    expect(groupHeading(2)).toBeInTheDocument();
+    // A group has no resize handles.
+    expect(frame(T1).querySelectorAll("[data-handle]")).toHaveLength(0);
+
+    shiftClick(C1);
+    expect(within(panel()).getByRole("heading", { name: "Text" })).toBeInTheDocument();
+    expect(frame(T1).querySelectorAll("[data-handle]")).toHaveLength(2);
+  });
+
+  it("selects with Ctrl or Cmd held, and from the layer list", async () => {
+    await renderEditor();
+    drag(frame(T1), 0, 0);
+    fireEvent.pointerDown(frame(M1), { clientX: 500, clientY: 300, button: 0, metaKey: true });
+    fireEvent.pointerUp(stage());
+    expect(groupHeading(2)).toBeInTheDocument();
+
+    fireEvent.click(within(panel()).getByRole("button", { name: /^Code/ }), { shiftKey: true });
+    expect(groupHeading(3)).toBeInTheDocument();
+  });
+
+  it("selects everything with Ctrl+A, and Escape lets go", async () => {
+    await renderEditor();
+    fireEvent.keyDown(canvas(), { key: "a", ctrlKey: true });
+    expect(groupHeading(3)).toBeInTheDocument();
+    fireEvent.keyDown(canvas(), { key: "Escape" });
+    expect(within(panel()).getByRole("heading", { name: "Slide" })).toBeInTheDocument();
+  });
+
+  it("selects what a rectangle dragged on the empty stage touches", async () => {
+    await renderEditor();
+    fireEvent.pointerDown(stage(), { clientX: 0, clientY: 0, button: 0, pointerId: 1 });
+    // 40% across and 53% down: the heading and the code block, not the formula below them.
+    fireEvent.pointerMove(stage(), { clientX: 400, clientY: 300, pointerId: 1 });
+    expect(stage().querySelector("[data-marquee]")).toBeInTheDocument();
+    expect(groupHeading(2)).toBeInTheDocument();
+    fireEvent.pointerUp(stage(), { pointerId: 1 });
+    expect(stage().querySelector("[data-marquee]")).not.toBeInTheDocument();
+    expect(groupHeading(2)).toBeInTheDocument();
+    // The rectangle moved nothing, so nothing is saved.
+    await flush();
+    expect(api.save).not.toHaveBeenCalled();
+  });
+
+  it("moves the whole group when one of its elements is dragged, and saves once", async () => {
+    await renderEditor();
+    select(T1, C1);
+    fireEvent.pointerDown(frame(C1), { clientX: 500, clientY: 300, button: 0, pointerId: 1 });
+    // 5% across and 5% down. Alt keeps the move from snapping to the other element.
+    fireEvent.pointerMove(stage(), { clientX: 550, clientY: 328.125, pointerId: 1, altKey: true });
+    fireEvent.pointerUp(stage(), { pointerId: 1 });
+
+    expect(frame(T1)).toHaveStyle({ left: "15%", top: "15%" });
+    expect(frame(C1)).toHaveStyle({ left: "15%", top: "45%" });
+    expect(frame(M1)).toHaveStyle({ left: "20%", top: "70%" });
+    expect(groupHeading(2)).toBeInTheDocument();
+
+    await flush();
+    expect(api.save).toHaveBeenCalledTimes(1);
+    expect(find(lastSaved(), T1)).toMatchObject({ x: 15, y: 15 });
+    expect(find(lastSaved(), C1)).toMatchObject({ x: 15, y: 45 });
+    expect(find(lastSaved(), M1)).toMatchObject({ x: 20, y: 70 });
+  });
+
+  it("keeps the group on the slide when it is dragged past an edge", async () => {
+    await renderEditor();
+    select(T1, C1);
+    fireEvent.pointerDown(frame(T1), { clientX: 500, clientY: 300, button: 0, pointerId: 1 });
+    fireEvent.pointerMove(stage(), { clientX: 1500, clientY: 300, pointerId: 1, altKey: true });
+    fireEvent.pointerUp(stage(), { pointerId: 1 });
+    // The code block is 80% wide, so the group stops with its left edge at 20%.
+    expect(frame(C1)).toHaveStyle({ left: "20%" });
+    expect(frame(T1)).toHaveStyle({ left: "20%" });
+  });
+
+  it("narrows the group to one element on a plain click, but not on a drag", async () => {
+    await renderEditor();
+    select(T1, C1);
+    drag(frame(T1), 0, 0);
+    expect(within(panel()).getByRole("heading", { name: "Text" })).toBeInTheDocument();
+  });
+
+  it("nudges the group with the arrow keys", async () => {
+    await renderEditor();
+    select(T1, C1);
+    fireEvent.keyDown(canvas(), { key: "ArrowRight" });
+    expect(frame(T1)).toHaveStyle({ left: "10.5%" });
+    expect(frame(C1)).toHaveStyle({ left: "10.5%" });
+    fireEvent.keyDown(canvas(), { key: "ArrowDown", shiftKey: true });
+    expect(frame(T1)).toHaveStyle({ top: "12%" });
+    expect(frame(C1)).toHaveStyle({ top: "42%" });
+    await flush();
+    expect(find(lastSaved(), M1)).toMatchObject({ x: 20, y: 70 });
+  });
+
+  it("aligns the group to the slide as one box", async () => {
+    await renderEditor();
+    select(T1, C1);
+    fireEvent.click(within(panel()).getByRole("button", { name: "Align left" }));
+    // The group's left edge was at 10%, so both move 10% left and keep their distance apart.
+    expect(frame(T1)).toHaveStyle({ left: "0%" });
+    expect(frame(C1)).toHaveStyle({ left: "0%" });
+    fireEvent.click(within(panel()).getByRole("button", { name: "Align top" }));
+    expect(frame(T1)).toHaveStyle({ top: "0%" });
+    expect(frame(C1)).toHaveStyle({ top: "30%" });
+  });
+
+  it("moves the group's layers together", async () => {
+    await renderEditor();
+    select(T1, C1);
+    // The slide is text, code, formula; the group is the two at the back.
+    expect(within(panel()).getByRole("button", { name: "Send to back" })).toBeDisabled();
+    fireEvent.click(within(panel()).getByRole("button", { name: "Bring to front" }));
+    await flush();
+    expect(lastSaved()!.map((e) => e.id)).toEqual([M1, T1, C1]);
+    expect(within(panel()).getByRole("button", { name: "Bring to front" })).toBeDisabled();
+  });
+
+  it("deletes the group with Delete and brings it all back with one undo", async () => {
+    await renderEditor();
+    select(T1, C1);
+    fireEvent.keyDown(canvas(), { key: "Delete" });
+    expect(frame(T1)).toBeNull();
+    expect(frame(C1)).toBeNull();
+    expect(frame(M1)).not.toBeNull();
+    await flush();
+    expect(lastSaved()!.map((e) => e.id)).toEqual([M1]);
+
+    fireEvent.click(undoButton());
+    expect(frame(T1)).not.toBeNull();
+    expect(frame(C1)).not.toBeNull();
+  });
+
+  it("duplicates the group, selects the copies and deletes from the panel", async () => {
+    await renderEditor();
+    fireEvent.keyDown(canvas(), { key: "a", ctrlKey: true });
+    fireEvent.keyDown(canvas(), { key: "d", ctrlKey: true });
+    expect(canvas().querySelectorAll("[data-element-id]")).toHaveLength(6);
+    expect(groupHeading(3)).toBeInTheDocument();
+    await flush();
+    const saved = lastSaved()!;
+    expect(saved).toHaveLength(6);
+    expect(new Set(saved.map((e) => e.id)).size).toBe(6);
+
+    fireEvent.click(within(panel()).getByRole("button", { name: "Delete" }));
+    expect(canvas().querySelectorAll("[data-element-id]")).toHaveLength(3);
+  });
+
+  it("does not duplicate a group that would not fit on the slide", async () => {
+    const many = Array.from({ length: 29 }, (_, i): SlideElement => ({
+      ...heading,
+      id: `0192f3a4-0000-7000-8000-${String(i).padStart(12, "0")}`,
+      y: i,
+    }));
+    await renderEditor([slide("s1", 0, many)]);
+    fireEvent.keyDown(canvas(), { key: "a", ctrlKey: true });
+    expect(within(panel()).getByRole("button", { name: "Duplicate" })).toBeDisabled();
+    fireEvent.keyDown(canvas(), { key: "d", ctrlKey: true });
+    expect(canvas().querySelectorAll("[data-element-id]")).toHaveLength(29);
+  });
+});

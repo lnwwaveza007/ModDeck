@@ -9,7 +9,7 @@ import { KindIcon } from "./KindIcon";
 export type InsertKind = "heading" | "text" | "code" | "math";
 
 const buttonClass =
-  "inline-flex h-11 items-center gap-2 rounded-md border border-border bg-background px-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-sm font-semibold text-neutral-800 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50";
 
 /**
  * The bar above the slide (Canva's add menu): put a heading, text, code, a formula or an image
@@ -57,7 +57,7 @@ export function InsertBar({
   ];
 
   return (
-    <div role="group" aria-label={t("label")} className="flex flex-wrap items-center gap-2">
+    <div role="group" aria-label={t("label")} className="flex flex-wrap items-center gap-1.5">
       {entries.map(({ kind, icon }) => (
         <button
           key={kind}

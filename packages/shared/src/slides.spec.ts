@@ -77,6 +77,19 @@ describe("slideElementSchema", () => {
     expect(slideElementSchema.safeParse({ ...text, align: undefined }).success).toBe(false);
   });
 
+  it("takes italic, underline and strike on text as optional switches", () => {
+    expect(slideElementSchema.safeParse(text).success).toBe(true);
+    const styled = slideElementSchema.safeParse({
+      ...text,
+      italic: true,
+      underline: true,
+      strike: false,
+    });
+    expect(styled.success).toBe(true);
+    expect(styled.data).toMatchObject({ italic: true, underline: true, strike: false });
+    expect(slideElementSchema.safeParse({ ...text, italic: "yes" }).success).toBe(false);
+  });
+
   it("only accepts an image file name the api wrote", () => {
     for (const imageRef of ["../x.png", "a.svg", "https://evil.test/a.png", id]) {
       expect(slideElementSchema.safeParse({ ...image, imageRef }).success).toBe(false);

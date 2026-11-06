@@ -33,10 +33,12 @@ import { editActivityWording } from "@/lib/api/live";
 import { startSession } from "@/lib/api/sessions";
 import {
   alignBox,
-  copyElement,
+  copyElements,
   createElement,
   elementBox,
-  moveLayer,
+  moveLayers,
+  placeElements,
+  unionBox,
   updateElement,
   type AlignEdge,
   type LayerMove,
@@ -51,7 +53,15 @@ import {
   type PollDraft,
 } from "@/lib/editor/poll-draft";
 import { SaveQueue } from "@/lib/editor/save-queue";
-import { DuplicateIcon, IconButton, RedoIcon, TrashIcon, UndoIcon } from "./ActionIcons";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  DuplicateIcon,
+  IconButton,
+  RedoIcon,
+  TrashIcon,
+  UndoIcon,
+} from "./ActionIcons";
 import { AddSlideDialog } from "./AddSlideDialog";
 import { ElementPanel } from "./ElementPanel";
 import { InsertBar, type InsertKind } from "./InsertBar";
@@ -84,8 +94,8 @@ export function DeckEditor({ deckId }: { deckId: string }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   // Polls as the host writes them, by slide id. They reach the server once complete.
   const [pollDrafts] = useState(() => new Map<string, PollDraft>());
-  // The element selected on the current slide, and the one being typed into.
-  const [elementId, setElementId] = useState<string | null>(null);
+  // The elements selected on the current slide (one or a group), and the one being typed into.
+  const [elementIds, setElementIds] = useState<string[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [starting, setStarting] = useState(false);
@@ -112,7 +122,9 @@ export function DeckEditor({ deckId }: { deckId: string }) {
   const selectedIndex = slides.findIndex((slide) => slide.id === selectedId);
   const selected = selectedIndex === -1 ? undefined : slides[selectedIndex];
   const elements = selected?.elements;
-  const element = elements?.find((el) => el.id === elementId) ?? null;
+  // Only one selected element has its own settings; a group has the group tools.
+  const picked = elements?.filter((el) => elementIds.includes(el.id)) ?? [];
+  const element = picked.length === 1 ? picked[0] : null;
 
   const apply = useCallback(
     (deck: { title: string; slides: SlideDto[] }) => {
@@ -121,7 +133,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
       setSelectedId((current) =>
         deck.slides.some((slide) => slide.id === current) ? current : (deck.slides[0]?.id ?? null),
       );
-      setElementId(null);
+      setElementIds([]);
       setEditingId(null);
       // What the server has replaces what the host did, so older steps no longer fit.
       pollDrafts.clear();
@@ -183,7 +195,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
 
   function selectSlide(slideId: string) {
     setSelectedId(slideId);
-    setElementId(null);
+    setElementIds([]);
     setEditingId(null);
   }
 
@@ -237,7 +249,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
     history.breakGroup();
     setElements(selected.id, [...selected.elements, created]);
     history.breakGroup();
-    setElementId(created.id);
+    setElementIds([created.id]);
     // Type straight away, like adding a text box in a design tool.
     setEditingId(created.id);
   }
@@ -261,7 +273,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
       history.breakGroup();
       setElements(slide.id, [...current.elements, created]);
       history.breakGroup();
-      setElementId(created.id);
+      setElementIds([created.id]);
     } catch (error) {
       recover(error);
     }
@@ -281,43 +293,60 @@ export function DeckEditor({ deckId }: { deckId: string }) {
     setElements(selected.id, updateElement(selected.elements, element.id, change));
   }
 
+  // Moves the whole selection flush to an edge of the slide, as one box.
   function alignElement(edge: AlignEdge) {
-    if (!selected || !element) return;
-    const box = elementBox(element, canvas.current?.measureHeight(element.id) ?? 0);
+    if (!selected || picked.length === 0) return;
+    const bounds = unionBox(
+      picked.map((el) => elementBox(el, canvas.current?.measureHeight(el.id) ?? 0)),
+    );
+    const to = alignBox(bounds, edge);
     history.breakGroup();
-    setElements(selected.id, updateElement(selected.elements, element.id, alignBox(box, edge)));
+    setElements(
+      selected.id,
+      placeElements(
+        selected.elements,
+        new Map(picked.map((el) => [el.id, { x: el.x, y: el.y }])),
+        to.x - bounds.x,
+        to.y - bounds.y,
+      ),
+    );
     history.breakGroup();
   }
 
   function layerElement(move: LayerMove) {
-    if (!selected || !element) return;
-    history.breakGroup();
-    setElements(selected.id, moveLayer(selected.elements, element.id, move));
-    history.breakGroup();
-  }
-
-  function duplicateElement(id = element?.id) {
-    if (!selected || !id || selected.elements.length >= SLIDE_ELEMENTS_MAX) return;
-    const index = selected.elements.findIndex((el) => el.id === id);
-    if (index === -1) return;
-    const copy = copyElement(selected.elements[index]);
-    const next = [...selected.elements];
-    next.splice(index + 1, 0, copy);
-    history.breakGroup();
-    setElements(selected.id, next);
-    history.breakGroup();
-    setElementId(copy.id);
-  }
-
-  function deleteElement(id = element?.id) {
-    if (!selected || !id) return;
+    if (!selected || picked.length === 0) return;
     history.breakGroup();
     setElements(
       selected.id,
-      selected.elements.filter((el) => el.id !== id),
+      moveLayers(
+        selected.elements,
+        picked.map((el) => el.id),
+        move,
+      ),
     );
     history.breakGroup();
-    setElementId(null);
+  }
+
+  function duplicateElements(ids = picked.map((el) => el.id)) {
+    if (!selected || ids.length === 0) return;
+    if (selected.elements.length + ids.length > SLIDE_ELEMENTS_MAX) return;
+    const { elements: next, copyIds } = copyElements(selected.elements, ids);
+    if (copyIds.length === 0) return;
+    history.breakGroup();
+    setElements(selected.id, next);
+    history.breakGroup();
+    setElementIds(copyIds);
+  }
+
+  function deleteElements(ids = picked.map((el) => el.id)) {
+    if (!selected || ids.length === 0) return;
+    history.breakGroup();
+    setElements(
+      selected.id,
+      selected.elements.filter((el) => !ids.includes(el.id)),
+    );
+    history.breakGroup();
+    setElementIds([]);
     setEditingId(null);
   }
 
@@ -387,7 +416,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
     setSelectedId((current) =>
       current === slideId ? (rest[index]?.id ?? rest[index - 1]?.id ?? null) : current,
     );
-    setElementId(null);
+    setElementIds([]);
     setEditingId(null);
   }
 
@@ -496,7 +525,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
       applying.current = false;
     }
     setSelectedId(slideId);
-    setElementId(null);
+    setElementIds([]);
     setEditingId(null);
   }
 
@@ -640,117 +669,132 @@ export function DeckEditor({ deckId }: { deckId: string }) {
   );
 
   return (
-    <>
+    // From lg up the editor is exactly one screen tall: the header and the toolbar keep their
+    // height, the slide takes what is left, and the slide list and side panel scroll on their own.
+    <div className="flex min-h-0 flex-1 flex-col lg:h-dvh lg:flex-none lg:overflow-hidden">
       {header}
-      <div className="flex flex-1 flex-wrap items-stretch">
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <nav
           aria-label={tPages("deckEditor.title")}
-          className="flex flex-[0_0_200px] flex-col gap-3 border-r border-neutral-200 bg-background px-2 py-3"
+          className="flex shrink-0 flex-col gap-2 border-b border-neutral-200 bg-background p-2 lg:min-h-0 lg:w-44 lg:border-r lg:border-b-0 xl:w-48"
         >
-          <SlideList
-            slides={slides}
-            selectedId={selectedId}
-            onSelect={selectSlide}
-            onReorder={reorder}
-          />
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-0.5 max-lg:max-h-48">
+            <SlideList
+              slides={slides}
+              selectedId={selectedId}
+              onSelect={selectSlide}
+              onReorder={reorder}
+            />
+          </div>
           {addButton}
         </nav>
 
-        <main className="flex min-w-0 flex-[999_1_480px] flex-col gap-4 p-6">
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 p-3 lg:p-4">
           {selected ? (
             <>
               <div
                 role="toolbar"
                 aria-label={t("toolbar.label")}
-                className="flex flex-wrap items-center gap-2"
+                className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2"
               >
-                <p className="mr-auto text-sm text-muted">
-                  {t("toolbar.counter", { current: selectedIndex + 1, total: slides.length })}
-                </p>
-                <IconButton
-                  label={t("toolbar.undo")}
-                  disabled={undoable[0] !== "1"}
-                  onClick={() => void undo()}
-                >
-                  <UndoIcon />
-                </IconButton>
-                <IconButton
-                  label={t("toolbar.redo")}
-                  disabled={undoable[1] !== "1"}
-                  onClick={() => void redo()}
-                >
-                  <RedoIcon />
-                </IconButton>
-                <Button
-                  variant="ghost"
-                  disabled={selectedIndex === 0}
-                  onClick={() => moveSlide(-1)}
-                >
-                  {t("toolbar.moveUp")}
-                </Button>
-                <Button
-                  variant="ghost"
-                  disabled={selectedIndex === slides.length - 1}
-                  onClick={() => moveSlide(1)}
-                >
-                  {t("toolbar.moveDown")}
-                </Button>
-                <IconButton label={t("toolbar.duplicate")} onClick={duplicateSlideAction}>
-                  <DuplicateIcon />
-                </IconButton>
-                <IconButton
-                  danger
-                  label={t("toolbar.delete")}
-                  onClick={() => void deleteSlideAction()}
-                >
-                  <TrashIcon />
-                </IconButton>
-              </div>
-
-              {selected.kind === "content" && (
-                <InsertBar
-                  disabled={selected.elements.length >= SLIDE_ELEMENTS_MAX}
-                  onInsert={insertElement}
-                  onInsertImage={insertImage}
-                  onImageRejected={rejectImage}
-                />
-              )}
-
-              <div className="mx-auto w-full max-w-240">
-                {selected.kind === "content" ? (
-                  <SlideCanvas
-                    key={selected.id}
-                    ref={canvas}
-                    slide={selected}
-                    selectedId={elementId}
-                    editingId={editingId}
-                    onSelect={(id) => {
-                      history.breakGroup();
-                      setElementId(id);
-                      if (id !== editingId) setEditingId(null);
-                    }}
-                    onEditing={(id) => {
-                      history.breakGroup();
-                      setEditingId(id);
-                    }}
-                    onGestureEnd={() => history.breakGroup()}
-                    onChange={(next) => setElements(selected.id, next)}
-                    onDelete={deleteElement}
-                    onDuplicate={duplicateElement}
-                  />
-                ) : (
-                  <LiveStage
-                    slide={{
-                      ...selected,
-                      activity: selected.activity && {
-                        ...selected.activity,
-                        allowAnswerChange: false,
-                      },
-                    }}
-                    now={0}
-                    className="shadow-sm"
+                {selected.kind === "content" && (
+                  <InsertBar
+                    disabled={selected.elements.length >= SLIDE_ELEMENTS_MAX}
+                    onInsert={insertElement}
+                    onInsertImage={insertImage}
+                    onImageRejected={rejectImage}
                   />
                 )}
+                <div className="ml-auto flex items-center gap-1.5">
+                  <p className="mr-1.5 text-sm whitespace-nowrap text-muted">
+                    {t("toolbar.counter", { current: selectedIndex + 1, total: slides.length })}
+                  </p>
+                  <IconButton
+                    compact
+                    label={t("toolbar.undo")}
+                    disabled={undoable[0] !== "1"}
+                    onClick={() => void undo()}
+                  >
+                    <UndoIcon />
+                  </IconButton>
+                  <IconButton
+                    compact
+                    label={t("toolbar.redo")}
+                    disabled={undoable[1] !== "1"}
+                    onClick={() => void redo()}
+                  >
+                    <RedoIcon />
+                  </IconButton>
+                  <IconButton
+                    compact
+                    label={t("toolbar.moveUp")}
+                    disabled={selectedIndex === 0}
+                    onClick={() => moveSlide(-1)}
+                  >
+                    <ArrowUpIcon />
+                  </IconButton>
+                  <IconButton
+                    compact
+                    label={t("toolbar.moveDown")}
+                    disabled={selectedIndex === slides.length - 1}
+                    onClick={() => moveSlide(1)}
+                  >
+                    <ArrowDownIcon />
+                  </IconButton>
+                  <IconButton compact label={t("toolbar.duplicate")} onClick={duplicateSlideAction}>
+                    <DuplicateIcon />
+                  </IconButton>
+                  <IconButton
+                    compact
+                    danger
+                    label={t("toolbar.delete")}
+                    onClick={() => void deleteSlideAction()}
+                  >
+                    <TrashIcon />
+                  </IconButton>
+                </div>
+              </div>
+
+              {/* On a wide screen this box is as big as the room left, and the slide is the
+                  largest 16:9 that fits it, so it never needs a scroll. Below lg it just fills
+                  the width and the page scrolls. */}
+              <div className="min-h-0 flex-1 lg:grid lg:place-items-center lg:[container-type:size]">
+                <div className="mx-auto w-full max-w-240 lg:w-[min(100cqw,calc(100cqh*16/9))] lg:max-w-none">
+                  {selected.kind === "content" ? (
+                    <SlideCanvas
+                      key={selected.id}
+                      ref={canvas}
+                      slide={selected}
+                      selectedIds={elementIds}
+                      editingId={editingId}
+                      onSelect={(ids) => {
+                        history.breakGroup();
+                        setElementIds(ids);
+                        if (editingId && !ids.includes(editingId)) setEditingId(null);
+                      }}
+                      onEditing={(id) => {
+                        history.breakGroup();
+                        setEditingId(id);
+                      }}
+                      onGestureEnd={() => history.breakGroup()}
+                      onChange={(next) => setElements(selected.id, next)}
+                      onDelete={deleteElements}
+                      onDuplicate={duplicateElements}
+                    />
+                  ) : (
+                    <LiveStage
+                      slide={{
+                        ...selected,
+                        activity: selected.activity && {
+                          ...selected.activity,
+                          allowAnswerChange: false,
+                        },
+                      }}
+                      now={0}
+                      className="shadow-sm"
+                    />
+                  )}
+                </div>
               </div>
             </>
           ) : (
@@ -763,7 +807,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
         </main>
 
         {selected && (
-          <aside className="flex-[1_1_280px] border-l border-neutral-200 bg-background p-4 lg:max-w-90">
+          <aside className="shrink-0 overflow-y-auto overscroll-contain border-t border-neutral-200 bg-background p-3 lg:min-h-0 lg:w-72 lg:border-t-0 lg:border-l xl:w-80">
             {selected.kind === "poll" ? (
               <PollEditor
                 key={selected.id}
@@ -772,18 +816,25 @@ export function DeckEditor({ deckId }: { deckId: string }) {
               />
             ) : (
               <ElementPanel
-                key={`${selected.id}:${element?.id ?? ""}`}
+                key={`${selected.id}:${picked.map((el) => el.id).join(",")}`}
                 slide={selected}
                 selected={element}
-                onSelect={(id) => {
-                  setElementId(id);
+                selectedIds={picked.map((el) => el.id)}
+                onSelect={(id, additive) => {
+                  setElementIds(
+                    additive
+                      ? elementIds.includes(id)
+                        ? elementIds.filter((other) => other !== id)
+                        : [...elementIds, id]
+                      : [id],
+                  );
                   setEditingId(null);
                 }}
                 onChange={changeElement}
                 onAlign={alignElement}
                 onLayer={layerElement}
-                onDuplicate={() => duplicateElement()}
-                onDelete={() => deleteElement()}
+                onDuplicate={() => duplicateElements()}
+                onDelete={() => deleteElements()}
                 onUploadImage={replaceImage}
               />
             )}
@@ -792,6 +843,6 @@ export function DeckEditor({ deckId }: { deckId: string }) {
       </div>
 
       {addOpen && <AddSlideDialog onAdd={addSlide} onClose={() => setAddOpen(false)} />}
-    </>
+    </div>
   );
 }

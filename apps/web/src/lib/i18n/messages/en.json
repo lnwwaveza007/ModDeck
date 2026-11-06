@@ -326,7 +326,7 @@
     "canvas": {
       "label": "Slide canvas",
       "emptyHint": "Add a heading, text, code, formula or image from the bar above.",
-      "help": "Click an element to select it. Drag to move. Arrow keys nudge it. Press Enter to edit its text and Delete to remove it."
+      "help": "Click an element to select it. Shift-click, or drag a box around several, to select a group. Ctrl or Cmd + A selects all. Drag to move. Arrow keys nudge. Press Enter to edit text and Delete to remove."
     },
     "layers": {
       "title": "Layers",
@@ -344,6 +344,8 @@
       "slideHint": "Click an element on the slide to edit it, or add one from the bar above the slide.",
       "activityComingSoon": "The question and options editor is coming soon.",
       "editActivity": "Edit activity",
+      "group": "{count} elements selected",
+      "groupHint": "Drag any of them to move the group. Position and layer apply to the whole group.",
       "element": {
         "text": "Text",
         "code": "Code block",
@@ -363,6 +365,10 @@
       "smaller": "Smaller",
       "larger": "Larger",
       "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underline",
+      "strikethrough": "Strikethrough",
+      "effects": "Text effects",
       "textAlign": "Text alignment",
       "align": {
         "left": "Left",

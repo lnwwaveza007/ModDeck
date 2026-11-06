@@ -3,6 +3,7 @@
 // checks the same rules before sending.
 
 import { z } from "zod";
+import type { SlideDto } from "./slides";
 
 export const DECK_TITLE_MAX = 120;
 
@@ -26,6 +27,9 @@ export interface DeckSummary {
   sessionCount: number;
   // A host may run the same deck twice at once (MD-5 §7): "2 live".
   liveSessions: { id: string; pin: string }[];
+  // The first slide in full, so the card can draw its thumbnail with the same renderer as the
+  // editor. Null only for a deck with no slides.
+  firstSlide: SlideDto | null;
   createdAt: string;
   updatedAt: string;
 }

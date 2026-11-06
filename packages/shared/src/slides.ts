@@ -73,6 +73,10 @@ export const textElementSchema = z.object({
   text: z.string().max(ELEMENT_TEXT_MAX.text),
   size,
   bold: z.boolean(),
+  // Optional so a deck saved before these effects existed is still valid: missing means off.
+  italic: z.boolean().optional(),
+  underline: z.boolean().optional(),
+  strike: z.boolean().optional(),
   align: z.enum(TEXT_ALIGNS),
 });
 
@@ -161,7 +165,7 @@ export interface SlideDto {
 }
 
 /** GET /decks/{deckId}: the card data plus the slides in order. */
-export interface DeckDetail extends DeckSummary {
+export interface DeckDetail extends Omit<DeckSummary, "firstSlide"> {
   slides: SlideDto[];
 }
 
