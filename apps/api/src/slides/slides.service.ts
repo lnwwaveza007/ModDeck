@@ -273,6 +273,7 @@ export class SlidesService {
           id: true,
           type: true,
           prompt: true,
+          allowAnswerChange: true,
           options: { orderBy: { position: "asc" }, select: { id: true, label: true } },
         },
       });

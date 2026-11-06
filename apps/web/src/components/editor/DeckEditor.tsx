@@ -7,11 +7,12 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import {
   SLIDE_ELEMENTS_MAX,
   SLIDE_IMAGE_MAX_BYTES,
+  type ActivityWordingBody,
   type SlideDto,
   type SlideElement,
   type SlideKind,
 } from "@moddeck/shared";
-import { SlideRenderer } from "@/components/content/SlideRenderer";
+import { LiveStage } from "@/components/presenter/LiveStage";
 import { SessionHeader } from "@/components/shell/SessionHeader";
 import { EmptyState } from "@/components/states/EmptyState";
 import { ErrorState } from "@/components/states/ErrorState";
@@ -28,6 +29,7 @@ import {
   saveElements,
   uploadSlideImage,
 } from "@/lib/api/slides";
+import { editActivityWording } from "@/lib/api/live";
 import { startSession } from "@/lib/api/sessions";
 import {
   alignBox,
@@ -41,11 +43,19 @@ import {
 } from "@/lib/editor/elements";
 import { History } from "@/lib/editor/history";
 import { readImageAspect } from "@/lib/editor/image";
+import {
+  isPollComplete,
+  pollBody,
+  pollDraftOf,
+  withSavedIds,
+  type PollDraft,
+} from "@/lib/editor/poll-draft";
 import { SaveQueue } from "@/lib/editor/save-queue";
 import { DuplicateIcon, IconButton, RedoIcon, TrashIcon, UndoIcon } from "./ActionIcons";
 import { AddSlideDialog } from "./AddSlideDialog";
 import { ElementPanel } from "./ElementPanel";
 import { InsertBar, type InsertKind } from "./InsertBar";
+import { PollEditor } from "./PollEditor";
 import { SaveIndicator } from "./SaveIndicator";
 import { SlideCanvas, type SlideCanvasHandle } from "./SlideCanvas";
 import { SlideList } from "./SlideList";
@@ -72,6 +82,8 @@ export function DeckEditor({ deckId }: { deckId: string }) {
   const [title, setTitle] = useState("");
   const [slides, setSlides] = useState<SlideDto[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Polls as the host writes them, by slide id. They reach the server once complete.
+  const [pollDrafts] = useState(() => new Map<string, PollDraft>());
   // The element selected on the current slide, and the one being typed into.
   const [elementId, setElementId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -112,12 +124,13 @@ export function DeckEditor({ deckId }: { deckId: string }) {
       setElementId(null);
       setEditingId(null);
       // What the server has replaces what the host did, so older steps no longer fit.
+      pollDrafts.clear();
       history.clear();
       rootOf.current.clear();
       currentOf.current.clear();
       setLoad({ status: "ready" });
     },
-    [history],
+    [history, pollDrafts],
   );
 
   const handleLoadError = useCallback(
@@ -186,6 +199,36 @@ export function DeckEditor({ deckId }: { deckId: string }) {
     queue.patch(slideId, { elements: next }, (body) =>
       saveElements(deckId, slideId, body.elements),
     );
+  }
+
+  const showActivity = useCallback((slideId: string, activity: SlideDto["activity"]) => {
+    latest.current = latest.current.map((slide) =>
+      slide.id === slideId ? { ...slide, activity } : slide,
+    );
+    setSlides(latest.current);
+  }, []);
+
+  // A poll changed: show it on the stage at once, and save it after a pause if it is complete.
+  // The request reads the newest draft when it goes out, with the ids of earlier saves.
+  function changePoll(slideId: string, draft: PollDraft) {
+    pollDrafts.set(slideId, draft);
+    const current = latest.current.find((slide) => slide.id === slideId)?.activity;
+    if (!current) return;
+    showActivity(slideId, {
+      ...current,
+      prompt: draft.prompt,
+      options: draft.rows.map((row) => ({ id: row.id ?? row.key, label: row.label })),
+    });
+    if (!isPollComplete(draft)) return;
+    queue.patch(`activity:${slideId}`, {}, async () => {
+      const newest = pollDrafts.get(slideId);
+      if (!newest || !isPollComplete(newest)) return;
+      const saved = await editActivityWording(deckId, slideId, pollBody(newest));
+      const latestDraft = pollDrafts.get(slideId);
+      if (latestDraft) {
+        pollDrafts.set(slideId, withSavedIds(latestDraft, newest.rows, saved.options));
+      }
+    });
   }
 
   function insertElement(kind: InsertKind) {
@@ -298,6 +341,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
     kind: slide.kind,
     position: slide.position,
     elements: slide.elements,
+    activity: slide.activity,
   });
 
   function showSlides(next: SlideDto[]) {
@@ -315,6 +359,16 @@ export function DeckEditor({ deckId }: { deckId: string }) {
         ...(snapshot.kind === "content" && { elements: snapshot.elements }),
       }),
     );
+    const wording: ActivityWordingBody | null = snapshot.activity?.prompt
+      ? {
+          prompt: snapshot.activity.prompt,
+          options: snapshot.activity.options.map(({ label }) => ({ label })),
+        }
+      : null;
+    if (wording) {
+      const activity = await queue.run(() => editActivityWording(deckId, slide.id, wording));
+      slide.activity = activity;
+    }
     const root = rootId(originalId);
     currentOf.current.set(root, slide.id);
     rootOf.current.set(slide.id, root);
@@ -500,6 +554,10 @@ export function DeckEditor({ deckId }: { deckId: string }) {
           <Button
             disabled={starting}
             onClick={async () => {
+              if ([...pollDrafts.values()].some((draft) => !isPollComplete(draft))) {
+                toast(t("errors.DECK_INCOMPLETE"), { tone: "error" });
+                return;
+              }
               setStarting(true);
               try {
                 await queue.flush();
@@ -681,7 +739,17 @@ export function DeckEditor({ deckId }: { deckId: string }) {
                     onDuplicate={duplicateElement}
                   />
                 ) : (
-                  <SlideRenderer slide={selected} className="shadow-sm" />
+                  <LiveStage
+                    slide={{
+                      ...selected,
+                      activity: selected.activity && {
+                        ...selected.activity,
+                        allowAnswerChange: false,
+                      },
+                    }}
+                    now={0}
+                    className="shadow-sm"
+                  />
                 )}
               </div>
             </>
@@ -696,21 +764,29 @@ export function DeckEditor({ deckId }: { deckId: string }) {
 
         {selected && (
           <aside className="flex-[1_1_280px] border-l border-neutral-200 bg-background p-4 lg:max-w-90">
-            <ElementPanel
-              key={`${selected.id}:${element?.id ?? ""}`}
-              slide={selected}
-              selected={element}
-              onSelect={(id) => {
-                setElementId(id);
-                setEditingId(null);
-              }}
-              onChange={changeElement}
-              onAlign={alignElement}
-              onLayer={layerElement}
-              onDuplicate={() => duplicateElement()}
-              onDelete={() => deleteElement()}
-              onUploadImage={replaceImage}
-            />
+            {selected.kind === "poll" ? (
+              <PollEditor
+                key={selected.id}
+                initial={pollDrafts.get(selected.id) ?? pollDraftOf(selected)}
+                onChange={(draft) => changePoll(selected.id, draft)}
+              />
+            ) : (
+              <ElementPanel
+                key={`${selected.id}:${element?.id ?? ""}`}
+                slide={selected}
+                selected={element}
+                onSelect={(id) => {
+                  setElementId(id);
+                  setEditingId(null);
+                }}
+                onChange={changeElement}
+                onAlign={alignElement}
+                onLayer={layerElement}
+                onDuplicate={() => duplicateElement()}
+                onDelete={() => deleteElement()}
+                onUploadImage={replaceImage}
+              />
+            )}
           </aside>
         )}
       </div>

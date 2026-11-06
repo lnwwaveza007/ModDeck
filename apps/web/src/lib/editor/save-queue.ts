@@ -3,14 +3,13 @@
 // sends the waiting edits first and then the change, one request at a time, so the server
 // sees them in the order the host made them.
 
-import type { SlidePatchBody } from "@moddeck/shared";
-
 export type SaveStatus = "saved" | "saving" | "error";
 
-type Send = (fields: SlidePatchBody) => Promise<unknown>;
+type Fields = Record<string, unknown>;
+type Send = (fields: Fields) => Promise<unknown>;
 
 export class SaveQueue {
-  private readonly pending = new Map<string, { fields: SlidePatchBody; send: Send }>();
+  private readonly pending = new Map<string, { fields: Fields; send: Send }>();
   private readonly listeners = new Set<() => void>();
   private timer: ReturnType<typeof setTimeout> | null = null;
   private chain: Promise<unknown> = Promise.resolve();
@@ -32,10 +31,10 @@ export class SaveQueue {
     };
   };
 
-  /** Keeps the newest value of each field per slide and starts the pause timer again. */
-  patch(slideId: string, fields: SlidePatchBody, send: Send) {
-    const waiting = this.pending.get(slideId);
-    this.pending.set(slideId, { fields: { ...waiting?.fields, ...fields }, send });
+  /** Keeps the newest value of each field per key and starts the pause timer again. */
+  patch<F extends Fields>(key: string, fields: F, send: (fields: F) => Promise<unknown>) {
+    const waiting = this.pending.get(key);
+    this.pending.set(key, { fields: { ...waiting?.fields, ...fields }, send: send as Send });
     if (this.timer) clearTimeout(this.timer);
     this.timer = setTimeout(() => void this.flush(), this.delayMs);
     this.notify();

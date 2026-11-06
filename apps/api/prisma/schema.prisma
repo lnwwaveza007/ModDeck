@@ -204,7 +204,7 @@ model Activity {
   @@map("activities")
 }
 
-// Poll option A, B, C ... (2 to 10). No vote counter: counts come from answers.
+// Poll option A, B, C ... (2 to 8). No vote counter: counts come from answers.
 model ActivityOption {
   id         String @id @default(uuid(7)) @db.Uuid
   activityId String @map("activity_id") @db.Uuid

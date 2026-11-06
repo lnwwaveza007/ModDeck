@@ -121,7 +121,10 @@ const slide = (
 
 const first = slide("s1", 0, [heading, snippet, formula]);
 const empty = slide("s2", 1, []);
-const poll = slide("s3", 2, [], { kind: "poll", activity: { type: "poll", prompt: "Q" } });
+const poll = slide("s3", 2, [], {
+  kind: "poll",
+  activity: { id: "a3", type: "poll", prompt: "Q", options: [] },
+});
 
 function deck(slides: SlideDto[]): DeckDetail {
   return {
@@ -592,12 +595,10 @@ describe("DeckEditor: the side panel", () => {
     expect(within(panel()).getByRole("heading", { name: "Slide" })).toBeInTheDocument();
   });
 
-  it("explains that activity slides have no canvas yet", async () => {
+  it("shows the poll editor instead of a canvas on a poll slide", async () => {
     await renderEditor();
     fireEvent.click(slideButton(3));
-    expect(
-      within(panel()).getByText("The question and options editor is coming soon."),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Question" })).toHaveValue("Q");
     expect(screen.queryByRole("group", { name: "Add to slide" })).not.toBeInTheDocument();
     expect(screen.queryByRole("group", { name: "Slide canvas" })).not.toBeInTheDocument();
   });
@@ -659,15 +660,17 @@ describe("DeckEditor: slides", () => {
     expect(within(dialog).getByRole("button", { name: /^Q&A/ })).toBeDisabled();
 
     api.create.mockResolvedValue(
-      slide("p2", 1, [], { kind: "poll", activity: { type: "poll", prompt: "" } }),
+      slide("p2", 1, [], {
+        kind: "poll",
+        activity: { id: "a2", type: "poll", prompt: "", options: [] },
+      }),
     );
     fireEvent.click(within(dialog).getByRole("button", { name: /^Live Poll/ }));
     await waitFor(() =>
       expect(api.create).toHaveBeenCalledWith("d1", { kind: "poll", position: 1 }),
     );
-    expect(
-      await screen.findByText("The question and options editor is coming soon."),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("textbox", { name: "Question" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Option A" })).toBeInTheDocument();
   });
 
   it("duplicates the selected slide right after it", async () => {

@@ -12,6 +12,7 @@ import type {
   LiveActivity,
   LiveSessionView,
   LiveSlide,
+  PollTally,
   RoomEvent,
 } from "@moddeck/shared";
 import { ApiError } from "@/lib/api/client";
@@ -26,6 +27,8 @@ export interface LiveSessionState {
   currentIndex: number;
   /** Activity id → run. An activity without a run is in draft. */
   runs: Record<string, ActivityRunDto>;
+  /** Run id → the counts of a poll. */
+  tallies: Record<string, PollTally>;
   connection: ConnectionStatus;
   ended: boolean;
   loadError: LiveLoadError | null;
@@ -63,6 +66,7 @@ export function useLiveSession(
   const [slides, setSlides] = useState<LiveSlide[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [runs, setRuns] = useState<Record<string, ActivityRunDto>>({});
+  const [tallies, setTallies] = useState<Record<string, PollTally>>({});
   const [connection, setConnection] = useState<ConnectionStatus>("connecting");
   const [ended, setEnded] = useState(false);
   const [loadError, setLoadError] = useState<LiveLoadError | null>(null);
@@ -91,6 +95,7 @@ export function useLiveSession(
       setView(value);
       setSlides(value.slides);
       setRuns(runsById(value.runs));
+      setTallies(value.tallies);
       // A refresh after the end: the socket would refuse to join, so read it from here too.
       if (value.status === "ended") setEnded(true);
       if (!sending.current) setCurrentId(value.currentSlideId ?? value.slides[0]?.id ?? null);
@@ -114,6 +119,11 @@ export function useLiveSession(
         case "activity_state":
           setRuns((current) => ({ ...current, [event.data.activityId]: event.data }));
           break;
+        case "vote_update": {
+          const { activityRunId, votes, answered } = event.data;
+          setTallies((current) => ({ ...current, [activityRunId]: { votes, answered } }));
+          break;
+        }
         case "activity_edited":
           setSlides((current) =>
             withActivity(current, { id: event.data.activityId, ...event.data }),
@@ -220,7 +230,7 @@ export function useLiveSession(
   );
 
   return [
-    { view, slides, currentIndex, runs, connection, ended, loadError, clockOffset },
+    { view, slides, currentIndex, runs, tallies, connection, ended, loadError, clockOffset },
     { goTo, next, previous, act, editWording },
   ];
 }

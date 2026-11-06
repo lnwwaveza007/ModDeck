@@ -192,6 +192,7 @@ describe("LiveSession", () => {
     status: "live",
     slideCount: 20,
     currentSlide: { id: "slide-5", index: 4 },
+    currentActivity: null,
     ...overrides,
   });
 
@@ -256,7 +257,7 @@ describe("LiveSession", () => {
         seq: 2,
         sessionId: "s1",
         at: 0,
-        data: { slideId: "slide-6", index: 5 },
+        data: { slideId: "slide-6", index: 5, activity: null },
       }),
     );
     expect(screen.getByText("Slide 6 of 20")).toBeVisible();

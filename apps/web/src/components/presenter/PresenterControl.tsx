@@ -19,6 +19,8 @@ import { ShortcutHelp } from "./ShortcutHelp";
 import { SlideStrip } from "./SlideStrip";
 import { WordingDialog } from "./WordingDialog";
 
+const NO_VOTES = { votes: {}, answered: 0 };
+
 const ERROR_KEYS = [
   "SESSION_ENDED",
   "INVALID_TRANSITION",
@@ -48,6 +50,7 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
     sessionId,
     state.slides[state.currentIndex]?.id ?? null,
     state.currentIndex === 0,
+    state.view?.showResultsLive,
   );
   const [help, setHelp] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -61,7 +64,7 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
     return runLiveCommand(command, state, controls, layers, duration ?? undefined);
   });
 
-  const { view, slides, currentIndex, runs } = state;
+  const { view, slides, currentIndex, runs, tallies } = state;
   if (state.loadError || !view) {
     return (
       <main className="grid min-h-[70vh] place-items-center">
@@ -73,6 +76,8 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
   const current = slides[currentIndex];
   const next = slides[currentIndex + 1];
   const activity = current?.activity ?? null;
+  const run = activity ? runOf(runs, activity.id) : null;
+  const tally = run ? (tallies[run.activityRunId] ?? NO_VOTES) : undefined;
   const pin = view.pin.replace(/(\d{3})(\d{3})/, "$1 $2");
   const elapsed = Math.max(0, (now - Date.parse(view.startedAt)) / 1000);
   const participants = end.session?.participantCount ?? view.participantCount;
@@ -136,7 +141,9 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
                 {current && (
                   <LiveStage
                     slide={current}
-                    run={activity ? runOf(runs, activity.id) : undefined}
+                    run={run ?? undefined}
+                    tally={tally}
+                    liveChart={screen.liveChart}
                     now={now}
                     className="shadow-sm"
                   />
@@ -200,11 +207,14 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
               </section>
             </div>
 
-            {activity ? (
+            {activity && run ? (
               <ActivityControls
                 key={activity.id}
                 activity={activity}
-                run={runOf(runs, activity.id)}
+                run={run}
+                tally={tally ?? NO_VOTES}
+                liveChart={screen.liveChart}
+                onLiveChart={() => setScreen({ liveChart: !screen.liveChart })}
                 now={now}
                 durationRef={durationRef}
                 onAct={(action, duration) => controls.act(activity.id, action, duration)}

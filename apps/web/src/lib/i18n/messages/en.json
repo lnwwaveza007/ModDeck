@@ -149,6 +149,21 @@
         "title": "Can't reach ModDeck",
         "body": "Check your internet connection, then reload the page."
       }
+    },
+    "poll": {
+      "options": "Answer options",
+      "submit": "Submit",
+      "change": "Change answer",
+      "sending": "Sending…",
+      "sent": "Answer sent",
+      "changeHint": "Tap another option to change your answer.",
+      "lockedHint": "Your answer is locked.",
+      "kept": "You already answered. Your first answer counts.",
+      "failed": "Not sent. Check your connection and try again.",
+      "closed": "Voting closed",
+      "yourAnswer": "Your answer",
+      "noAnswer": "You did not answer this poll.",
+      "answered": "{count, plural, one {# answer} other {# answers}}"
     }
   },
   "host": {
@@ -409,6 +424,18 @@
       "generic": "Could not complete that. The editor reloaded.",
       "DECK_INCOMPLETE": "Finish every activity before starting the session.",
       "IMPORT_RUNNING": "The PDF import is still running. Try again when it finishes."
+    },
+    "poll": {
+      "title": "Live Poll",
+      "question": "Question",
+      "questionPlaceholder": "What do you want to ask?",
+      "options": "Options",
+      "option": "Option {letter}",
+      "add": "Add option",
+      "remove": "Remove option {letter}",
+      "limit": "{min} to {max} options, one answer per student.",
+      "help": "Use `code` and $x^2$ in the question and options.",
+      "incomplete": "Write the question and fill in every option, at least {min}. It saves when complete."
     }
   },
   "pages": {
@@ -498,7 +525,10 @@
         "results_shown": "Results"
       },
       "noVotes": "No votes yet",
-      "noWords": "No words yet"
+      "noWords": "No words yet",
+      "answered": "{count, plural, one {# answer} other {# answers}}",
+      "votingClosed": "Voting closed",
+      "yourAnswer": "You"
     },
     "activity": {
       "label": "Activity controls",
@@ -516,7 +546,8 @@
         "start": "Start",
         "stop": "Stop",
         "show_results": "Show results",
-        "reopen": "Reopen"
+        "reopen": "Reopen",
+        "hide_results": "Hide results"
       },
       "timer": "Timer",
       "noTimer": "No timer",
@@ -529,8 +560,10 @@
         "draft": "Students see the question only. Nothing opens until you press Start.",
         "live": "Students can answer now. Stop closes voting; Show results closes it and shows the results.",
         "closed": "Voting is closed and the results are hidden.",
-        "results_shown": "The results are on screen. Reopen to take more answers."
-      }
+        "results_shown": "The results are on screen. Hide them, or reopen to take more answers."
+      },
+      "answered": "{count, plural, one {# answer} other {# answers}}",
+      "liveChart": "Chart on audience screen"
     },
     "wording": {
       "title": "Edit wording",
@@ -554,13 +587,14 @@
       "first": "First slide",
       "last": "Last slide",
       "toggleActivity": "Start, stop or reopen the activity",
-      "showResults": "Show results",
+      "showResults": "Show or hide results",
       "overlay": "Presenter overlay (audience screen)",
       "blank": "Blank screen",
       "join": "Join screen with QR code",
       "joinBar": "Show or hide the PIN bar",
       "fullscreen": "Full screen (audience screen)",
-      "help": "This list"
+      "help": "This list",
+      "liveChart": "Show or hide the chart while voting is open"
     },
     "errors": {
       "generic": "That did not work. Try again.",

@@ -3,6 +3,8 @@ import { randomInt } from "node:crypto";
 import Redis from "ioredis";
 import { ApiException } from "../common/api-error";
 import { PrismaService } from "../prisma/prisma.service";
+import { PollFlusherService } from "../realtime/poll-flusher.service";
+import { PollStoreService } from "../realtime/poll-store.service";
 import { REDIS } from "../redis/redis.module";
 import { RoomEventsService } from "../realtime/room-events.service";
 
@@ -14,6 +16,8 @@ export class SessionsService {
     private readonly prisma: PrismaService,
     @Inject(REDIS) private readonly redis: Redis,
     private readonly events: RoomEventsService,
+    private readonly polls: PollStoreService,
+    private readonly flusher: PollFlusherService,
   ) {}
 
   async create(ownerId: string, deckId: string) {
@@ -144,7 +148,23 @@ export class SessionsService {
     });
     if (count === 0) return;
     await this.redis.del(pinKey(session.pin));
+    await this.closeLiveRuns(session.id);
     await this.events.publish(session.id, "session_ended", { reason: "host" });
+  }
+
+  /** An activity that is still live closes with the session (MD-5 §7.1). */
+  private async closeLiveRuns(sessionId: string) {
+    const live = await this.prisma.activityRun.findMany({
+      where: { sessionId, state: "live" },
+      select: { id: true },
+    });
+    if (live.length === 0) return;
+    await this.prisma.activityRun.updateMany({
+      where: { sessionId, state: "live" },
+      data: { state: "closed", endsAt: null, closedAt: new Date() },
+    });
+    for (const { id } of live) await this.polls.syncRun(sessionId, id);
+    await this.flusher.finalFlush(sessionId);
   }
 
   // The open session behind a PIN, for the join flow (ParticipantsService). The

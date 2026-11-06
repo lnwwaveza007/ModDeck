@@ -159,9 +159,9 @@ describe("slides (e2e)", () => {
     expect(poll).toMatchObject({
       kind: "poll",
       elements: [],
-      activity: { type: "poll", prompt: "" },
+      activity: { type: "poll", prompt: "", options: [] },
     });
-    expect(cloud.activity).toEqual({ type: "word_cloud", prompt: "" });
+    expect(cloud.activity).toMatchObject({ type: "word_cloud", prompt: "", options: [] });
     expect((await slidesOf(deck.id)).map((s) => s.position)).toEqual([0, 1, 2, 3, 4]);
   });
 
@@ -326,7 +326,7 @@ describe("slides (e2e)", () => {
     const res = await as(hostA, api().post(`/decks/${deck.id}/slides/${poll.id}/copies`)).expect(
       201,
     );
-    expect(res.body.activity).toEqual({ type: "poll", prompt: "Which?" });
+    expect(res.body.activity).toMatchObject({ type: "poll", prompt: "Which?" });
     const copy = await prisma.activity.findUniqueOrThrow({
       where: { slideId: res.body.id },
       include: { options: { orderBy: { position: "asc" } } },

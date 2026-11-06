@@ -9,11 +9,16 @@ import type { ActivitySlideKind, SlideDto } from "./slides";
 
 // What the host can press on an activity. An activity starts only when the host presses Start:
 // showing its slide never starts it.
-export const ACTIVITY_ACTIONS = ["start", "stop", "show_results", "reopen"] as const;
+export const ACTIVITY_ACTIONS = [
+  "start",
+  "stop",
+  "show_results",
+  "hide_results",
+  "reopen",
+] as const;
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number];
 
-// From which states each action is allowed, and the state it leads to. Results stay on screen
-// until the host reopens the activity: there is no separate "hide results".
+// From which states each action is allowed, and the state it leads to (MD-5 §7.1).
 export const ACTIVITY_TRANSITIONS: Record<
   ActivityAction,
   { from: readonly ActivityRunState[]; to: ActivityRunState }
@@ -21,6 +26,7 @@ export const ACTIVITY_TRANSITIONS: Record<
   start: { from: ["draft"], to: "live" },
   stop: { from: ["live"], to: "closed" },
   show_results: { from: ["live", "closed"], to: "results_shown" },
+  hide_results: { from: ["results_shown"], to: "closed" },
   reopen: { from: ["closed", "results_shown"], to: "live" },
 };
 
@@ -67,7 +73,7 @@ export type ActivityActionBody = z.infer<typeof activityActionBodySchema>;
 export const ACTIVITY_PROMPT_MAX = 300;
 export const POLL_OPTION_LABEL_MAX = 120;
 export const POLL_OPTIONS_MIN = 2;
-export const POLL_OPTIONS_MAX = 10;
+export const POLL_OPTIONS_MAX = 8;
 
 // PATCH /decks/{deckId}/slides/{slideId}/activity: the wording of a poll or word cloud.
 // `options` is the whole list in order (polls only): an option with an `id` keeps it, one
@@ -107,6 +113,14 @@ export interface LiveActivity {
   type: ActivitySlideKind;
   prompt: string;
   options: ActivityOptionDto[];
+  /** Poll only. Off: the first answer counts until the host reopens the poll. */
+  allowAnswerChange: boolean;
+}
+
+/** The counts of one poll run. `answered`: how many people have an answer. */
+export interface PollTally {
+  votes: Record<string, number>;
+  answered: number;
 }
 
 // ---- Live session view ------------------------------------------------------
@@ -127,6 +141,19 @@ export interface ActivityRunDto {
   state: ActivityRunState;
   /** Countdown end, ms since epoch (server clock), or null without a timer. */
   endsAt: number | null;
+  /** The host reopened it at least once: students can add or change answers (MD-5 Q15). */
+  reopened: boolean;
+}
+
+/**
+ * An activity as a student phone gets it when the room reaches its slide. `results` stays null
+ * until the host shows results: the phone never draws a chart during voting (MD-5 §7.1).
+ */
+export interface SlideActivityView {
+  activity: LiveActivity;
+  /** null: no run yet, so the activity is in draft. */
+  run: ActivityRunDto | null;
+  results: PollTally | null;
 }
 
 /** GET /sessions/{sessionId}/live: everything the presenter and the audience screen start from. */
@@ -144,5 +171,9 @@ export interface LiveSessionView {
   currentSlideId: string | null;
   slides: LiveSlide[];
   runs: ActivityRunDto[];
+  /** Counts of each poll run that has started, by run id. */
+  tallies: Record<string, PollTally>;
+  /** Session setting: the audience screen draws the chart while voting is open (MD-5 §7.1). */
+  showResultsLive: boolean;
   participantCount: number;
 }

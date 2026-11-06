@@ -204,7 +204,7 @@ describe("reconnect and state recovery (MD-13, e2e)", () => {
   const publish = (sessionId: string, index: number) =>
     api.app
       .get(RoomEventsService)
-      .publish(sessionId, "slide_changed", { slideId: `s${index}`, index });
+      .publish(sessionId, "slide_changed", { slideId: `s${index}`, index, activity: null });
 
   describe.each([
     ["5 s", DROPS_MS[0]],
@@ -287,7 +287,7 @@ describe("reconnect and state recovery (MD-13, e2e)", () => {
     );
     await Promise.all(students.map((phone) => phone.untilConnects(1)));
     const events = restartable.app.get(RoomEventsService);
-    await events.publish(session.id, "slide_changed", { slideId: "s0", index: 0 });
+    await events.publish(session.id, "slide_changed", { slideId: "s0", index: 0, activity: null });
     await Promise.all(students.map((phone) => phone.untilSeq(1)));
 
     // The api process goes away: every socket is cut, a new one starts on the same port.
@@ -296,7 +296,7 @@ describe("reconnect and state recovery (MD-13, e2e)", () => {
     try {
       await next.app
         .get(RoomEventsService)
-        .publish(session.id, "slide_changed", { slideId: "s2", index: 2 });
+        .publish(session.id, "slide_changed", { slideId: "s2", index: 2, activity: null });
 
       await Promise.all(students.map((phone) => phone.untilSeq(2)));
       for (const phone of students) {

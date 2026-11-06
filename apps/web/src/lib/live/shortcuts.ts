@@ -12,6 +12,7 @@ export type ShortcutCommand =
   | "last"
   | "toggleActivity" // start, stop or reopen the activity on screen
   | "showResults"
+  | "liveChart" // the chart on the audience screen while voting is open
   | "overlay"
   | "blank"
   | "join" // join info with the QR code on the audience screen
@@ -27,6 +28,7 @@ export const SHORTCUT_LIST: { command: ShortcutCommand; keys: string[] }[] = [
   { command: "last", keys: ["End"] },
   { command: "toggleActivity", keys: ["A"] },
   { command: "showResults", keys: ["S"] },
+  { command: "liveChart", keys: ["L"] },
   { command: "overlay", keys: ["O"] },
   { command: "blank", keys: ["B"] },
   { command: "join", keys: ["J"] },
@@ -74,6 +76,8 @@ export function shortcutFor(event: KeyLike): ShortcutCommand | null {
       return "toggleActivity";
     case "s":
       return "showResults";
+    case "l":
+      return "liveChart";
     case "o":
       return "overlay";
     case "b":

@@ -15,6 +15,7 @@ import { Kbd } from "./Kbd";
 import { LiveStage } from "./LiveStage";
 import { ShortcutHelp } from "./ShortcutHelp";
 
+const NO_VOTES = { votes: {}, answered: 0 };
 const COUNT_POLL_MS = 5000;
 // A refresh joins the room in a moment. Only a join that takes longer than this is worth showing.
 const CONNECT_GRACE_MS = 2000;
@@ -37,6 +38,7 @@ export function AudienceScreen({ sessionId }: { sessionId: string }) {
     sessionId,
     state.slides[state.currentIndex]?.id ?? null,
     state.currentIndex === 0,
+    state.view?.showResultsLive,
   );
   const [overlay, setOverlay] = useState(false);
   const [help, setHelp] = useState(false);
@@ -55,7 +57,7 @@ export function AudienceScreen({ sessionId }: { sessionId: string }) {
     return runLiveCommand(command, state, controls, layers);
   });
 
-  const { view, slides, currentIndex, runs } = state;
+  const { view, slides, currentIndex, runs, tallies } = state;
   if (state.loadError || !view) {
     return (
       <div className="grid flex-1 place-items-center bg-neutral-900 text-neutral-100">
@@ -67,6 +69,7 @@ export function AudienceScreen({ sessionId }: { sessionId: string }) {
   const [screen] = layers;
   const current = slides[currentIndex];
   const activity = current?.activity;
+  const run = activity ? runOf(runs, activity.id) : undefined;
   const connectionLost =
     state.connection === "reconnecting" ||
     state.connection === "offline" ||
@@ -88,7 +91,9 @@ export function AudienceScreen({ sessionId }: { sessionId: string }) {
           {current && (
             <LiveStage
               slide={current}
-              run={activity ? runOf(runs, activity.id) : undefined}
+              run={run}
+              tally={run ? (tallies[run.activityRunId] ?? NO_VOTES) : undefined}
+              liveChart={screen.liveChart}
               now={now}
               className="rounded-none border-0"
             />

@@ -219,7 +219,7 @@ describe("SlideRenderer", () => {
         slide={{
           kind: "poll",
           elements: [],
-          activity: { type: "poll", prompt: "Which layer is `TCP`?" },
+          activity: { id: "a1", type: "poll", prompt: "Which layer is `TCP`?", options: [] },
         }}
       />,
       "th",

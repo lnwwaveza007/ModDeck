@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { ApiError } from "@/lib/api/client";
-import { optionLetter } from "./LiveStage";
+import { optionLetter } from "@/components/poll/PollChart";
 
 /**
  * Fix a typo during the lecture. Only the wording changes: options keep their place, so the

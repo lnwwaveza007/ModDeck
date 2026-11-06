@@ -58,6 +58,7 @@ const poll: LiveSlide = {
       { id: "o1", label: "Alpha" },
       { id: "o2", label: "Beta" },
     ],
+    allowAnswerChange: false,
   },
 };
 
@@ -73,6 +74,8 @@ const view = (overrides: Partial<LiveSessionView> = {}): LiveSessionView => ({
   currentSlideId: "slide-0",
   slides: [content("slide-0", 0), poll, content("slide-2", 2)],
   runs: [],
+  tallies: {},
+  showResultsLive: false,
   participantCount: 12,
   ...overrides,
 });
@@ -82,6 +85,7 @@ const run = (state: ActivityRunDto["state"], endsAt: number | null = null): Acti
   activityRunId: "run-1",
   state,
   endsAt,
+  reopened: false,
 });
 
 function roomEvent<T extends RoomEvent["type"]>(
@@ -194,7 +198,7 @@ describe("PresenterControl", () => {
   it("follows a slide change made in another window", async () => {
     await renderPresenter();
     await waitFor(() => expect(live.options).toBeDefined());
-    roomEvent("slide_changed", { slideId: "slide-2", index: 2 });
+    roomEvent("slide_changed", { slideId: "slide-2", index: 2, activity: null });
     expect(screen.getByText("Now showing · slide 3 of 3")).toBeInTheDocument();
   });
 
@@ -363,7 +367,7 @@ describe("AudienceScreen", () => {
     expect(screen.getByText("Alpha")).toBeInTheDocument();
     await waitFor(() => expect(live.options).toMatchObject({ role: "host" }));
 
-    roomEvent("slide_changed", { slideId: "slide-2", index: 2 });
+    roomEvent("slide_changed", { slideId: "slide-2", index: 2, activity: null });
     expect(screen.queryByText("Which one?")).not.toBeInTheDocument();
   });
 
@@ -442,9 +446,9 @@ describe("AudienceScreen", () => {
   it("closes the join screen when the room moves, and does not bring it back", async () => {
     await renderScreen();
     await waitFor(() => expect(live.options).toBeDefined());
-    roomEvent("slide_changed", { slideId: "slide-2", index: 2 });
+    roomEvent("slide_changed", { slideId: "slide-2", index: 2, activity: null });
     expect(screen.queryByText("Enter the PIN")).not.toBeInTheDocument();
-    roomEvent("slide_changed", { slideId: "slide-0", index: 0 }, 2);
+    roomEvent("slide_changed", { slideId: "slide-0", index: 0, activity: null }, 2);
     expect(screen.queryByText("Enter the PIN")).not.toBeInTheDocument();
   });
 
@@ -508,11 +512,49 @@ describe("AudienceScreen", () => {
     expect(screen.getByText("12 people joined")).toBeInTheDocument();
   });
 
-  it("shows empty poll results until answers can be counted", async () => {
+  it("shows empty results when nobody has answered", async () => {
     await renderScreen(view({ currentSlideId: "slide-poll", runs: [run("results_shown")] }));
     expect(screen.getByText("No votes yet")).toBeInTheDocument();
     expect(screen.getByText("Alpha")).toBeInTheDocument();
-    expect(screen.getAllByText("0%")).toHaveLength(2);
+    expect(screen.getAllByText("0% · 0")).toHaveLength(2);
+  });
+
+  it("updates the results from vote_update", async () => {
+    await renderScreen(view({ currentSlideId: "slide-poll", runs: [run("results_shown")] }));
+    await waitFor(() => expect(live.options).toBeDefined());
+    act(() =>
+      live.options?.onEvent?.({
+        type: "vote_update",
+        seq: 1,
+        sessionId: "s1",
+        at: 0,
+        data: { activityRunId: "run-1", votes: { o1: 3, o2: 1 }, answered: 4 },
+      }),
+    );
+    expect(screen.getByText("75% · 3")).toBeInTheDocument();
+    expect(screen.getByText("25% · 1")).toBeInTheDocument();
+  });
+
+  it("hides the chart during voting until the host turns it on", async () => {
+    const tallies = { "run-1": { votes: { o1: 2 }, answered: 2 } };
+    await renderScreen(view({ currentSlideId: "slide-poll", runs: [run("live")], tallies }));
+    expect(screen.getByText("2 answers")).toBeInTheDocument();
+    expect(screen.queryByText("100% · 2")).not.toBeInTheDocument();
+    fireEvent.keyDown(document, { key: "l" });
+    expect(await screen.findByText("100% · 2")).toBeInTheDocument();
+  });
+
+  it("starts with the chart on when the session shows results live", async () => {
+    const tallies = { "run-1": { votes: { o1: 2 }, answered: 2 } };
+    await renderScreen(
+      view({
+        currentSlideId: "slide-poll",
+        runs: [run("live")],
+        tallies,
+        showResultsLive: true,
+      }),
+    );
+    expect(screen.getByText("100% · 2")).toBeInTheDocument();
   });
 
   it("shows the reconnecting status only when the connection is lost", async () => {

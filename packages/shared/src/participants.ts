@@ -2,6 +2,7 @@
 // nickname rules of MD-5 §2.6. The api and the join form check the same rules.
 
 import { z } from "zod";
+import type { SlideActivityView } from "./live";
 
 export const NICKNAME_MIN = 2;
 export const NICKNAME_MAX = 20;
@@ -86,4 +87,6 @@ export interface ParticipantMe extends JoinResult {
   slideCount: number;
   /** null before the host shows the first slide. `index` starts at 0. */
   currentSlide: { id: string; index: number } | null;
+  /** The activity on the current slide, with the answer of this participant. */
+  currentActivity: (SlideActivityView & { myOptionId: string | null }) | null;
 }

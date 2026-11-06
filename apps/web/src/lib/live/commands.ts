@@ -1,4 +1,4 @@
-import { nextActivityState, type ActivityAction, type ActivityRunState } from "@moddeck/shared";
+import { type ActivityAction, type ActivityRunState } from "@moddeck/shared";
 import type { ShortcutCommand } from "./shortcuts";
 import type { ScreenLayers } from "./screen-channel";
 import { runOf, type LiveSessionControls, type LiveSessionState } from "./use-live-session";
@@ -8,6 +8,12 @@ export function toggleAction(state: ActivityRunState): ActivityAction {
   if (state === "draft") return "start";
   if (state === "live") return "stop";
   return "reopen";
+}
+
+/** What the S key does: shows the results, or hides them again. Nothing before a start. */
+export function resultsAction(state: ActivityRunState): ActivityAction | null {
+  if (state === "draft") return null;
+  return state === "results_shown" ? "hide_results" : "show_results";
 }
 
 /**
@@ -45,11 +51,13 @@ export function runLiveCommand(
     }
     case "showResults": {
       if (!activity) return true;
-      if (nextActivityState(runOf(state.runs, activity.id).state, "show_results")) {
-        void controls.act(activity.id, "show_results");
-      }
+      const action = resultsAction(runOf(state.runs, activity.id).state);
+      if (action) void controls.act(activity.id, action);
       return true;
     }
+    case "liveChart":
+      layers[1]({ liveChart: !layers[0].liveChart });
+      return true;
     case "blank":
       layers[1]({ blank: !layers[0].blank });
       return true;

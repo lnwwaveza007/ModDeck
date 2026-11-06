@@ -1,5 +1,5 @@
 import { formatDuration, secondsLeft } from "./clock";
-import { toggleAction } from "./commands";
+import { resultsAction, toggleAction } from "./commands";
 import { shortcutFor } from "./shortcuts";
 
 const key = (
@@ -80,5 +80,14 @@ describe("clock", () => {
   it("rounds the time left up and never below zero", () => {
     expect(secondsLeft(10_500, 10_000)).toBe(1);
     expect(secondsLeft(10_000, 12_000)).toBe(0);
+  });
+});
+
+describe("resultsAction", () => {
+  it("shows results, then hides them, and does nothing before a start", () => {
+    expect(resultsAction("draft")).toBeNull();
+    expect(resultsAction("live")).toBe("show_results");
+    expect(resultsAction("closed")).toBe("show_results");
+    expect(resultsAction("results_shown")).toBe("hide_results");
   });
 });

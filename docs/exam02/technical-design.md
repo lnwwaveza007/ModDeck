@@ -325,7 +325,7 @@ sequenceDiagram
     API-->>Sock: ack { ok, duplicate }
     Sock->>Store: dispatch(answerAcked)
     Store-->>UI: "Answer sent"
-    API-->>Sock: vote_update { seq, votes } (coalesced, max 1 per 50 ms)
+    API-->>Sock: vote_update { seq, votes } (batched, max 1 per 150 ms)
     Sock->>Store: dispatch(event) if seq = lastSeq + 1
 ```
 
@@ -513,7 +513,7 @@ All live traffic uses one Socket.IO namespace (`/`). Each session is one room. E
 | S → C | `slide_changed` | `slideId`, `index` | |
 | S → C | `activity_state` | `activityId`, `activityRunId`, `state`, `endsAt` (countdown end or null) | |
 | S → C | `activity_edited` | `activityId`, `prompt`, `options` | The host fixed the wording during the session |
-| S → C | `vote_update` | `votes` (tally), `answered`, `batch` | **Coalesced per room, max 1 per 50 ms** (MD-8 fix). Leading edge in a quiet room (MD-8 §11) |
+| S → C | `vote_update` | `votes` (tally), `answered`, `batch` | **Batched per poll, max 1 per 150 ms** (R1-13; MD-8 measured 50 ms as the limit) |
 | S → C | `word_update` | `words[]` with counts | Coalesced like votes |
 | S → C | `question_posted` / `question_updated` | question fields (author hidden if anonymous) | |
 | S → C | `participant_count` | `online`, `total` | Coalesced. Replaces per-person `user_joined` (MD-8 §9: join was quadratic) |
@@ -676,7 +676,7 @@ erDiagram
     POLL_OPTION {
         string optionId PK
         string activityId FK
-        int position "A, B, C ... 2 to 10 options"
+        int position "A, B, C ... 2 to 8 options"
         string label
     }
     PDF_IMPORT {
@@ -861,10 +861,10 @@ sequenceDiagram
     participant Room as Room clients (projector, presenter, phones)
 
     Phone->>GW: vote { activityRunId, optionIds, answerId }
-    GW->>R: EVALSHA submit.lua (dedup, HINCRBY, XADD, seq)
+    GW->>R: EVALSHA submit.lua (dedup, HINCRBY, XADD)
     R-->>GW: 1 = accepted / 0 = duplicate
     GW-->>Phone: ack { ok, duplicate }
-    Note over GW: coalesce per room, max 1 broadcast per 50 ms
+    Note over GW: batch per poll, max 1 broadcast per 150 ms
     GW->>R: PUBLISH via Socket.IO Redis adapter
     R-->>Room: vote_update { seq, votes, answered }
     loop every 1 s while activity is live, and once on close

@@ -132,6 +132,7 @@ describe("realtime gateway across two instances (e2e)", () => {
     await a.app.get(RoomEventsService).publish(session.id, "slide_changed", {
       slideId: "s1",
       index: 0,
+      activity: null,
     });
     const [a1, b1] = await Promise.all([gotA1, gotB1]);
     expect(b1).toEqual(a1);
@@ -154,9 +155,13 @@ describe("realtime gateway across two instances (e2e)", () => {
     const other = await createSession();
     const events = a.app.get(RoomEventsService);
 
-    await events.publish(other.id, "slide_changed", { slideId: "x", index: 0 });
+    await events.publish(other.id, "slide_changed", { slideId: "x", index: 0, activity: null });
     for (let index = 0; index < 3; index++) {
-      await events.publish(session.id, "slide_changed", { slideId: `s${index}`, index });
+      await events.publish(session.id, "slide_changed", {
+        slideId: `s${index}`,
+        index,
+        activity: null,
+      });
     }
 
     const socket = connect(b.url, await createParticipant(session.id));
@@ -239,6 +244,7 @@ describe("realtime gateway across two instances (e2e)", () => {
     await a.app.get(RoomEventsService).publish(theirs.id, "slide_changed", {
       slideId: "s",
       index: 0,
+      activity: null,
     });
     await delivered;
     await new Promise((resolve) => setTimeout(resolve, 100));

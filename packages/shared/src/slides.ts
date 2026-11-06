@@ -150,8 +150,13 @@ export interface SlideDto {
   kind: SlideKind;
   // Content slides only: back to front. Always empty on activity slides.
   elements: SlideElement[];
-  // Activity slides only. The editors for polls and word clouds come with R1-13 and R1-16.
-  activity: { type: ActivitySlideKind; prompt: string } | null;
+  // Activity slides only. A word cloud has no options.
+  activity: {
+    id: string;
+    type: ActivitySlideKind;
+    prompt: string;
+    options: { id: string; label: string }[];
+  } | null;
   updatedAt: string;
 }
 
