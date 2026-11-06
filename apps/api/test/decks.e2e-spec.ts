@@ -2,6 +2,7 @@
 // and soft delete, each scoped to the logged-in host. Two hosts log in through
 // AuthService.createSession, the same call /auth/callback makes after SSO.
 
+import { randomUUID } from "node:crypto";
 import { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import type { DeckSummary } from "@moddeck/shared";
@@ -111,6 +112,49 @@ describe("decks (e2e)", () => {
     expect(ids).toEqual(expect.arrayContaining([older.id, newer.id]));
     expect(ids).not.toContain(other.id);
     expect(ids.indexOf(newer.id)).toBeLessThan(ids.indexOf(older.id));
+  });
+
+  it("sends the first slide with each deck for its thumbnail, but not in the deck detail", async () => {
+    const deck = await createDeck(hostA.cookie, "With thumbnail");
+    // A new deck starts with one blank slide.
+    expect(deck.firstSlide).toMatchObject({ kind: "content", position: 0, elements: [] });
+
+    const heading = {
+      id: randomUUID(),
+      type: "text",
+      x: 10,
+      y: 10,
+      w: 80,
+      text: "# Hi",
+      size: 4,
+      bold: true,
+      italic: true,
+      align: "left",
+    };
+    await api()
+      .patch(`/decks/${deck.id}/slides/${deck.firstSlide!.id}`)
+      .set("Cookie", hostA.cookie)
+      .send({ elements: [heading] })
+      .expect(200);
+
+    const listed = async () => {
+      const res = await api().get("/decks").set("Cookie", hostA.cookie).expect(200);
+      return (res.body as DeckSummary[]).find((d) => d.id === deck.id)!;
+    };
+    // The text effects are kept too.
+    expect((await listed()).firstSlide?.elements).toEqual([heading]);
+
+    // A slide put in front becomes the first one.
+    await api()
+      .post(`/decks/${deck.id}/slides`)
+      .set("Cookie", hostA.cookie)
+      .send({ kind: "poll", position: 0 })
+      .expect(201);
+    expect((await listed()).firstSlide?.kind).toBe("poll");
+
+    const detail = await api().get(`/decks/${deck.id}`).set("Cookie", hostA.cookie).expect(200);
+    expect(detail.body).not.toHaveProperty("firstSlide");
+    expect(detail.body.slides).toHaveLength(2);
   });
 
   it("renames a deck, and the new title persists", async () => {

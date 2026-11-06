@@ -38,6 +38,22 @@ export function RedoIcon() {
   );
 }
 
+export function ArrowUpIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" {...stroke}>
+      <path d="M12 19V5M5 12l7-7 7 7" />
+    </svg>
+  );
+}
+
+export function ArrowDownIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" {...stroke}>
+      <path d="M12 5v14M5 12l7 7 7-7" />
+    </svg>
+  );
+}
+
 export function TrashIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" {...stroke}>
@@ -48,15 +64,17 @@ export function TrashIcon() {
 
 /**
  * A square icon button. The label is both the accessible name and the tooltip, since an icon
- * alone says nothing to a screen reader. `danger` is the red one, for delete.
+ * alone says nothing to a screen reader. `danger` is the red one, for delete. `compact` is the
+ * 36px size for the editor's dense toolbars.
  */
 export function IconButton({
   label,
   danger = false,
+  compact = false,
   className,
   children,
   ...props
-}: { label: string; danger?: boolean } & Omit<
+}: { label: string; danger?: boolean; compact?: boolean } & Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
   "aria-label" | "title"
 >) {
@@ -67,7 +85,8 @@ export function IconButton({
       title={label}
       {...props}
       className={cn(
-        "grid size-11 place-items-center rounded-md border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50",
+        "grid shrink-0 place-items-center rounded-md border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50",
+        compact ? "size-9" : "size-11",
         danger
           ? "border-error-600 bg-error-600 text-white hover:bg-error-700 active:bg-error-800"
           : "border-border bg-background text-neutral-700 hover:bg-surface",

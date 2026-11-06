@@ -3,16 +3,21 @@ import {
   alignBox,
   clampSize,
   copyElement,
+  copyElements,
   createElement,
   elementBox,
+  idsInRect,
   moveBox,
   moveLayer,
+  moveLayers,
+  placeElements,
   presetOf,
   ptToSize,
   resizeBox,
   sizeToPt,
   snapTargets,
   stepSize,
+  unionBox,
   updateElement,
   type Box,
 } from "./elements";
@@ -214,5 +219,73 @@ describe("pt sizes", () => {
     expect(sizeToPt(stepSize(heading, 1))).toBeCloseTo(46, 0);
     expect(sizeToPt(stepSize(heading, -1))).toBeCloseTo(42, 0);
     expect(sizeToPt(stepSize(ptToSize(11), -1))).toBeCloseTo(10, 0);
+  });
+});
+
+describe("group helpers", () => {
+  const list = ["a", "b", "c", "d", "e"].map((id) => ({ id }) as unknown as SlideElement);
+  const order = (els: SlideElement[]) => els.map((e) => e.id).join("");
+
+  it("finds the box around several boxes", () => {
+    expect(unionBox([box(10, 20, 30, 10), box(50, 5, 20, 40)])).toEqual(box(10, 5, 60, 40));
+  });
+
+  it("moves a group from where it started, keeps it on the slide and leaves the rest alone", () => {
+    const a = { ...createElement("text"), x: 10, y: 10, w: 20 } as SlideElement;
+    const b = { ...createElement("text"), x: 50, y: 50, w: 20 } as SlideElement;
+    const c = { ...createElement("text"), x: 70, y: 70, w: 20 } as SlideElement;
+    const starts = new Map([
+      [a.id, { x: a.x, y: a.y }],
+      [b.id, { x: b.x, y: b.y }],
+    ]);
+    const next = placeElements([a, b, c], starts, 5, -3);
+    expect(next[0]).toMatchObject({ x: 15, y: 7 });
+    expect(next[1]).toMatchObject({ x: 55, y: 47 });
+    expect(next[2]).toBe(c);
+    // The same starts again do not add up: the group does not drift.
+    expect(placeElements(next, starts, 5, -3)[0]).toMatchObject({ x: 15, y: 7 });
+    expect(placeElements([a], new Map([[a.id, { x: 10, y: 10 }]]), 500, -500)[0]).toMatchObject({
+      x: 80,
+      y: 0,
+    });
+  });
+
+  it("picks the boxes a rectangle touches", () => {
+    const boxes = [
+      { id: "a", box: box(0, 0, 10, 10) },
+      { id: "b", box: box(40, 40, 10, 10) },
+      { id: "c", box: box(80, 80, 10, 10) },
+    ];
+    expect(idsInRect(box(5, 5, 40, 40), boxes)).toEqual(["a", "b"]);
+    expect(idsInRect(box(60, 0, 5, 5), boxes)).toEqual([]);
+  });
+
+  it("moves a group of layers as a block, and one layer like moveLayer", () => {
+    expect(order(moveLayers(list, ["b", "d"], "front"))).toBe("acebd");
+    expect(order(moveLayers(list, ["b", "d"], "back"))).toBe("bdace");
+    expect(order(moveLayers(list, ["b", "c"], "forward"))).toBe("adbce");
+    expect(order(moveLayers(list, ["c", "d"], "backward"))).toBe("acdbe");
+    for (const move of ["front", "forward", "backward", "back"] as const) {
+      expect(order(moveLayers(list, ["c"], move))).toBe(order(moveLayer(list, "c", move)));
+    }
+  });
+
+  it("returns the same list when the group cannot move further", () => {
+    expect(moveLayers(list, ["d", "e"], "front")).toBe(list);
+    expect(moveLayers(list, ["d", "e"], "forward")).toBe(list);
+    expect(moveLayers(list, ["a", "b"], "back")).toBe(list);
+    expect(moveLayers(list, ["a", "b"], "backward")).toBe(list);
+    expect(moveLayers(list, ["z"], "front")).toBe(list);
+  });
+
+  it("copies a group with new ids, just above the highest one picked", () => {
+    const els = [createElement("text"), createElement("math"), createElement("code")];
+    const { elements, copyIds } = copyElements(els, [els[0].id, els[1].id]);
+    expect(elements).toHaveLength(5);
+    expect(copyIds).toHaveLength(2);
+    expect(elements[2].id).toBe(copyIds[0]);
+    expect(elements[3].id).toBe(copyIds[1]);
+    expect(elements[4].id).toBe(els[2].id);
+    expect(copyElements(els, ["z"]).elements).toBe(els);
   });
 });

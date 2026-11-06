@@ -42,15 +42,15 @@ export function PollEditor({
     });
 
   return (
-    <section aria-label={t("title")} className="flex flex-col gap-4">
-      <h2 className="text-lg font-bold">{t("title")}</h2>
+    <section aria-label={t("title")} className="flex flex-col gap-3">
+      <h2 className="text-base font-bold">{t("title")}</h2>
       <div className="flex flex-col gap-1">
         <label htmlFor={promptId} className="text-sm font-semibold">
           {t("question")}
         </label>
         <textarea
           id={promptId}
-          rows={3}
+          rows={2}
           maxLength={ACTIVITY_PROMPT_MAX}
           value={draft.prompt}
           placeholder={t("questionPlaceholder")}
@@ -59,7 +59,7 @@ export function PollEditor({
         />
       </div>
 
-      <fieldset className="flex flex-col gap-2">
+      <fieldset className="flex flex-col gap-1.5">
         <legend className="mb-1 text-sm font-semibold">{t("options")}</legend>
         {draft.rows.map((row, index) => (
           <div key={row.key} className="flex items-center gap-2">
@@ -71,9 +71,10 @@ export function PollEditor({
               value={row.label}
               maxLength={POLL_OPTION_LABEL_MAX}
               onChange={(event) => setLabel(row.key, event.target.value)}
-              className={`${fieldClass} h-11 min-w-0`}
+              className={`${fieldClass} h-9 min-w-0`}
             />
             <IconButton
+              compact
               danger
               label={t("remove", { letter: optionLetter(index) })}
               disabled={draft.rows.length <= POLL_OPTIONS_MIN}

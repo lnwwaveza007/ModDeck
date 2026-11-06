@@ -7,6 +7,7 @@ import {
   ELEMENT_TEXT_MAX,
   SLIDE_IMAGE_MAX_BYTES,
   SLIDE_IMAGE_TYPES,
+  SLIDE_ELEMENTS_MAX,
   TEXT_ALIGNS,
   isActivityKind,
   isCodeLanguage,
@@ -32,10 +33,10 @@ import { DuplicateIcon, IconButton, TrashIcon } from "./ActionIcons";
 const IMAGE_MB = SLIDE_IMAGE_MAX_BYTES / (1024 * 1024);
 
 const fieldClass =
-  "w-full rounded-md border border-border bg-background p-3 text-base text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring";
+  "w-full rounded-md border border-border bg-background px-3 py-2 text-base text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring";
 
 const iconButtonClass =
-  "grid size-10 place-items-center rounded-md border border-border bg-background text-neutral-700 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring disabled:opacity-40 aria-pressed:border-primary-500 aria-pressed:bg-primary-50 aria-pressed:text-primary-800";
+  "grid size-9 place-items-center rounded-md border border-border bg-background text-neutral-700 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring disabled:opacity-40 aria-pressed:border-primary-500 aria-pressed:bg-primary-50 aria-pressed:text-primary-800";
 
 const stroke = {
   fill: "none",
@@ -125,7 +126,7 @@ const LAYER_ICONS: Record<LayerMove, ReactNode> = {
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-2 border-t border-neutral-200 pt-3">
+    <section className="flex flex-col gap-1.5 border-t border-neutral-200 pt-2.5">
       <h3 className="text-sm font-semibold text-muted">{title}</h3>
       {children}
     </section>
@@ -147,6 +148,7 @@ function Icon({ children }: { children: ReactNode }) {
 export function ElementPanel({
   slide,
   selected,
+  selectedIds,
   onSelect,
   onChange,
   onAlign,
@@ -156,8 +158,11 @@ export function ElementPanel({
   onUploadImage,
 }: {
   slide: SlideDto;
+  /** The one selected element, or null when none or several are selected. */
   selected: SlideElement | null;
-  onSelect: (elementId: string) => void;
+  selectedIds: string[];
+  /** `additive` (Shift, Ctrl or Cmd held) adds it to the selection or takes it out. */
+  onSelect: (elementId: string, additive: boolean) => void;
   onChange: (change: Partial<SlideElement>) => void;
   onAlign: (edge: AlignEdge) => void;
   onLayer: (move: LayerMove) => void;
@@ -169,8 +174,8 @@ export function ElementPanel({
 
   if (isActivityKind(slide.kind)) {
     return (
-      <section aria-label={t("panel.editActivity")} className="flex flex-col gap-4">
-        <h2 className="text-lg font-bold">{t("panel.editActivity")}</h2>
+      <section aria-label={t("panel.editActivity")} className="flex flex-col gap-3">
+        <h2 className="text-base font-bold">{t("panel.editActivity")}</h2>
         <p className="rounded-md bg-neutral-100 p-3 text-sm text-muted">
           {t("panel.activityComingSoon")}
         </p>
@@ -178,24 +183,39 @@ export function ElementPanel({
     );
   }
 
-  if (!selected) {
+  if (!selected && selectedIds.length === 0) {
     return (
-      <section aria-label={t("panel.slide")} className="flex flex-col gap-4">
-        <h2 className="text-lg font-bold">{t("panel.slide")}</h2>
+      <section aria-label={t("panel.slide")} className="flex flex-col gap-3">
+        <h2 className="text-base font-bold">{t("panel.slide")}</h2>
         <p className="text-sm text-muted">{t("panel.slideHint")}</p>
-        <LayerList elements={slide.elements} selectedId={null} onSelect={onSelect} />
+        <LayerList elements={slide.elements} selectedIds={[]} onSelect={onSelect} />
       </section>
     );
   }
 
-  return (
-    <section aria-label={t(`panel.element.${selected.type}`)} className="flex flex-col gap-4">
-      <h2 className="text-lg font-bold">{t(`panel.element.${selected.type}`)}</h2>
+  const group = selected === null;
+  const canDuplicate = slide.elements.length + selectedIds.length <= SLIDE_ELEMENTS_MAX;
 
-      {selected.type === "text" && <TextControls element={selected} onChange={onChange} />}
-      {selected.type === "code" && <CodeControls element={selected} onChange={onChange} />}
-      {selected.type === "math" && <MathControls element={selected} onChange={onChange} />}
-      {selected.type === "image" && (
+  return (
+    <section
+      aria-label={
+        group
+          ? t("panel.group", { count: selectedIds.length })
+          : t(`panel.element.${selected.type}`)
+      }
+      className="flex flex-col gap-3"
+    >
+      <h2 className="text-base font-bold">
+        {group
+          ? t("panel.group", { count: selectedIds.length })
+          : t(`panel.element.${selected.type}`)}
+      </h2>
+      {group && <p className="text-sm text-muted">{t("panel.groupHint")}</p>}
+
+      {selected?.type === "text" && <TextControls element={selected} onChange={onChange} />}
+      {selected?.type === "code" && <CodeControls element={selected} onChange={onChange} />}
+      {selected?.type === "math" && <MathControls element={selected} onChange={onChange} />}
+      {selected?.type === "image" && (
         <ImageControls hasImage={selected.imageRef !== null} onUpload={onUploadImage} />
       )}
 
@@ -219,9 +239,12 @@ export function ElementPanel({
       <Section title={t("panel.layer")}>
         <div role="group" aria-label={t("panel.layer")} className="flex flex-wrap gap-1.5">
           {(Object.keys(LAYER_ICONS) as LayerMove[]).map((move) => {
-            const index = slide.elements.findIndex((el) => el.id === selected.id);
-            const atFront = index === slide.elements.length - 1;
-            const atBack = index === 0;
+            // A group is at the front when its elements are the top ones, and likewise at the back.
+            const indexes = slide.elements
+              .map((el, i) => (selectedIds.includes(el.id) ? i : -1))
+              .filter((i) => i !== -1);
+            const atFront = Math.min(...indexes) >= slide.elements.length - indexes.length;
+            const atBack = Math.max(...indexes) < indexes.length;
             const disabled =
               (atFront && (move === "front" || move === "forward")) ||
               (atBack && (move === "back" || move === "backward"));
@@ -243,7 +266,7 @@ export function ElementPanel({
       </Section>
 
       <div className="flex gap-2 border-t border-neutral-200 pt-3">
-        <IconButton label={t("panel.duplicate")} onClick={onDuplicate}>
+        <IconButton label={t("panel.duplicate")} disabled={!canDuplicate} onClick={onDuplicate}>
           <DuplicateIcon />
         </IconButton>
         <IconButton danger label={t("panel.delete")} onClick={onDelete}>
@@ -251,19 +274,19 @@ export function ElementPanel({
         </IconButton>
       </div>
 
-      <LayerList elements={slide.elements} selectedId={selected.id} onSelect={onSelect} />
+      <LayerList elements={slide.elements} selectedIds={selectedIds} onSelect={onSelect} />
     </section>
   );
 }
 
 function LayerList({
   elements,
-  selectedId,
+  selectedIds,
   onSelect,
 }: {
   elements: SlideElement[];
-  selectedId: string | null;
-  onSelect: (elementId: string) => void;
+  selectedIds: string[];
+  onSelect: (elementId: string, additive: boolean) => void;
 }) {
   const t = useTranslations("editor.layers");
   // Front first, like a layers list in a design tool.
@@ -289,11 +312,14 @@ function LayerList({
               <li key={element.id}>
                 <button
                   type="button"
-                  aria-current={element.id === selectedId ? "true" : undefined}
-                  onClick={() => onSelect(element.id)}
+                  aria-current={selectedIds.includes(element.id) ? "true" : undefined}
+                  onClick={(event) =>
+                    onSelect(element.id, event.shiftKey || event.ctrlKey || event.metaKey)
+                  }
                   className={cn(
-                    "flex min-h-10 w-full items-center gap-2 rounded-md px-2 text-left text-sm hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-ring",
-                    element.id === selectedId && "bg-primary-50 font-semibold text-primary-800",
+                    "flex min-h-9 w-full items-center gap-2 rounded-md px-2 text-left text-sm hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-ring",
+                    selectedIds.includes(element.id) &&
+                      "bg-primary-50 font-semibold text-primary-800",
                   )}
                 >
                   <span className="shrink-0">{t(`types.${element.type}`)}</span>
@@ -309,6 +335,15 @@ function LayerList({
     </Section>
   );
 }
+
+// The effects a text element can have, in the order the buttons show. The glyph class draws the
+// letter in its own effect, so the button looks like what it does.
+const TEXT_EFFECTS = [
+  { key: "bold", label: "bold", glyph: "font-bold" },
+  { key: "italic", label: "italic", glyph: "italic" },
+  { key: "underline", label: "underline", glyph: "underline" },
+  { key: "strike", label: "strikethrough", glyph: "line-through" },
+] as const;
 
 function SizeStepper({ size, onChange }: { size: number; onChange: (size: number) => void }) {
   const t = useTranslations("editor.panel");
@@ -388,7 +423,7 @@ function TextControls({
         <textarea
           id={`${id}-text`}
           aria-describedby={`${id}-help`}
-          rows={5}
+          rows={3}
           maxLength={ELEMENT_TEXT_MAX.text}
           value={element.text}
           onChange={(event) => onChange({ text: event.target.value })}
@@ -415,16 +450,21 @@ function TextControls({
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <SizeStepper size={element.size} onChange={(size) => onChange({ size })} />
-          <button
-            type="button"
-            aria-pressed={element.bold}
-            aria-label={t("bold")}
-            title={t("bold")}
-            onClick={() => onChange({ bold: !element.bold })}
-            className={cn(iconButtonClass, "font-bold")}
-          >
-            B
-          </button>
+        </div>
+        <div role="group" aria-label={t("effects")} className="flex gap-1.5">
+          {TEXT_EFFECTS.map(({ key, label, glyph }) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={element[key] === true}
+              aria-label={t(label)}
+              title={t(label)}
+              onClick={() => onChange({ [key]: element[key] !== true })}
+              className={cn(iconButtonClass, glyph)}
+            >
+              {key === "bold" ? "B" : key === "italic" ? "I" : key === "underline" ? "U" : "S"}
+            </button>
+          ))}
         </div>
         <AlignButtons value={element.align} onChange={(align) => onChange({ align })} />
       </Section>
@@ -454,7 +494,7 @@ function CodeControls({
           onChange={(event) => {
             if (isCodeLanguage(event.target.value)) onChange({ language: event.target.value });
           }}
-          className={cn(fieldClass, "h-11 py-0")}
+          className={cn(fieldClass, "h-10 py-0")}
         >
           {CODE_LANGUAGES.map((name) => (
             <option key={name} value={name}>
@@ -469,7 +509,7 @@ function CodeControls({
         </label>
         <textarea
           id={`${id}-code`}
-          rows={10}
+          rows={6}
           spellCheck={false}
           autoCapitalize="off"
           autoCorrect="off"
@@ -482,7 +522,7 @@ function CodeControls({
       </div>
       <Section title={t("panel.size")}>
         <SizeStepper size={element.size} onChange={(size) => onChange({ size })} />
-        <label className="flex min-h-10 items-center gap-2 text-sm">
+        <label className="flex min-h-9 items-center gap-2 text-sm">
           <input
             type="checkbox"
             checked={element.h !== undefined}
@@ -526,7 +566,7 @@ function MathControls({
           id={`${id}-math`}
           aria-describedby={`${id}-help`}
           aria-invalid={error ? true : undefined}
-          rows={5}
+          rows={3}
           spellCheck={false}
           maxLength={ELEMENT_TEXT_MAX.math}
           value={element.latex}

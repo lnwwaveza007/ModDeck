@@ -97,6 +97,18 @@ describe("SlideRenderer", () => {
     expect(box.style.textAlign).toBe("center");
   });
 
+  it("applies italic, underline and strikethrough, and none of them when they are missing", () => {
+    const styled = text("Hello", { italic: true, underline: true, strike: true });
+    const plain = text("Plain");
+    const { container } = renderWithIntl(<SlideRenderer slide={slide(styled, plain)} />, "en");
+    const on = frame(container, styled).firstElementChild as HTMLElement;
+    const off = frame(container, plain).firstElementChild as HTMLElement;
+    expect(on.style.fontStyle).toBe("italic");
+    expect(on.style.textDecorationLine).toBe("underline line-through");
+    expect(off.style.fontStyle).toBe("normal");
+    expect(off.style.textDecorationLine).toBe("none");
+  });
+
   it("renders a complex LaTeX formula", () => {
     const { container } = renderWithIntl(<SlideRenderer slide={slide(math(BAYES))} />, "en");
     expect(container.querySelector(".katex-display")).toBeInTheDocument();

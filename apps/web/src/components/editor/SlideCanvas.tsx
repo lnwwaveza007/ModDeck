@@ -13,13 +13,20 @@ import {
   type Ref,
 } from "react";
 import type { SlideDto, SlideElement } from "@moddeck/shared";
-import { SlideRenderer, type FrameDecoration } from "@/components/content/SlideRenderer";
+import {
+  SlideRenderer,
+  textEffectStyle,
+  type FrameDecoration,
+} from "@/components/content/SlideRenderer";
 import { cn } from "@/lib/cn";
 import {
   elementBox,
+  idsInRect,
   moveBox,
+  placeElements,
   resizeBox,
   snapTargets,
+  unionBox,
   updateElement,
   type Box,
   type Handle,
@@ -53,15 +60,30 @@ function handlesOf(element: SlideElement): Handle[] {
 
 type Gesture =
   | {
+      // One element or a whole group. The group moves as one box, so snapping and the stage
+      // edges treat it as a single thing.
       kind: "move";
-      id: string;
-      start: Box;
+      ids: string[];
+      starts: Map<string, { x: number; y: number }>;
+      bounds: Box;
       targets: SnapTargets;
       moved: boolean;
+      /** A plain click on a member of a group, with no drag, narrows the selection to it. */
+      collapseTo: string | null;
     }
-  | { kind: "resize"; id: string; handle: Handle; start: Box };
+  | { kind: "resize"; id: string; handle: Handle; start: Box }
+  // Dragging on empty stage draws a rectangle and selects what it touches.
+  | {
+      kind: "marquee";
+      from: { x: number; y: number };
+      base: string[];
+      moved: boolean;
+      hit: string;
+    };
 
 type Origin = { x: number; y: number; width: number; height: number };
+
+const clampPercent = (n: number) => Math.min(Math.max(n, 0), 100);
 
 const NUDGE = 0.5;
 const NUDGE_BIG = 2;
@@ -69,13 +91,15 @@ const DRAG_THRESHOLD = 3;
 
 /**
  * The editable stage (MD-15 H02 canvas). Click an element to select it, drag it to move, drag a
- * handle to resize it, double-click text, code or a formula to edit it in place. The arrow keys
- * nudge, Delete removes, Enter edits, Escape lets go. It draws the slide through the same
+ * handle to resize it, double-click text, code or a formula to edit it in place. Shift, Ctrl or Cmd
+ * and click adds to the selection, a drag on empty stage draws a rectangle that selects what it
+ * touches, and Ctrl or Cmd + A selects all; a group moves, nudges, duplicates and deletes as one.
+ * The arrow keys nudge, Delete removes, Enter edits, Escape lets go. It draws the slide through the same
  * SlideRenderer the audience sees, so what the host edits is what the projector shows.
  */
 export function SlideCanvas({
   slide,
-  selectedId,
+  selectedIds,
   editingId,
   onSelect,
   onEditing,
@@ -86,14 +110,14 @@ export function SlideCanvas({
   ref,
 }: {
   slide: SlideDto;
-  selectedId: string | null;
+  selectedIds: string[];
   editingId: string | null;
-  onSelect: (elementId: string | null) => void;
+  onSelect: (elementIds: string[]) => void;
   onEditing: (elementId: string | null) => void;
   /** The whole list again, back to front. */
   onChange: (elements: SlideElement[]) => void;
-  onDelete: (elementId: string) => void;
-  onDuplicate: (elementId: string) => void;
+  onDelete: (elementIds: string[]) => void;
+  onDuplicate: (elementIds: string[]) => void;
   /** A drag or resize has ended, so the next change is a new step for undo. */
   onGestureEnd?: () => void;
   ref?: Ref<SlideCanvasHandle>;
@@ -106,7 +130,9 @@ export function SlideCanvas({
   const origin = useRef<Origin>({ x: 0, y: 0, width: 1, height: 1 });
   const pointerStart = useRef({ x: 0, y: 0 });
   const [guides, setGuides] = useState<{ x: number[]; y: number[] }>({ x: [], y: [] });
+  const [marquee, setMarquee] = useState<Box | null>(null);
   const elements = slide.elements;
+  const single = selectedIds.length === 1;
 
   const measureHeight = useCallback((id: string) => {
     const stage = stageRef.current?.getBoundingClientRect();
@@ -152,21 +178,43 @@ export function SlideCanvas({
   function onFramePointerDown(event: PointerEvent, element: SlideElement) {
     if (event.button !== 0 || editingId === element.id) return;
     event.stopPropagation();
-    onSelect(element.id);
-    const others = elements.filter((other) => other.id !== element.id).map(boxOf);
+    const additive = event.shiftKey || event.ctrlKey || event.metaKey;
+    const inGroup = selectedIds.includes(element.id);
+    let ids: string[];
+    let collapseTo: string | null = null;
+    if (additive) {
+      // Adds the element to the selection, or takes it out when it is already in.
+      ids = inGroup ? selectedIds.filter((id) => id !== element.id) : [...selectedIds, element.id];
+      onSelect(ids);
+      if (!ids.includes(element.id)) {
+        rootRef.current?.focus({ preventScroll: true });
+        return;
+      }
+    } else if (inGroup && selectedIds.length > 1) {
+      // Keep the group so it can be dragged; a click without a drag narrows it on release.
+      ids = selectedIds;
+      collapseTo = element.id;
+    } else {
+      ids = [element.id];
+      onSelect(ids);
+    }
+    const moving = elements.filter((el) => ids.includes(el.id));
+    const others = elements.filter((el) => !ids.includes(el.id)).map(boxOf);
     startGesture(event, {
       kind: "move",
-      id: element.id,
-      start: boxOf(element),
+      ids,
+      starts: new Map(moving.map((el) => [el.id, { x: el.x, y: el.y }])),
+      bounds: unionBox(moving.map(boxOf)),
       targets: snapTargets(others),
       moved: false,
+      collapseTo,
     });
   }
 
   function onHandlePointerDown(event: PointerEvent, element: SlideElement, handle: Handle) {
     if (event.button !== 0) return;
     event.stopPropagation();
-    onSelect(element.id);
+    onSelect([element.id]);
     startGesture(event, {
       kind: "resize",
       id: element.id,
@@ -183,14 +231,48 @@ export function SlideCanvas({
     const dx = (dxPx / origin.current.width) * 100;
     const dy = (dyPx / origin.current.height) * 100;
 
+    if (current.kind === "marquee") {
+      if (!current.moved && Math.hypot(dxPx, dyPx) < DRAG_THRESHOLD) return;
+      if (!current.moved) capture(event.pointerId);
+      current.moved = true;
+      const x = clampPercent(((event.clientX - origin.current.x) / origin.current.width) * 100);
+      const y = clampPercent(((event.clientY - origin.current.y) / origin.current.height) * 100);
+      const rect = {
+        x: Math.min(current.from.x, x),
+        y: Math.min(current.from.y, y),
+        w: Math.abs(x - current.from.x),
+        h: Math.abs(y - current.from.y),
+      };
+      setMarquee(rect);
+      const hit = idsInRect(
+        rect,
+        elements.map((el) => ({ id: el.id, box: boxOf(el) })),
+      );
+      const ids = [...new Set([...current.base, ...hit])];
+      // Only tell the page when the selection really changed.
+      const key = ids.join(",");
+      if (key !== current.hit) {
+        current.hit = key;
+        onSelect(ids);
+      }
+      return;
+    }
+
     if (current.kind === "move") {
       if (!current.moved && Math.hypot(dxPx, dyPx) < DRAG_THRESHOLD) return;
       if (!current.moved) capture(event.pointerId);
       current.moved = true;
       // Hold Alt to move without snapping.
-      const moved = moveBox(current.start, dx, dy, event.altKey ? undefined : current.targets);
+      const moved = moveBox(current.bounds, dx, dy, event.altKey ? undefined : current.targets);
       setGuides(moved.guides);
-      onChange(updateElement(elements, current.id, { x: moved.x, y: moved.y }));
+      onChange(
+        placeElements(
+          elements,
+          current.starts,
+          moved.x - current.bounds.x,
+          moved.y - current.bounds.y,
+        ),
+      );
       return;
     }
 
@@ -218,9 +300,12 @@ export function SlideCanvas({
   }
 
   function endGesture(event: PointerEvent) {
-    if (!gesture.current) return;
+    const ended = gesture.current;
+    if (!ended) return;
     gesture.current = null;
     setGuides({ x: [], y: [] });
+    setMarquee(null);
+    if (ended.kind === "move" && !ended.moved && ended.collapseTo) onSelect([ended.collapseTo]);
     onGestureEnd?.();
     try {
       stageRef.current?.releasePointerCapture?.(event.pointerId);
@@ -232,13 +317,19 @@ export function SlideCanvas({
   function onKeyDown(event: KeyboardEvent) {
     const target = event.target as HTMLElement;
     if (target.tagName === "TEXTAREA" || target.tagName === "INPUT") return;
-    const element = elements.find((el) => el.id === selectedId);
+    const picked = elements.filter((el) => selectedIds.includes(el.id));
 
     if (event.key === "Escape") {
-      onSelect(null);
+      onSelect([]);
       return;
     }
-    if (!element) return;
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "a") {
+      event.preventDefault();
+      onSelect(elements.map((el) => el.id));
+      return;
+    }
+    if (picked.length === 0) return;
+    const ids = picked.map((el) => el.id);
 
     const step = event.shiftKey ? NUDGE_BIG : NUDGE;
     const arrows: Record<string, [number, number]> = {
@@ -250,32 +341,44 @@ export function SlideCanvas({
     if (event.key in arrows) {
       event.preventDefault();
       const [dx, dy] = arrows[event.key];
-      const moved = moveBox(boxOf(element), dx, dy);
-      onChange(updateElement(elements, element.id, { x: moved.x, y: moved.y }));
+      const bounds = unionBox(picked.map(boxOf));
+      const moved = moveBox(bounds, dx, dy);
+      onChange(
+        placeElements(
+          elements,
+          new Map(picked.map((el) => [el.id, { x: el.x, y: el.y }])),
+          moved.x - bounds.x,
+          moved.y - bounds.y,
+        ),
+      );
     } else if (event.key === "Delete" || event.key === "Backspace") {
       event.preventDefault();
-      onDelete(element.id);
-    } else if (event.key === "Enter" && element.type !== "image") {
+      onDelete(ids);
+    } else if (event.key === "Enter" && picked.length === 1 && picked[0].type !== "image") {
       event.preventDefault();
-      onEditing(element.id);
+      onEditing(picked[0].id);
     } else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d") {
       event.preventDefault();
-      onDuplicate(element.id);
+      onDuplicate(ids);
     }
   }
 
   const decorate = (element: SlideElement): FrameDecoration => {
-    const selected = element.id === selectedId;
+    const selected = selectedIds.includes(element.id);
     const editing = element.id === editingId;
     return {
       props: {
         className: cn(
           "touch-none outline-offset-0",
-          editing ? "cursor-text" : "cursor-move",
+          editing ? "cursor-text" : "cursor-move select-none",
           selected ? "outline-2 outline-primary-500" : "hover:outline-1 hover:outline-primary-300",
         ),
         onPointerDown: (event) => onFramePointerDown(event, element),
-        onDoubleClick: () => element.type !== "image" && onEditing(element.id),
+        onDoubleClick: () => {
+          if (element.type === "image") return;
+          onSelect([element.id]);
+          onEditing(element.id);
+        },
       },
       content:
         editing && element.type !== "image" ? (
@@ -288,7 +391,7 @@ export function SlideCanvas({
           />
         ) : undefined,
       handles:
-        selected && !editing
+        selected && single && !editing
           ? handlesOf(element).map((handle) => (
               <span
                 key={handle}
@@ -326,11 +429,25 @@ export function SlideCanvas({
         className="shadow-sm"
         stageProps={{
           onPointerDown: (event) => {
-            // A press on empty stage lets go of the selection.
-            if (event.target === event.currentTarget) {
-              onSelect(null);
-              onEditing(null);
-              rootRef.current?.focus({ preventScroll: true });
+            // A press on empty stage lets go of the selection, unless Shift, Ctrl or Cmd is held.
+            // Dragging from there draws a rectangle that selects what it touches.
+            if (event.target === event.currentTarget && event.button === 0) {
+              const additive = event.shiftKey || event.ctrlKey || event.metaKey;
+              if (!additive) {
+                onSelect([]);
+                onEditing(null);
+              }
+              const rect = event.currentTarget.getBoundingClientRect();
+              startGesture(event, {
+                kind: "marquee",
+                from: {
+                  x: clampPercent(((event.clientX - rect.left) / (rect.width || 1)) * 100),
+                  y: clampPercent(((event.clientY - rect.top) / (rect.height || 1)) * 100),
+                },
+                base: additive ? selectedIds : [],
+                moved: false,
+                hit: "",
+              });
             }
           },
           onPointerMove: onStagePointerMove,
@@ -343,6 +460,19 @@ export function SlideCanvas({
               <p className="pointer-events-none absolute inset-0 grid place-items-center px-[8cqw] text-center text-[2.6cqw] text-neutral-400">
                 {t("emptyHint")}
               </p>
+            )}
+            {marquee && (
+              <span
+                aria-hidden="true"
+                data-marquee=""
+                className="pointer-events-none absolute border border-primary-500 bg-primary-500/10"
+                style={{
+                  left: `${marquee.x}%`,
+                  top: `${marquee.y}%`,
+                  width: `${marquee.w}%`,
+                  height: `${marquee.h}%`,
+                }}
+              />
             )}
             {guides.x.map((x) => (
               <span
@@ -433,6 +563,7 @@ function InlineEditor({
         fontSize: `${fontSize}cqw`,
         textAlign: element.type === "code" ? "left" : element.align,
         fontWeight: element.type === "text" && element.bold ? 700 : 400,
+        ...(element.type === "text" ? textEffectStyle(element) : {}),
         lineHeight: element.type === "code" ? 1.5 : 1.4,
         whiteSpace: element.type === "code" ? "pre" : "pre-wrap",
         height: element.type === "code" && element.h !== undefined ? "100%" : undefined,

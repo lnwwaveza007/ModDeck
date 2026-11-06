@@ -319,6 +319,103 @@ export function updateElement<T extends SlideElement>(
   );
 }
 
+/** The smallest box that holds every box given. */
+export function unionBox(boxes: Box[]): Box {
+  const x = Math.min(...boxes.map((box) => box.x));
+  const y = Math.min(...boxes.map((box) => box.y));
+  const right = Math.max(...boxes.map((box) => box.x + box.w));
+  const bottom = Math.max(...boxes.map((box) => box.y + box.h));
+  return { x, y, w: right - x, h: bottom - y };
+}
+
+/**
+ * Puts the elements in `starts` where they began plus (dx, dy), and leaves the rest alone. A group
+ * move calls this with the same starts on every pointer move, so the group never drifts.
+ */
+export function placeElements(
+  elements: SlideElement[],
+  starts: ReadonlyMap<string, { x: number; y: number }>,
+  dx: number,
+  dy: number,
+): SlideElement[] {
+  return elements.map((element) => {
+    const start = starts.get(element.id);
+    if (!start) return element;
+    return {
+      ...element,
+      x: round(clamp(start.x + dx, 0, Math.max(0, 100 - element.w))),
+      y: round(clamp(start.y + dy, 0, 100)),
+    };
+  });
+}
+
+/** The ids of the boxes a rectangle touches. For the drag-to-select rectangle. */
+export function idsInRect(rect: Box, boxes: { id: string; box: Box }[]): string[] {
+  return boxes
+    .filter(
+      ({ box }) =>
+        box.x <= rect.x + rect.w &&
+        box.x + box.w >= rect.x &&
+        box.y <= rect.y + rect.h &&
+        box.y + box.h >= rect.y,
+    )
+    .map(({ id }) => id);
+}
+
+/**
+ * Moves a group in the back-to-front order, as a block: the elements keep their order among
+ * themselves, and each one steps past the nearest element that is not in the group.
+ */
+export function moveLayers(
+  elements: SlideElement[],
+  ids: readonly string[],
+  move: LayerMove,
+): SlideElement[] {
+  const picked = new Set(ids);
+  if (!elements.some((element) => picked.has(element.id))) return elements;
+  let next = [...elements];
+  if (move === "front") {
+    next = [
+      ...elements.filter((el) => !picked.has(el.id)),
+      ...elements.filter((el) => picked.has(el.id)),
+    ];
+  } else if (move === "back") {
+    next = [
+      ...elements.filter((el) => picked.has(el.id)),
+      ...elements.filter((el) => !picked.has(el.id)),
+    ];
+  } else if (move === "forward") {
+    for (let i = next.length - 2; i >= 0; i--) {
+      if (picked.has(next[i].id) && !picked.has(next[i + 1].id)) {
+        [next[i], next[i + 1]] = [next[i + 1], next[i]];
+      }
+    }
+  } else {
+    for (let i = 1; i < next.length; i++) {
+      if (picked.has(next[i].id) && !picked.has(next[i - 1].id)) {
+        [next[i], next[i - 1]] = [next[i - 1], next[i]];
+      }
+    }
+  }
+  return next.every((element, index) => element === elements[index]) ? elements : next;
+}
+
+/** Copies each picked element and puts the copies just above the highest one picked. */
+export function copyElements(
+  elements: SlideElement[],
+  ids: readonly string[],
+): { elements: SlideElement[]; copyIds: string[] } {
+  const picked = new Set(ids);
+  const originals = elements.filter((element) => picked.has(element.id));
+  if (originals.length === 0) return { elements, copyIds: [] };
+  const copies = originals.map(copyElement);
+  const top = elements.reduce((last, element, i) => (picked.has(element.id) ? i : last), -1);
+  return {
+    elements: [...elements.slice(0, top + 1), ...copies, ...elements.slice(top + 1)],
+    copyIds: copies.map((copy) => copy.id),
+  };
+}
+
 export function isTextual(element: SlideElement): element is TextElement | MathElement {
   return element.type === "text" || element.type === "math";
 }

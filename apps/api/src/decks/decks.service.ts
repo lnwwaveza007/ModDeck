@@ -14,6 +14,8 @@ const summaryArgs = {
       select: { id: true, pin: true },
       orderBy: { startedAt: "asc" },
     },
+    // The first slide, for the card's thumbnail.
+    slides: { orderBy: { position: "asc" }, take: 1, ...slideArgs },
   },
 } satisfies Prisma.DeckDefaultArgs;
 
@@ -21,7 +23,7 @@ type DeckWithCounts = Prisma.DeckGetPayload<typeof summaryArgs>;
 
 const uuid = z.uuid();
 
-function toSummary(deck: DeckWithCounts): DeckSummary {
+function toCard(deck: DeckWithCounts): Omit<DeckSummary, "firstSlide"> {
   return {
     id: deck.id,
     title: deck.title,
@@ -31,6 +33,10 @@ function toSummary(deck: DeckWithCounts): DeckSummary {
     createdAt: deck.createdAt.toISOString(),
     updatedAt: deck.updatedAt.toISOString(),
   };
+}
+
+function toSummary(deck: DeckWithCounts): DeckSummary {
+  return { ...toCard(deck), firstSlide: deck.slides[0] ? toSlideDto(deck.slides[0]) : null };
 }
 
 // Another host's deck, a deleted deck and a malformed id all answer the same
@@ -58,7 +64,7 @@ export class DecksService {
       orderBy: { position: "asc" },
       ...slideArgs,
     });
-    return { ...toSummary(deck), slides: slides.map(toSlideDto) };
+    return { ...toCard(deck), slides: slides.map(toSlideDto) };
   }
 
   /** A new deck starts with one blank title slide (technical design §3.3). */

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
 import type { DeckSummary } from "@moddeck/shared";
+import { SlideRenderer } from "@/components/content/SlideRenderer";
 import { cn } from "@/lib/cn";
 
 const formatPin = (pin: string) => `${pin.slice(0, 3)} ${pin.slice(3)}`;
@@ -30,6 +31,9 @@ export function DeckCard({
   const format = useFormatter();
   const [live] = deck.liveSessions;
   const liveCount = deck.liveSessions.length;
+  const first = deck.firstSlide;
+  // A content slide with nothing on it would be a blank white box.
+  const showSlide = first !== null && (first.kind !== "content" || first.elements.length > 0);
 
   return (
     <article
@@ -40,19 +44,32 @@ export function DeckCard({
     >
       <div
         className={cn(
-          "flex aspect-video flex-col justify-end gap-1 border-b border-neutral-200 p-4",
-          live ? "bg-primary-50" : "bg-neutral-100",
+          "relative aspect-video overflow-hidden border-b border-neutral-200",
+          showSlide ? "bg-background" : live ? "bg-primary-50" : "bg-neutral-100",
         )}
       >
+        {showSlide ? (
+          // The first slide, drawn by the same renderer as the editor's slide list. The card
+          // already has the border and the rounded corners.
+          <SlideRenderer
+            slide={deck.firstSlide!}
+            mode="thumbnail"
+            className="rounded-none! border-0!"
+          />
+        ) : (
+          // A blank first slide has nothing to show, so the card shows the title instead.
+          <div className="flex h-full flex-col justify-end p-4">
+            <p aria-hidden="true" className="line-clamp-2 text-base leading-snug font-bold">
+              {deck.title}
+            </p>
+          </div>
+        )}
         {live && (
-          <span className="mb-auto inline-flex h-6 items-center gap-1.5 self-start rounded-full bg-error-600 px-2 text-xs font-bold text-white">
+          <span className="absolute top-3 left-3 inline-flex h-6 items-center gap-1.5 rounded-full bg-error-600 px-2 text-xs font-bold text-white shadow-sm">
             <span aria-hidden="true" className="size-1.5 rounded-full bg-white" />
             {liveCount > 1 ? t("liveCount", { count: liveCount }) : tHost("live")}
           </span>
         )}
-        <p aria-hidden="true" className="line-clamp-2 text-base leading-snug font-bold">
-          {deck.title}
-        </p>
       </div>
 
       <div className="flex items-start gap-2 py-3 pr-2 pl-3.5">
