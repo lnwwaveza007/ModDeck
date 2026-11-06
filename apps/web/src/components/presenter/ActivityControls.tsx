@@ -104,7 +104,7 @@ export function ActivityControls({
   return (
     <section
       aria-label={t("label")}
-      className="flex flex-col gap-4 rounded-xl border border-neutral-200 bg-background p-5"
+      className="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-background p-4"
     >
       <div className="flex flex-wrap items-center gap-3">
         <Badge tone={STATE_TONE[run.state]}>{t(`state.${run.state}`)}</Badge>
