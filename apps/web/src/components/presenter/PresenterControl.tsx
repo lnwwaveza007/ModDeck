@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { ApiError } from "@/lib/api/client";
+import { BASE_PATH } from "@/lib/base-path";
 import { cn } from "@/lib/cn";
 import { formatDuration, useServerNow } from "@/lib/live/clock";
 import { runLiveCommand } from "@/lib/live/commands";
@@ -118,7 +119,7 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
           {t(`connection.${state.connection}`)}
         </span>
         <a
-          href={`/screen/${sessionId}`}
+          href={`${BASE_PATH}/screen/${sessionId}`}
           target={`moddeck-screen-${sessionId}`}
           className={buttonClass({ variant: "secondary" })}
         >

@@ -2,14 +2,16 @@
 // Every error, including network failures, comes out as an ApiError with a stable `code`
 // that screens map to Thai / English text.
 
-// The api root: "/api" behind nginx (it strips the prefix), "http://localhost:4000" in local dev.
+import { BASE_PATH } from "../base-path";
+
+// The api root: "/api" (or "<base path>/api") behind nginx (it strips the prefix), "http://localhost:4000" in local dev.
 // Same variable and default as the socket (lib/realtime/socket.ts).
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 // Host routes need the host_session cookie, which SSO sets on the web origin. They go through
 // the same-origin /api path like the login link: nginx in production, the Next rewrite in dev.
 // Student join uses it too, so the participant cookie lands on the web origin as well.
-export const HOST_API_BASE_URL = "/api";
+export const HOST_API_BASE_URL = `${BASE_PATH}/api`;
 
 /** Error body shared by REST and socket errors (tech design §3.5). */
 export interface ApiErrorBody {

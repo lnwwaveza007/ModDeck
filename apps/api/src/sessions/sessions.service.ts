@@ -7,6 +7,7 @@ import { PollFlusherService } from "../realtime/poll-flusher.service";
 import { PollStoreService } from "../realtime/poll-store.service";
 import { REDIS } from "../redis/redis.module";
 import { RoomEventsService } from "../realtime/room-events.service";
+import { joinUrl } from "./join-url";
 
 const pinKey = (pin: string) => `session-pin:${pin}`;
 
@@ -72,7 +73,7 @@ export class SessionsService {
         return {
           ...session,
           participantCount: 0,
-          joinUrl: `${process.env.WEB_ORIGIN ?? "http://localhost:3000"}/j/${pin}`,
+          joinUrl: joinUrl(pin),
         };
       } catch (error) {
         await this.redis.del(pinKey(pin));
@@ -122,7 +123,7 @@ export class SessionsService {
       participantCount: session._count.participants,
       // Lets the lobby correct for a browser clock that differs from the server.
       serverNow: Date.now(),
-      joinUrl: `${process.env.WEB_ORIGIN ?? "http://localhost:3000"}/j/${session.pin}`,
+      joinUrl: joinUrl(session.pin),
     };
   }
 

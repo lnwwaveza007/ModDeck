@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { buttonClass } from "@/components/ui/Button";
 import { LanguageSwitch } from "@/components/shell/LanguageSwitch";
 import { Logo } from "@/components/shell/Logo";
+import { BASE_PATH } from "@/lib/base-path";
 
 const ERROR_CODES = [
   "access_denied",
@@ -49,7 +50,7 @@ export default async function LoginPage({
             </p>
           )}
           {/* Plain anchor on purpose: full-page redirect to the API, not a Next route. */}
-          <a href="/api/auth/login" className={buttonClass({ size: "lg", fullWidth: true })}>
+          <a href={`${BASE_PATH}/api/auth/login`} className={buttonClass({ size: "lg", fullWidth: true })}>
             <ShieldIcon />
             {t("button")}
           </a>

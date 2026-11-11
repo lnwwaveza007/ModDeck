@@ -1,5 +1,5 @@
 import { joinPayloadSchema, type JoinAck } from "@moddeck/shared";
-import { createSessionSocket, socketOrigin } from "./socket";
+import { createSessionSocket, socketOrigin, socketPath } from "./socket";
 
 describe("socketOrigin", () => {
   it("keeps only the origin of the api URL", () => {
@@ -7,6 +7,16 @@ describe("socketOrigin", () => {
       "http://localhost:4000",
     );
     expect(socketOrigin("/api", "https://moddeck.example/s/1")).toBe("https://moddeck.example");
+  });
+});
+
+describe("socketPath", () => {
+  it("puts socket.io beside the api root", () => {
+    expect(socketPath("http://localhost:4000", "http://localhost:3000/")).toBe("/socket.io");
+    expect(socketPath("/api", "https://moddeck.example/")).toBe("/socket.io");
+    expect(socketPath("/capstone26/cp26ssa2/api", "https://bscit.example/")).toBe(
+      "/capstone26/cp26ssa2/socket.io",
+    );
   });
 });
 
