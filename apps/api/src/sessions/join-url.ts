@@ -6,6 +6,7 @@
  * origin only (CORS needs that), so it cannot hold the prefix.
  */
 export function joinUrl(pin: string): string {
-  const base = process.env.APP_BASE_URL?.trim() || process.env.WEB_ORIGIN || "http://localhost:3000";
+  const base =
+    process.env.APP_BASE_URL?.trim() || process.env.WEB_ORIGIN || "http://localhost:3000";
   return `${base.replace(/\/+$/, "")}/j/${pin}`;
 }
