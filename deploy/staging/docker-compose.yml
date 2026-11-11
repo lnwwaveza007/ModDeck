@@ -63,7 +63,8 @@ services:
     image: ${WEB_IMAGE:?set WEB_IMAGE in .env}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/"]
+      # Under a basePath "/" is a 404, so probe a real page below the prefix.
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000${BASE_PATH:-}/login"]
       interval: 10s
       timeout: 3s
       retries: 6
