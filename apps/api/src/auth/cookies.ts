@@ -42,14 +42,14 @@ export function sessionCookieOptions(
 
 /** Short-lived cookie that carries state, nonce and PKCE verifier across the redirect. */
 export function txCookieOptions(
-  cfg: Pick<AuthConfig, "cookieSecure">,
+  cfg: Pick<AuthConfig, "cookieSecure" | "cookieBasePath">,
   withMaxAge = true,
 ): CookieOptions {
   return {
     httpOnly: true,
     secure: cfg.cookieSecure,
     sameSite: "lax", // must be Lax so it returns on the top-level redirect from Microsoft
-    path: `/${API_PREFIX}/auth`,
+    path: `${cfg.cookieBasePath ?? ""}/${API_PREFIX}/auth`,
     ...(withMaxAge ? { maxAge: TX_MAX_AGE_MS } : {}),
   };
 }

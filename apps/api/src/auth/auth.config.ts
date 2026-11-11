@@ -20,6 +20,12 @@ export interface AuthConfig {
   sso: SsoConfig | null;
   sessionTtlMs: number;
   cookieSecure: boolean;
+  /**
+   * URL prefix the app is mounted under (the path of APP_BASE_URL), "" at the site root.
+   * The browser sees /<prefix>/api/auth/callback, so the login-handshake cookie's Path
+   * must include it or the browser will not send the cookie back.
+   */
+  cookieBasePath?: string;
 }
 
 const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -33,7 +39,18 @@ export function loadAuthConfig(env: NodeJS.ProcessEnv = process.env): AuthConfig
     sso: loadSsoConfig(env),
     sessionTtlMs: ttlHours * 60 * 60 * 1000,
     cookieSecure: env.AUTH_COOKIE_SECURE !== "false",
+    cookieBasePath: basePathOf(env.APP_BASE_URL),
   };
+}
+
+/** "https://host/capstone26/cp26ssa2/" -> "/capstone26/cp26ssa2"; "" for a bare origin. */
+export function basePathOf(appBaseUrl: string | undefined): string {
+  if (!appBaseUrl?.trim()) return "";
+  try {
+    return new URL(appBaseUrl.trim()).pathname.replace(/\/+$/, "");
+  } catch {
+    return "";
+  }
 }
 
 // SSO is on when ENTRA_TENANT_ID is set. Once on, every value must be valid,
