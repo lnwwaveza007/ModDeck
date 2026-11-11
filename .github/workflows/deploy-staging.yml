@@ -124,6 +124,12 @@ jobs:
         working-directory: ${{ env.DEPLOY_DIR }}
         run: docker compose up -d --remove-orphans --wait --wait-timeout 180
 
+      # nginx.conf is copied over the bind-mounted file, but compose leaves a running nginx
+      # alone when only that file changed, so make it re-read the config.
+      - name: Reload Nginx config
+        working-directory: ${{ env.DEPLOY_DIR }}
+        run: docker compose exec -T nginx nginx -s reload
+
       - name: Smoke check /health through Nginx
         run: |
           # -k: the runner checks the route, not the certificate. Phones check the cert.
