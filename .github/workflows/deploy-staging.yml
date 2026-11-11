@@ -14,6 +14,11 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
+  # Where students and hosts open the app: the school proxy mounts it under this prefix and
+  # strips it before forwarding (deploy/staging/nginx.conf puts it back for the web app).
+  # BASE_PATH is baked into the web image at build time.
+  PUBLIC_ORIGIN: https://bscit.sit.kmutt.ac.th
+  BASE_PATH: /capstone26/cp26ssa2
 
 jobs:
   build:
@@ -48,6 +53,10 @@ jobs:
           tags: |
             ${{ steps.image.outputs.name }}:${{ github.sha }}
             ${{ steps.image.outputs.name }}:staging
+          # Only the web Dockerfile declares these; the api build ignores them.
+          build-args: |
+            NEXT_PUBLIC_BASE_PATH=${{ env.BASE_PATH }}
+            NEXT_PUBLIC_API_URL=${{ env.BASE_PATH }}/api
           cache-from: type=gha,scope=${{ matrix.app }}
           cache-to: type=gha,mode=max,scope=${{ matrix.app }}
 
@@ -58,7 +67,7 @@ jobs:
     runs-on: [self-hosted, moddeck-staging]
     environment:
       name: staging
-      url: https://${{ vars.STAGING_HOST }}
+      url: https://bscit.sit.kmutt.ac.th/capstone26/cp26ssa2/
     permissions:
       contents: read
       packages: read
@@ -91,6 +100,8 @@ jobs:
           umask 077
           cat > "$DEPLOY_DIR/.env" <<EOF
           STAGING_HOST=${STAGING_HOST}
+          PUBLIC_ORIGIN=${PUBLIC_ORIGIN}
+          BASE_PATH=${BASE_PATH}
           POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
           ENTRA_TENANT_ID=${ENTRA_TENANT_ID}
           ENTRA_CLIENT_ID=${ENTRA_CLIENT_ID}

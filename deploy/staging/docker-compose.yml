@@ -35,13 +35,15 @@ services:
     restart: unless-stopped
     environment:
       API_PORT: 4000
-      WEB_ORIGIN: https://${STAGING_HOST:?set STAGING_HOST in .env}
+      # Origin only (CORS). The URL prefix goes in APP_BASE_URL.
+      WEB_ORIGIN: ${PUBLIC_ORIGIN:-https://${STAGING_HOST:?set STAGING_HOST in .env}}
       DATABASE_URL: postgresql://${POSTGRES_USER:-moddeck}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-moddeck}
       REDIS_URL: redis://redis:6379
       ENTRA_TENANT_ID: ${ENTRA_TENANT_ID:-}
       ENTRA_CLIENT_ID: ${ENTRA_CLIENT_ID:-}
       ENTRA_CLIENT_SECRET: ${ENTRA_CLIENT_SECRET:-}
-      APP_BASE_URL: https://${STAGING_HOST}
+      # Public URL incl. prefix. The Entra redirect URI is this + /api/auth/callback.
+      APP_BASE_URL: ${PUBLIC_ORIGIN:-https://${STAGING_HOST}}${BASE_PATH:-}
       SLIDES_DIR: /data/slides
     volumes:
       - slides:/data/slides

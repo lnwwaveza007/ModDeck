@@ -15,6 +15,7 @@ import { PollStoreService, runRowSelect, toRunDto } from "../realtime/poll-store
 import { RoomEventsService } from "../realtime/room-events.service";
 import { VoteBatcherService } from "../realtime/vote-batcher.service";
 import { toSlideDto } from "../slides/slide.mapper";
+import { joinUrl } from "./join-url";
 
 const uuid = z.uuid();
 const sessionNotFound = () => new ApiException(404, "NOT_FOUND", "Session not found");
@@ -88,7 +89,7 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
       pin: session.pin,
       status: session.status,
       title: session.deck.title,
-      joinUrl: `${process.env.WEB_ORIGIN ?? "http://localhost:3000"}/j/${session.pin}`,
+      joinUrl: joinUrl(session.pin),
       startedAt: session.startedAt.toISOString(),
       serverNow: Date.now(),
       currentSlideId: session.currentSlideId,

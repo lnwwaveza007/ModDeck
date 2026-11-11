@@ -14,8 +14,12 @@ COPY apps/web apps/web
 
 # NEXT_PUBLIC_* values are inlined at build time. The default is a relative
 # path, so one image works behind Nginx on any host.
+# NEXT_PUBLIC_BASE_PATH is the URL prefix when a proxy mounts the app below the site
+# root (e.g. /capstone26/cp26ssa2); then NEXT_PUBLIC_API_URL is "<prefix>/api".
 ARG NEXT_PUBLIC_API_URL=/api
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ARG NEXT_PUBLIC_BASE_PATH=
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
+  NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH}
 ENV NEXT_TELEMETRY_DISABLED=1
 WORKDIR /repo/apps/web
 RUN pnpm build

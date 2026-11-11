@@ -47,7 +47,11 @@ To use a real certificate instead, put `fullchain.pem` and `privkey.pem` in `/op
 | Secret   | `STAGING_ENTRA_CLIENT_ID`   | Entra app client ID. Required when the tenant ID is set. |
 | Secret   | `STAGING_ENTRA_CLIENT_SECRET` | Entra app client secret. |
 
-The deploy job writes these three into `/opt/moddeck/.env` as `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID` and `ENTRA_CLIENT_SECRET`. Register `https://<STAGING_HOST>/api/auth/callback` as a redirect URI in the Entra app.
+The deploy job writes these three into `/opt/moddeck/.env` as `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID` and `ENTRA_CLIENT_SECRET`. Register `https://bscit.sit.kmutt.ac.th/capstone26/cp26ssa2/api/auth/callback` as a redirect URI in the Entra app (the public URL, see below).
+
+### Public URL and prefix
+
+The school proxy serves the app at `https://bscit.sit.kmutt.ac.th/capstone26/cp26ssa2/` and strips that prefix before forwarding. The deploy workflow sets `PUBLIC_ORIGIN` and `BASE_PATH` (top of `deploy-staging.yml`). `BASE_PATH` is built into the web image as Next's `basePath`, and `nginx.conf` puts the prefix back on web requests. The prefix is also accepted on `https://<STAGING_HOST>/...` directly.
 
 **Settings > Actions > General > Fork pull request workflows from outside collaborators**: choose **Require approval for all outside collaborators**. The repo is public and the VM runs a self-hosted runner, so a fork PR must never run on it without review.
 
