@@ -58,6 +58,8 @@ export class PollFlusherService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PollFlusherService.name);
   private timer?: NodeJS.Timeout;
   private ticking = false;
+  private retryDelayMs = FLUSH_INTERVAL_MS;
+  private retryAfter = 0;
 
   constructor(
     @Inject(REDIS) private readonly redis: Redis,
@@ -76,7 +78,7 @@ export class PollFlusherService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async tick() {
-    if (this.ticking) return;
+    if (this.ticking || Date.now() < this.retryAfter) return;
     this.ticking = true;
     try {
       const live = await this.prisma.activityRun.findMany({
@@ -85,8 +87,12 @@ export class PollFlusherService implements OnModuleInit, OnModuleDestroy {
         distinct: ["sessionId"],
       });
       for (const { sessionId } of live) await this.flush(sessionId, false);
+      this.retryDelayMs = FLUSH_INTERVAL_MS;
+      this.retryAfter = 0;
     } catch (err) {
-      this.logger.error(`Answer flush failed: ${String(err)}`);
+      this.logger.error(`Answer flush failed; retrying in ${this.retryDelayMs}ms: ${String(err)}`, err instanceof Error ? err.stack : undefined);
+      this.retryAfter = Date.now() + this.retryDelayMs;
+      this.retryDelayMs = Math.min(this.retryDelayMs * 2, 30_000);
     } finally {
       this.ticking = false;
     }
@@ -94,7 +100,17 @@ export class PollFlusherService implements OnModuleInit, OnModuleDestroy {
 
   /** The last write when a poll closes. It waits for a flush that is already running. */
   async finalFlush(sessionId: string): Promise<void> {
-    await this.flush(sessionId, true);
+    let delayMs = FLUSH_INTERVAL_MS;
+    for (;;) {
+      try {
+        await this.flush(sessionId, true);
+        return;
+      } catch (err) {
+        this.logger.error(`Final answer flush failed for session ${sessionId}; retrying in ${delayMs}ms: ${String(err)}`, err instanceof Error ? err.stack : undefined);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        delayMs = Math.min(delayMs * 2, 30_000);
+      }
+    }
   }
 
   private async flush(sessionId: string, wait: boolean) {
