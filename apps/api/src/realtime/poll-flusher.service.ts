@@ -126,6 +126,9 @@ export class PollFlusherService implements OnModuleInit, OnModuleDestroy {
     while (!(await this.redis.set(key, token, "PX", LOCK_MS, "NX"))) {
       if (!wait) return;
       if (Date.now() >= deadline) {
+        if (wait) {
+          throw new Error(`Timed out waiting for the answer flush of session ${sessionId}`);
+        }
         this.logger.warn(`Gave up waiting for the answer flush of session ${sessionId}`);
         return;
       }
