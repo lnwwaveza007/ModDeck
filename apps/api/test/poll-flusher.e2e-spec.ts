@@ -1,4 +1,4 @@
-// poll-flusher.integration.spec.ts  (next to poll-flusher.service.ts)
+// poll-flusher.e2e-spec.ts  (next to poll-flusher.service.ts)
 import { randomUUID } from "node:crypto";
 import { Logger } from "@nestjs/common";
 import { Test, type TestingModule } from "@nestjs/testing";
