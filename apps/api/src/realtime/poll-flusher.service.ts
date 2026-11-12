@@ -90,7 +90,10 @@ export class PollFlusherService implements OnModuleInit, OnModuleDestroy {
       this.retryDelayMs = FLUSH_INTERVAL_MS;
       this.retryAfter = 0;
     } catch (err) {
-      this.logger.error(`Answer flush failed; retrying in ${this.retryDelayMs}ms: ${String(err)}`, err instanceof Error ? err.stack : undefined);
+      this.logger.error(
+        `Answer flush failed; retrying in ${this.retryDelayMs}ms: ${String(err)}`,
+        err instanceof Error ? err.stack : undefined,
+      );
       this.retryAfter = Date.now() + this.retryDelayMs;
       this.retryDelayMs = Math.min(this.retryDelayMs * 2, 30_000);
     } finally {
@@ -106,7 +109,10 @@ export class PollFlusherService implements OnModuleInit, OnModuleDestroy {
         await this.flush(sessionId, true);
         return;
       } catch (err) {
-        this.logger.error(`Final answer flush failed for session ${sessionId}; retrying in ${delayMs}ms: ${String(err)}`, err instanceof Error ? err.stack : undefined);
+        this.logger.error(
+          `Final answer flush failed for session ${sessionId}; retrying in ${delayMs}ms: ${String(err)}`,
+          err instanceof Error ? err.stack : undefined,
+        );
         await new Promise((resolve) => setTimeout(resolve, delayMs));
         delayMs = Math.min(delayMs * 2, 30_000);
       }
