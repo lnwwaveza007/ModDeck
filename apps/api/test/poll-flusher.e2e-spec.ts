@@ -186,7 +186,10 @@ describe("PollFlusherService (real Redis + PostgreSQL)", () => {
     const redisTally = await store.tally(sessionId, runId);
 
     const errorLog = jest.spyOn(Logger.prototype, "error").mockImplementation();
-    const writeSpy = jest.spyOn(flusher as unknown as { write: (...args: never[]) => Promise<void> }, "write");
+    const writeSpy = jest.spyOn(
+      flusher as unknown as { write: (...args: never[]) => Promise<void> },
+      "write",
+    );
     // The rows are written, then XDEL fails once: the entries stay in the stream.
     jest.spyOn(redis, "xdel").mockRejectedValueOnce(new Error("redis went away"));
 
