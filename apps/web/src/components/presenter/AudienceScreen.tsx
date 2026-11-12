@@ -16,6 +16,7 @@ import { LiveStage } from "./LiveStage";
 import { ShortcutHelp } from "./ShortcutHelp";
 
 const NO_VOTES = { votes: {}, answered: 0 };
+const NO_WORDS = { words: [], entries: 0 };
 const COUNT_POLL_MS = 5000;
 // A refresh joins the room in a moment. Only a join that takes longer than this is worth showing.
 const CONNECT_GRACE_MS = 2000;
@@ -57,7 +58,7 @@ export function AudienceScreen({ sessionId }: { sessionId: string }) {
     return runLiveCommand(command, state, controls, layers);
   });
 
-  const { view, slides, currentIndex, runs, tallies } = state;
+  const { view, slides, currentIndex, runs, tallies, clouds } = state;
   if (state.loadError || !view) {
     return (
       <div className="grid flex-1 place-items-center bg-neutral-900 text-neutral-100">
@@ -93,6 +94,7 @@ export function AudienceScreen({ sessionId }: { sessionId: string }) {
               slide={current}
               run={run}
               tally={run ? (tallies[run.activityRunId] ?? NO_VOTES) : undefined}
+              cloud={run ? (clouds[run.activityRunId] ?? NO_WORDS) : undefined}
               liveChart={screen.liveChart}
               now={now}
               className="rounded-none border-0"

@@ -29,9 +29,11 @@ const view = (
       { id: "o2", label: "Beta" },
     ],
     allowAnswerChange: false,
+    maxEntries: 1,
   },
   run: { activityId: "a1", activityRunId: "r1", state, endsAt: null, reopened: false },
   results: null,
+  cloud: null,
   ...overrides,
 });
 
@@ -257,7 +259,7 @@ describe("applyRoomEvent", () => {
     expect(applyRoomEvent(view("live"), other)?.run?.state).toBe("live");
     const edited = applyRoomEvent(
       view("live"),
-      event("activity_edited", { activityId: "a1", prompt: "New?", options: [] }),
+      event("activity_edited", { activityId: "a1", prompt: "New?", options: [], maxEntries: 1 }),
     );
     expect(edited?.activity.prompt).toBe("New?");
     expect(edited?.run?.state).toBe("live");
@@ -272,7 +274,7 @@ describe("poll drafts", () => {
 
   it("starts a new poll with two empty options", () => {
     const { rows, prompt } = pollDraftOf({
-      activity: { id: "a", type: "poll", prompt: "", options: [] },
+      activity: { id: "a", type: "poll", prompt: "", options: [], maxEntries: 1 },
     });
     expect(prompt).toBe("");
     expect(rows.map((row) => row.label)).toEqual(["", ""]);

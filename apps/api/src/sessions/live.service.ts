@@ -6,6 +6,7 @@ import {
   type ActivityRunState,
   type LiveSessionView,
   type LiveSlide,
+  type WordVisibilityResult,
 } from "@moddeck/shared";
 import { z } from "zod";
 import { ApiException } from "../common/api-error";
@@ -14,7 +15,9 @@ import { PollFlusherService } from "../realtime/poll-flusher.service";
 import { PollStoreService, runRowSelect, toRunDto } from "../realtime/poll-store.service";
 import { RoomEventsService } from "../realtime/room-events.service";
 import { VoteBatcherService } from "../realtime/vote-batcher.service";
-import { toSlideDto } from "../slides/slide.mapper";
+import { WordBatcherService } from "../realtime/word-batcher.service";
+import { WordStoreService } from "../realtime/word-store.service";
+import { liveActivitySelect, toLiveActivity, toSlideDto } from "../slides/slide.mapper";
 import { joinUrl } from "./join-url";
 
 const uuid = z.uuid();
@@ -38,6 +41,8 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
     private readonly polls: PollStoreService,
     private readonly flusher: PollFlusherService,
     private readonly voteBatcher: VoteBatcherService,
+    private readonly words: WordStoreService,
+    private readonly wordBatcher: WordBatcherService,
   ) {}
 
   // After a restart, arm the countdowns that are still running.
@@ -61,17 +66,7 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
       this.prisma.slide.findMany({
         where: { deckId: session.deckId },
         orderBy: { position: "asc" },
-        include: {
-          activity: {
-            select: {
-              id: true,
-              type: true,
-              prompt: true,
-              allowAnswerChange: true,
-              options: { orderBy: { position: "asc" }, select: { id: true, label: true } },
-            },
-          },
-        },
+        include: { activity: { select: liveActivitySelect } },
       }),
       this.prisma.activityRun.findMany({
         where: { sessionId },
@@ -81,7 +76,12 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
     ]);
 
     const pollRuns = runs.filter((run) => run.activity.type === "poll");
-    const tallies = await Promise.all(pollRuns.map((run) => this.polls.tally(sessionId, run.id)));
+    const cloudRuns = runs.filter((run) => run.activity.type === "word_cloud");
+    const [tallies, clouds, hidden] = await Promise.all([
+      Promise.all(pollRuns.map((run) => this.polls.tally(sessionId, run.id))),
+      Promise.all(cloudRuns.map((run) => this.words.tally(sessionId, run.id))),
+      Promise.all(cloudRuns.map((run) => this.words.hiddenWords(sessionId, run.id))),
+    ]);
 
     return {
       id: session.id,
@@ -95,10 +95,18 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
       currentSlideId: session.currentSlideId,
       slides: slides.map((slide): LiveSlide => {
         const { id, position, kind, elements } = toSlideDto(slide);
-        return { id, position, kind, elements, activity: slide.activity };
+        return {
+          id,
+          position,
+          kind,
+          elements,
+          activity: slide.activity && toLiveActivity(slide.activity),
+        };
       }),
       runs: runs.map(toRunDto),
       tallies: Object.fromEntries(pollRuns.map((run, i) => [run.id, tallies[i]])),
+      clouds: Object.fromEntries(cloudRuns.map((run, i) => [run.id, clouds[i]])),
+      hiddenWords: Object.fromEntries(cloudRuns.map((run, i) => [run.id, hidden[i]])),
       showResultsLive: (session.settings as { showResultsLive?: boolean }).showResultsLive === true,
       participantCount,
     };
@@ -208,19 +216,67 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
     this.disarm(updated.id);
     if (endsAt) this.arm(sessionId, updated.id, endsAt);
     const dto = toRunDto(updated);
-    if (activity.type === "poll") await this.applyToPoll(sessionId, updated.id, to);
+    await this.applyToRun(activity.type, sessionId, updated.id, to);
     await this.events.publish(sessionId, "activity_state", dto);
-    if (activity.type === "poll") await this.voteBatcher.publishNow(sessionId, updated.id);
+    await this.publishResults(activity.type, sessionId, updated.id);
     return dto;
   }
 
   /**
-   * Redis takes the new state first, so no vote gets in after a close. The room then hears of a
+   * Hides or shows one word of a word cloud, before or after the results are shown. The room gets
+   * the cloud again at once, so the word leaves the projector and the phones as soon as this
+   * returns. The host gets every hidden word back, to show one again.
+   */
+  async setWordHidden(
+    ownerId: string,
+    sessionId: string,
+    activityId: string,
+    key: string,
+    hidden: boolean,
+  ): Promise<WordVisibilityResult> {
+    const session = await this.ownedSession(ownerId, sessionId);
+    this.assertOpen(session.status);
+    const run = uuid.safeParse(activityId).success
+      ? await this.prisma.activityRun.findFirst({
+          where: {
+            sessionId,
+            activityId,
+            activity: { type: "word_cloud", slide: { deckId: session.deckId } },
+          },
+          select: { id: true },
+        })
+      : null;
+    if (!run) throw new ApiException(404, "NOT_FOUND", "Word cloud has not started");
+
+    // Redis first, so entries that arrive from now on follow the word. The flush then stores the
+    // entries still waiting, and only after it the stored ones are marked.
+    if (!(await this.words.setHidden(sessionId, run.id, key, hidden))) {
+      throw new ApiException(404, "NOT_FOUND", "Nobody sent this word");
+    }
+    await this.flusher.finalFlush(sessionId);
+    await this.words.persistHidden(run.id, key, hidden);
+    await this.wordBatcher.publishNow(sessionId, run.id);
+    return { key, hidden, hiddenWords: await this.words.hiddenWords(sessionId, run.id) };
+  }
+
+  /**
+   * Redis takes the new state first, so no entry gets in after a close. The room then hears of a
    * close only when every answer is in PostgreSQL (technical design §5.3).
    */
-  private async applyToPoll(sessionId: string, runId: string, state: ActivityRunState) {
-    await this.polls.syncRun(sessionId, runId);
+  private async applyToRun(
+    type: "poll" | "word_cloud",
+    sessionId: string,
+    runId: string,
+    state: ActivityRunState,
+  ) {
+    await (type === "poll" ? this.polls : this.words).syncRun(sessionId, runId);
     if (state !== "live") await this.flusher.finalFlush(sessionId);
+  }
+
+  /** The counts or the cloud of a run, to the room, right after its state changed. */
+  private async publishResults(type: "poll" | "word_cloud", sessionId: string, runId: string) {
+    if (type === "poll") await this.voteBatcher.publishNow(sessionId, runId);
+    else await this.wordBatcher.publishNow(sessionId, runId);
   }
 
   // ----- countdown timer -----
@@ -256,10 +312,9 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
       where: { id: runId },
       select: { ...runRowSelect, activity: { select: { type: true } } },
     });
-    const poll = run.activity.type === "poll";
-    if (poll) await this.applyToPoll(sessionId, runId, run.state);
+    await this.applyToRun(run.activity.type, sessionId, runId, run.state);
     await this.events.publish(sessionId, "activity_state", toRunDto(run));
-    if (poll) await this.voteBatcher.publishNow(sessionId, runId);
+    await this.publishResults(run.activity.type, sessionId, runId);
   }
 
   /** Stops every run whose countdown has passed, in case no timer fired (a restart, a crash). */

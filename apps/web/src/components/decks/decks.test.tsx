@@ -131,7 +131,7 @@ describe("DeckList", () => {
       id: "s2",
       kind: "poll",
       elements: [],
-      activity: { id: "a1", type: "poll", prompt: "Which one?", options: [] },
+      activity: { id: "a1", type: "poll", prompt: "Which one?", options: [], maxEntries: 1 },
     };
     const withSlide = deck({ firstSlide: titleSlide });
     const withPoll = deck({ id: "d2", title: "Quiz deck", firstSlide: poll });

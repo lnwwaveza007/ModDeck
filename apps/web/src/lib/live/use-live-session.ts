@@ -14,9 +14,17 @@ import type {
   LiveSlide,
   PollTally,
   RoomEvent,
+  WordCloudTally,
+  WordCount,
 } from "@moddeck/shared";
 import { ApiError } from "@/lib/api/client";
-import { actOnActivity, editActivityWording, getLiveSession, moveToSlide } from "@/lib/api/live";
+import {
+  actOnActivity,
+  editActivityWording,
+  getLiveSession,
+  moveToSlide,
+  setWordHidden,
+} from "@/lib/api/live";
 import { LiveConnection, type ConnectionStatus } from "@/lib/realtime/live-connection";
 
 export type LiveLoadError = "notFound" | "network";
@@ -29,6 +37,10 @@ export interface LiveSessionState {
   runs: Record<string, ActivityRunDto>;
   /** Run id → the counts of a poll. */
   tallies: Record<string, PollTally>;
+  /** Run id → the cloud of a word cloud, without the words the host hid. */
+  clouds: Record<string, WordCloudTally>;
+  /** Run id → the words the host hid, so one can be shown again. */
+  hiddenWords: Record<string, WordCount[]>;
   connection: ConnectionStatus;
   ended: boolean;
   loadError: LiveLoadError | null;
@@ -42,6 +54,8 @@ export interface LiveSessionControls {
   previous: () => void;
   act: (activityId: string, action: ActivityAction, durationSeconds?: number) => Promise<void>;
   editWording: (slideId: string, body: ActivityWordingBody) => Promise<void>;
+  /** Hides or shows one word of a word cloud on every screen. */
+  setWordHidden: (activityId: string, key: string, hidden: boolean) => Promise<void>;
 }
 
 const runsById = (runs: ActivityRunDto[]) =>
@@ -67,6 +81,8 @@ export function useLiveSession(
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [runs, setRuns] = useState<Record<string, ActivityRunDto>>({});
   const [tallies, setTallies] = useState<Record<string, PollTally>>({});
+  const [clouds, setClouds] = useState<Record<string, WordCloudTally>>({});
+  const [hiddenWords, setHiddenWords] = useState<Record<string, WordCount[]>>({});
   const [connection, setConnection] = useState<ConnectionStatus>("connecting");
   const [ended, setEnded] = useState(false);
   const [loadError, setLoadError] = useState<LiveLoadError | null>(null);
@@ -83,9 +99,11 @@ export function useLiveSession(
   const queued = useRef<string | null>(null);
   const slidesRef = useRef<LiveSlide[]>([]);
   const currentRef = useRef<string | null>(null);
+  const runsRef = useRef<Record<string, ActivityRunDto>>({});
   useEffect(() => {
     slidesRef.current = slides;
     currentRef.current = currentId;
+    runsRef.current = runs;
   });
 
   const load = useCallback(async () => {
@@ -96,6 +114,8 @@ export function useLiveSession(
       setSlides(value.slides);
       setRuns(runsById(value.runs));
       setTallies(value.tallies);
+      setClouds(value.clouds);
+      setHiddenWords(value.hiddenWords);
       // A refresh after the end: the socket would refuse to join, so read it from here too.
       if (value.status === "ended") setEnded(true);
       if (!sending.current) setCurrentId(value.currentSlideId ?? value.slides[0]?.id ?? null);
@@ -122,6 +142,11 @@ export function useLiveSession(
         case "vote_update": {
           const { activityRunId, votes, answered } = event.data;
           setTallies((current) => ({ ...current, [activityRunId]: { votes, answered } }));
+          break;
+        }
+        case "word_update": {
+          const { activityRunId, words, entries } = event.data;
+          setClouds((current) => ({ ...current, [activityRunId]: { words, entries } }));
           break;
         }
         case "activity_edited":
@@ -214,6 +239,19 @@ export function useLiveSession(
     [load, sessionId],
   );
 
+  const hideWord = useCallback(
+    async (activityId: string, key: string, hidden: boolean) => {
+      try {
+        const result = await setWordHidden(sessionId, activityId, key, hidden);
+        const runId = runsRef.current[activityId]?.activityRunId;
+        if (runId) setHiddenWords((current) => ({ ...current, [runId]: result.hiddenWords }));
+      } catch (error) {
+        onErrorRef.current?.(error);
+      }
+    },
+    [sessionId],
+  );
+
   const editWording = useCallback(
     async (slideId: string, body: ActivityWordingBody) => {
       if (!view) return;
@@ -230,8 +268,20 @@ export function useLiveSession(
   );
 
   return [
-    { view, slides, currentIndex, runs, tallies, connection, ended, loadError, clockOffset },
-    { goTo, next, previous, act, editWording },
+    {
+      view,
+      slides,
+      currentIndex,
+      runs,
+      tallies,
+      clouds,
+      hiddenWords,
+      connection,
+      ended,
+      loadError,
+      clockOffset,
+    },
+    { goTo, next, previous, act, editWording, setWordHidden: hideWord },
   ];
 }
 

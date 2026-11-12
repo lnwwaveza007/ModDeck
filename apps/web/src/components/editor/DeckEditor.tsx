@@ -54,6 +54,12 @@ import {
 } from "@/lib/editor/poll-draft";
 import { SaveQueue } from "@/lib/editor/save-queue";
 import {
+  isWordCloudComplete,
+  wordCloudBody,
+  wordCloudDraftOf,
+  type WordCloudDraft,
+} from "@/lib/editor/word-cloud-draft";
+import {
   ArrowDownIcon,
   ArrowUpIcon,
   DuplicateIcon,
@@ -69,6 +75,7 @@ import { PollEditor } from "./PollEditor";
 import { SaveIndicator } from "./SaveIndicator";
 import { SlideCanvas, type SlideCanvasHandle } from "./SlideCanvas";
 import { SlideList } from "./SlideList";
+import { WordCloudEditor } from "./WordCloudEditor";
 
 type Load =
   { status: "loading" } | { status: "error" } | { status: "notFound" } | { status: "ready" };
@@ -94,6 +101,8 @@ export function DeckEditor({ deckId }: { deckId: string }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   // Polls as the host writes them, by slide id. They reach the server once complete.
   const [pollDrafts] = useState(() => new Map<string, PollDraft>());
+  // Word clouds the same way: the prompt and the limit per student, by slide id.
+  const [cloudDrafts] = useState(() => new Map<string, WordCloudDraft>());
   // The elements selected on the current slide (one or a group), and the one being typed into.
   const [elementIds, setElementIds] = useState<string[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -137,12 +146,13 @@ export function DeckEditor({ deckId }: { deckId: string }) {
       setEditingId(null);
       // What the server has replaces what the host did, so older steps no longer fit.
       pollDrafts.clear();
+      cloudDrafts.clear();
       history.clear();
       rootOf.current.clear();
       currentOf.current.clear();
       setLoad({ status: "ready" });
     },
-    [history, pollDrafts],
+    [history, pollDrafts, cloudDrafts],
   );
 
   const handleLoadError = useCallback(
@@ -240,6 +250,21 @@ export function DeckEditor({ deckId }: { deckId: string }) {
       if (latestDraft) {
         pollDrafts.set(slideId, withSavedIds(latestDraft, newest.rows, saved.options));
       }
+    });
+  }
+
+  // A word cloud changed: show it on the stage at once, and save it after a pause if it is
+  // complete (a prompt is written). The request reads the newest draft when it goes out.
+  function changeWordCloud(slideId: string, draft: WordCloudDraft) {
+    cloudDrafts.set(slideId, draft);
+    const current = latest.current.find((slide) => slide.id === slideId)?.activity;
+    if (!current) return;
+    showActivity(slideId, { ...current, prompt: draft.prompt, maxEntries: draft.maxEntries });
+    if (!isWordCloudComplete(draft)) return;
+    queue.patch(`activity:${slideId}`, {}, async () => {
+      const newest = cloudDrafts.get(slideId);
+      if (!newest || !isWordCloudComplete(newest)) return;
+      await editActivityWording(deckId, slideId, wordCloudBody(newest));
     });
   }
 
@@ -392,6 +417,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
       ? {
           prompt: snapshot.activity.prompt,
           options: snapshot.activity.options.map(({ label }) => ({ label })),
+          ...(snapshot.kind === "word_cloud" && { maxEntries: snapshot.activity.maxEntries }),
         }
       : null;
     if (wording) {
@@ -583,7 +609,10 @@ export function DeckEditor({ deckId }: { deckId: string }) {
           <Button
             disabled={starting}
             onClick={async () => {
-              if ([...pollDrafts.values()].some((draft) => !isPollComplete(draft))) {
+              if (
+                [...pollDrafts.values()].some((draft) => !isPollComplete(draft)) ||
+                [...cloudDrafts.values()].some((draft) => !isWordCloudComplete(draft))
+              ) {
                 toast(t("errors.DECK_INCOMPLETE"), { tone: "error" });
                 return;
               }
@@ -813,6 +842,12 @@ export function DeckEditor({ deckId }: { deckId: string }) {
                 key={selected.id}
                 initial={pollDrafts.get(selected.id) ?? pollDraftOf(selected)}
                 onChange={(draft) => changePoll(selected.id, draft)}
+              />
+            ) : selected.kind === "word_cloud" ? (
+              <WordCloudEditor
+                key={selected.id}
+                initial={cloudDrafts.get(selected.id) ?? wordCloudDraftOf(selected)}
+                onChange={(draft) => changeWordCloud(selected.id, draft)}
               />
             ) : (
               <ElementPanel

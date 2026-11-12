@@ -2,7 +2,9 @@ import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/co
 import {
   activityActionBodySchema,
   currentSlideBodySchema,
+  wordVisibilityBodySchema,
   type ActivityActionBody,
+  type WordVisibilityBody,
 } from "@moddeck/shared";
 import { z } from "zod";
 import { AuthGuard } from "../auth/auth.guard";
@@ -71,5 +73,19 @@ export class SessionsController {
     @Body(new ZodBody(activityActionBodySchema)) body: ActivityActionBody,
   ) {
     return this.live.act(user.id, id, activityId, body);
+  }
+
+  // Hide or show one Word Cloud word (a rude or off-topic one). `wordKey` is the normalized word,
+  // URL-encoded: Thai and any other text goes through encodeURIComponent.
+  @Patch("sessions/:sessionId/activities/:activityId/words/:wordKey")
+  @UseGuards(AuthGuard)
+  setWordHidden(
+    @CurrentUser() user: AuthUser,
+    @Param("sessionId") id: string,
+    @Param("activityId") activityId: string,
+    @Param("wordKey") wordKey: string,
+    @Body(new ZodBody(wordVisibilityBodySchema)) body: WordVisibilityBody,
+  ) {
+    return this.live.setWordHidden(user.id, id, activityId, wordKey, body.hidden);
   }
 }

@@ -4,6 +4,8 @@ import Redis, { type Result } from "ioredis";
 import type { ActivityRun } from "../generated/prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { REDIS } from "../redis/redis.module";
+import { liveActivitySelect, toLiveActivity } from "../slides/slide.mapper";
+import { WordStoreService } from "./word-store.service";
 
 // Live session keys expire a day after the last answer, as the event log does.
 const LIVE_KEY_TTL_SECONDS = 24 * 60 * 60;
@@ -131,6 +133,7 @@ export class PollStoreService {
   constructor(
     @Inject(REDIS) private readonly redis: Redis,
     private readonly prisma: PrismaService,
+    private readonly words: WordStoreService,
   ) {
     this.redis.defineCommand("submitVote", { numberOfKeys: 5, lua: SUBMIT_SCRIPT });
     this.redis.defineCommand("setRunState", { numberOfKeys: 1, lua: SET_STATE_SCRIPT });
@@ -252,25 +255,22 @@ export class PollStoreService {
 
   /** The activity on a slide, as the phones get it. null on a content slide. */
   async slideActivity(sessionId: string, slideId: string): Promise<SlideActivityView | null> {
-    const activity = await this.prisma.activity.findUnique({
+    const found = await this.prisma.activity.findUnique({
       where: { slideId },
-      select: {
-        id: true,
-        type: true,
-        prompt: true,
-        allowAnswerChange: true,
-        options: { orderBy: { position: "asc" }, select: { id: true, label: true } },
-      },
+      select: liveActivitySelect,
     });
-    if (!activity) return null;
+    if (!found) return null;
+    const activity = toLiveActivity(found);
     const row = await this.prisma.activityRun.findUnique({
       where: { sessionId_activityId: { sessionId, activityId: activity.id } },
       select: runRowSelect,
     });
+    // A phone gets the counts only once the host shows results (MD-5 §7.1).
+    const shown = row?.state === "results_shown" ? row : null;
     const results =
-      row?.state === "results_shown" && activity.type === "poll"
-        ? await this.tally(sessionId, row.id)
-        : null;
-    return { activity, run: row ? toRunDto(row) : null, results };
+      shown && activity.type === "poll" ? await this.tally(sessionId, shown.id) : null;
+    const cloud =
+      shown && activity.type === "word_cloud" ? await this.words.tally(sessionId, shown.id) : null;
+    return { activity, run: row ? toRunDto(row) : null, results, cloud };
   }
 }

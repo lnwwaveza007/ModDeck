@@ -1,10 +1,17 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { ActivityRunDto, LiveActivity, LiveSlide, PollTally } from "@moddeck/shared";
+import type {
+  ActivityRunDto,
+  LiveActivity,
+  LiveSlide,
+  PollTally,
+  WordCloudTally,
+} from "@moddeck/shared";
 import { RichText } from "@/components/content/RichText";
 import { SlideRenderer } from "@/components/content/SlideRenderer";
 import { DENSE_OPTIONS, OptionKey, PollChart } from "@/components/poll/PollChart";
+import { WordCloud } from "@/components/wordcloud/WordCloud";
 import { cn } from "@/lib/cn";
 import { formatDuration, secondsLeft } from "@/lib/live/clock";
 
@@ -17,6 +24,7 @@ export function LiveStage({
   slide,
   run,
   tally,
+  cloud,
   liveChart = false,
   now,
   className,
@@ -26,7 +34,9 @@ export function LiveStage({
   run?: ActivityRunDto;
   /** The counts of this run. Without them (a thumbnail) the stage draws no chart. */
   tally?: PollTally;
-  /** Draw the chart while voting is open ("show results live", MD-5 §7.1). */
+  /** The words of this run, with the same rule: without them the stage draws no cloud. */
+  cloud?: WordCloudTally;
+  /** Draw the chart or the cloud while the activity is open ("show results live", MD-5 §7.1). */
   liveChart?: boolean;
   now: number;
   className?: string;
@@ -50,7 +60,14 @@ export function LiveStage({
         className,
       )}
     >
-      <ActivityView slide={slide} run={run} tally={tally} liveChart={liveChart} now={now} />
+      <ActivityView
+        slide={slide}
+        run={run}
+        tally={tally}
+        cloud={cloud}
+        liveChart={liveChart}
+        now={now}
+      />
     </div>
   );
 }
@@ -59,12 +76,14 @@ function ActivityView({
   slide,
   run,
   tally,
+  cloud,
   liveChart,
   now,
 }: {
   slide: LiveSlide;
   run?: ActivityRunDto;
   tally?: PollTally;
+  cloud?: WordCloudTally;
   liveChart: boolean;
   now: number;
 }) {
@@ -92,12 +111,16 @@ function ActivityView({
         )}
       </div>
       <RichText source={activity.prompt} className="text-[4cqw] leading-[1.3] font-semibold" />
-      {activity.type !== "poll" ? (
-        state === "results_shown" && (
-          <p className="m-auto text-center text-[2.4cqw] font-semibold text-neutral-700">
-            {t("noWords")}
-          </p>
-        )
+      {activity.type === "word_cloud" ? (
+        cloud && (state === "results_shown" || (state === "live" && liveChart)) ? (
+          cloud.words.length > 0 ? (
+            <WordCloud words={cloud.words} scale="stage" className="min-h-0 flex-1" />
+          ) : (
+            <p className="m-auto text-center text-[2.4cqw] font-semibold text-neutral-700">
+              {t("noWords")}
+            </p>
+          )
+        ) : null
       ) : tally && (state === "results_shown" || (state === "live" && liveChart)) ? (
         <PollChart options={activity.options} tally={tally} scale="stage" />
       ) : (
@@ -107,6 +130,12 @@ function ActivityView({
         <p className="mt-auto text-center text-[2cqw] font-semibold text-neutral-700 tabular-nums">
           {state === "closed" && `${t("votingClosed")} · `}
           {t("answered", { count: tally.answered })}
+        </p>
+      )}
+      {activity.type === "word_cloud" && cloud && (state === "live" || state === "closed") && (
+        <p className="mt-auto text-center text-[2cqw] font-semibold text-neutral-700 tabular-nums">
+          {state === "closed" && `${t("sendingClosed")} · `}
+          {t("wordsSent", { count: cloud.entries })}
         </p>
       )}
     </div>

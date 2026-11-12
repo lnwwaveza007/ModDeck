@@ -164,6 +164,24 @@
       "yourAnswer": "Your answer",
       "noAnswer": "You did not answer this poll.",
       "answered": "{count, plural, one {# answer} other {# answers}}"
+    },
+    "wordCloud": {
+      "label": "Your word",
+      "placeholder": "Type a short word",
+      "hint": "One word or a short phrase.",
+      "counter": "{count}/{max}",
+      "tooLong": "Too long. Use at most {max} characters.",
+      "send": "Send",
+      "sending": "Sending…",
+      "failed": "Not sent. Check your connection and try again.",
+      "closed": "Sending closed",
+      "invalid": "This word cannot be sent. Check it and try again.",
+      "repeated": "You already sent that word.",
+      "limitReached": "You have sent all your words.",
+      "remaining": "{count, plural, one {You can send # more word.} other {You can send # more words.}}",
+      "yourWords": "Your words ({sent} of {limit})",
+      "noWords": "You did not send a word.",
+      "entries": "{count, plural, one {# word sent} other {# words sent}}"
     }
   },
   "host": {
@@ -442,6 +460,14 @@
       "limit": "{min} to {max} options, one answer per student.",
       "help": "Use `code` and $x^2$ in the question and options.",
       "incomplete": "Write the question and fill in every option, at least {min}. It saves when complete."
+    },
+    "wordCloud": {
+      "title": "Word Cloud",
+      "prompt": "Prompt",
+      "promptPlaceholder": "What word comes to mind?",
+      "entries": "Words per student",
+      "limit": "Each word can be up to {max} characters. Thai vowels and tone marks count with their letter.",
+      "incomplete": "Write the prompt. It saves when complete."
     }
   },
   "pages": {
@@ -534,7 +560,11 @@
       "noWords": "No words yet",
       "answered": "{count, plural, one {# answer} other {# answers}}",
       "votingClosed": "Voting closed",
-      "yourAnswer": "You"
+      "yourAnswer": "You",
+      "cloud": "Word cloud",
+      "wordCount": "{word}, sent {count, plural, one {# time} other {# times}}",
+      "wordsSent": "{count, plural, one {# word sent} other {# words sent}}",
+      "sendingClosed": "Sending closed"
     },
     "activity": {
       "label": "Activity controls",
@@ -569,7 +599,17 @@
         "results_shown": "The results are on screen. Hide them, or reopen to take more answers."
       },
       "answered": "{count, plural, one {# answer} other {# answers}}",
-      "liveChart": "Chart on audience screen"
+      "liveChart": "Chart on audience screen",
+      "wordsSent": "{count, plural, one {# word sent} other {# words sent}}",
+      "liveCloud": "Cloud on audience screen",
+      "words": {
+        "title": "Words on screen",
+        "hiddenTitle": "Hidden words",
+        "hide": "Hide",
+        "show": "Show",
+        "hideLabel": "Hide the word {word}",
+        "showLabel": "Show the word {word} again"
+      }
     },
     "wording": {
       "title": "Edit wording",

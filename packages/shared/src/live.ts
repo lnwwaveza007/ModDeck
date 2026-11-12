@@ -4,6 +4,7 @@
 import { z } from "zod";
 import type { ActivityRunState, SessionStatus } from "./events";
 import type { ActivitySlideKind, SlideDto } from "./slides";
+import { WORD_ENTRIES_MAX, WORD_ENTRIES_MIN, type WordCloudTally, type WordCount } from "./words";
 
 // ---- Activity controls ------------------------------------------------------
 
@@ -77,10 +78,12 @@ export const POLL_OPTIONS_MAX = 8;
 
 // PATCH /decks/{deckId}/slides/{slideId}/activity: the wording of a poll or word cloud.
 // `options` is the whole list in order (polls only): an option with an `id` keeps it, one
-// without is new, and a missing id is removed. Once the activity has started in a session that
-// is still open, only the wording can change: the same options, in the same order.
+// without is new, and a missing id is removed. `maxEntries` is how many words each student may
+// send (word clouds only). Once the activity has started in a session that is still open, only
+// the wording can change: the same options in the same order, and the same entry limit.
 export const activityWordingBodySchema = z.object({
   prompt: z.string().trim().min(1).max(ACTIVITY_PROMPT_MAX),
+  maxEntries: z.int().min(WORD_ENTRIES_MIN).max(WORD_ENTRIES_MAX).optional(),
   options: z
     .array(
       z.object({
@@ -115,6 +118,8 @@ export interface LiveActivity {
   options: ActivityOptionDto[];
   /** Poll only. Off: the first answer counts until the host reopens the poll. */
   allowAnswerChange: boolean;
+  /** Word cloud only: words each student may send (1 to 3). A poll always holds 1. */
+  maxEntries: number;
 }
 
 /** The counts of one poll run. `answered`: how many people have an answer. */
@@ -146,14 +151,16 @@ export interface ActivityRunDto {
 }
 
 /**
- * An activity as a student phone gets it when the room reaches its slide. `results` stays null
- * until the host shows results: the phone never draws a chart during voting (MD-5 §7.1).
+ * An activity as a student phone gets it when the room reaches its slide. `results` (poll) and
+ * `cloud` (word cloud) stay null until the host shows results: the phone never draws a chart or a
+ * cloud during voting (MD-5 §7.1).
  */
 export interface SlideActivityView {
   activity: LiveActivity;
   /** null: no run yet, so the activity is in draft. */
   run: ActivityRunDto | null;
   results: PollTally | null;
+  cloud: WordCloudTally | null;
 }
 
 /** GET /sessions/{sessionId}/live: everything the presenter and the audience screen start from. */
@@ -173,6 +180,10 @@ export interface LiveSessionView {
   runs: ActivityRunDto[];
   /** Counts of each poll run that has started, by run id. */
   tallies: Record<string, PollTally>;
+  /** The cloud of each word cloud run that has started, by run id. Hidden words are left out. */
+  clouds: Record<string, WordCloudTally>;
+  /** Words the host hid, by run id. Only the host's screens get this response. */
+  hiddenWords: Record<string, WordCount[]>;
   /** Session setting: the audience screen draws the chart while voting is open (MD-5 §7.1). */
   showResultsLive: boolean;
   participantCount: number;

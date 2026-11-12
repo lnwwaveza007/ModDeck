@@ -154,12 +154,13 @@ export interface SlideDto {
   kind: SlideKind;
   // Content slides only: back to front. Always empty on activity slides.
   elements: SlideElement[];
-  // Activity slides only. A word cloud has no options.
+  // Activity slides only. A word cloud has no options; `maxEntries` is its limit per student.
   activity: {
     id: string;
     type: ActivitySlideKind;
     prompt: string;
     options: { id: string; label: string }[];
+    maxEntries: number;
   } | null;
   updatedAt: string;
 }

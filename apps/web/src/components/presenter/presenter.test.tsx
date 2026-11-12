@@ -1,7 +1,13 @@
 import { act, cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import type { ActivityRunDto, LiveSessionView, LiveSlide, RoomEvent } from "@moddeck/shared";
 import { ApiError } from "@/lib/api/client";
-import { actOnActivity, editActivityWording, getLiveSession, moveToSlide } from "@/lib/api/live";
+import {
+  actOnActivity,
+  editActivityWording,
+  getLiveSession,
+  moveToSlide,
+  setWordHidden,
+} from "@/lib/api/live";
 import { endSession, getSession } from "@/lib/api/sessions";
 import type { LiveConnectionOptions } from "@/lib/realtime/live-connection";
 import { renderWithIntl } from "@/test/render";
@@ -33,6 +39,7 @@ const api = {
   move: jest.mocked(moveToSlide),
   act: jest.mocked(actOnActivity),
   edit: jest.mocked(editActivityWording),
+  hide: jest.mocked(setWordHidden),
   session: jest.mocked(getSession),
   end: jest.mocked(endSession),
 };
@@ -59,6 +66,7 @@ const poll: LiveSlide = {
       { id: "o2", label: "Beta" },
     ],
     allowAnswerChange: false,
+    maxEntries: 1,
   },
 };
 
@@ -75,6 +83,8 @@ const view = (overrides: Partial<LiveSessionView> = {}): LiveSessionView => ({
   slides: [content("slide-0", 0), poll, content("slide-2", 2)],
   runs: [],
   tallies: {},
+  clouds: {},
+  hiddenWords: {},
   showResultsLive: false,
   participantCount: 12,
   ...overrides,
@@ -379,7 +389,12 @@ describe("AudienceScreen", () => {
     expect(screen.getByText("Open")).toBeInTheDocument();
     roomEvent(
       "activity_edited",
-      { activityId: "act-poll", prompt: "Fixed?", options: poll.activity!.options },
+      {
+        activityId: "act-poll",
+        prompt: "Fixed?",
+        options: poll.activity!.options,
+        maxEntries: 1,
+      },
       2,
     );
     expect(screen.getByText("Fixed?")).toBeInTheDocument();
@@ -598,5 +613,205 @@ describe("EndSessionButton", () => {
     act(() => jest.advanceTimersByTime(2000));
     expect(onEnd).toHaveBeenCalledTimes(1);
     expect(button).toHaveTextContent("End Session");
+  });
+});
+
+// ---- Word cloud ----------------------------------------------------------------------------
+
+const cloudSlide: LiveSlide = {
+  id: "slide-cloud",
+  position: 1,
+  kind: "word_cloud",
+  elements: [],
+  activity: {
+    id: "act-cloud",
+    type: "word_cloud",
+    prompt: "One word for today?",
+    options: [],
+    allowAnswerChange: false,
+    maxEntries: 2,
+  },
+};
+
+const cloudRun = (state: ActivityRunDto["state"]): ActivityRunDto => ({
+  activityId: "act-cloud",
+  activityRunId: "run-c",
+  state,
+  endsAt: null,
+  reopened: false,
+});
+
+const cloudWords = [
+  { key: "rain", text: "rain", count: 3 },
+  { key: "สวัสดี", text: "สวัสดี", count: 1 },
+];
+
+const cloudView = (overrides: Partial<LiveSessionView> = {}) =>
+  view({
+    slides: [content("slide-0", 0), cloudSlide, content("slide-2", 2)],
+    currentSlideId: "slide-cloud",
+    runs: [cloudRun("live")],
+    clouds: { "run-c": { words: cloudWords, entries: 5 } },
+    ...overrides,
+  });
+
+const wordLists = () => screen.getAllByRole("list", { name: "Word cloud" });
+const cloudWord = (text: string) => within(wordLists()[0]).queryByText(text);
+
+describe("word cloud on the presenter control", () => {
+  it("shows the live cloud and the entry count to the host while students send", async () => {
+    await renderPresenter(cloudView());
+    // On the stage preview and in the controls card.
+    expect(screen.getAllByText("5 words sent")).toHaveLength(2);
+    expect(cloudWord("rain")).toBeInTheDocument();
+    // Thai is drawn whole, as one word.
+    expect(cloudWord("สวัสดี")).toBeInTheDocument();
+    expect(screen.getByLabelText("rain, sent 3 times")).toBeInTheDocument();
+  });
+
+  it("draws a word that more students sent larger than one that fewer sent", async () => {
+    await renderPresenter(cloudView());
+    const size = (label: string) => Number(screen.getByLabelText(label).dataset.scale);
+    expect(size("rain, sent 3 times")).toBeGreaterThan(size("สวัสดี, sent 1 time"));
+  });
+
+  it("follows word_update from the room, and a hidden word leaves the cloud", async () => {
+    await renderPresenter(cloudView());
+    await waitFor(() => expect(live.options).toBeDefined());
+    roomEvent(
+      "word_update",
+      {
+        activityRunId: "run-c",
+        entries: 6,
+        words: [
+          { key: "rain", text: "rain", count: 3 },
+          { key: "sun", text: "sun", count: 2 },
+        ],
+      },
+      1,
+    );
+    expect(screen.getAllByText("6 words sent")).toHaveLength(2);
+    expect(cloudWord("sun")).toBeInTheDocument();
+    expect(cloudWord("สวัสดี")).not.toBeInTheDocument();
+  });
+
+  it("hides a word on the host's click and lets the host show it again", async () => {
+    api.hide.mockResolvedValueOnce({
+      key: "rain",
+      hidden: true,
+      hiddenWords: [{ key: "rain", text: "rain", count: 3 }],
+    });
+    await renderPresenter(cloudView());
+
+    fireEvent.click(screen.getByRole("button", { name: "Hide the word rain" }));
+    await waitFor(() => expect(api.hide).toHaveBeenCalledWith("s1", "act-cloud", "rain", true));
+    const hidden = await screen.findByRole("region", { name: "Hidden words" });
+    expect(within(hidden).getByText("rain")).toBeInTheDocument();
+
+    api.hide.mockResolvedValueOnce({ key: "rain", hidden: false, hiddenWords: [] });
+    fireEvent.click(within(hidden).getByRole("button", { name: "Show the word rain again" }));
+    await waitFor(() =>
+      expect(api.hide).toHaveBeenLastCalledWith("s1", "act-cloud", "rain", false),
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole("region", { name: "Hidden words" })).not.toBeInTheDocument(),
+    );
+  });
+
+  it("hides a Thai word by its key", async () => {
+    api.hide.mockResolvedValueOnce({ key: "สวัสดี", hidden: true, hiddenWords: [] });
+    await renderPresenter(cloudView());
+    fireEvent.click(screen.getByRole("button", { name: "Hide the word สวัสดี" }));
+    await waitFor(() => expect(api.hide).toHaveBeenCalledWith("s1", "act-cloud", "สวัสดี", true));
+  });
+
+  it("sends one hide request for a double click", async () => {
+    let finish: (value: Awaited<ReturnType<typeof setWordHidden>>) => void = () => undefined;
+    api.hide.mockReturnValueOnce(new Promise((resolve) => (finish = resolve)));
+    await renderPresenter(cloudView());
+    const button = screen.getByRole("button", { name: "Hide the word rain" });
+    fireEvent.click(button);
+    fireEvent.click(button);
+    expect(api.hide).toHaveBeenCalledTimes(1);
+    finish({ key: "rain", hidden: true, hiddenWords: [] });
+    await waitFor(() => expect(button).not.toBeDisabled());
+  });
+
+  it("starts the word cloud with its own activity id", async () => {
+    api.act.mockResolvedValueOnce(cloudRun("live"));
+    await renderPresenter(cloudView({ runs: [] }));
+    fireEvent.click(screen.getByRole("button", { name: /^Start/ }));
+    await waitFor(() =>
+      expect(api.act).toHaveBeenCalledWith("s1", "act-cloud", { action: "start" }),
+    );
+  });
+
+  it("shows no cloud tools before the activity has started", async () => {
+    await renderPresenter(cloudView({ runs: [], clouds: {} }));
+    expect(screen.queryByRole("list", { name: "Word cloud" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/words sent/)).not.toBeInTheDocument();
+  });
+});
+
+describe("word cloud on the audience screen", () => {
+  async function renderScreen(value: LiveSessionView) {
+    api.view.mockResolvedValue(value);
+    renderWithIntl(<AudienceScreen sessionId="s1" />, "en");
+    await screen.findByText("One word for today?");
+  }
+
+  it("counts the words during the activity, and draws no cloud until the host turns it on", async () => {
+    await renderScreen(cloudView());
+    expect(screen.getByText("5 words sent")).toBeInTheDocument();
+    expect(screen.queryByRole("list", { name: "Word cloud" })).not.toBeInTheDocument();
+    fireEvent.keyDown(document, { key: "l" });
+    expect(await screen.findByLabelText("rain, sent 3 times")).toBeInTheDocument();
+  });
+
+  it("starts with the cloud on when the session shows results live", async () => {
+    await renderScreen(cloudView({ showResultsLive: true }));
+    expect(screen.getByLabelText("rain, sent 3 times")).toBeInTheDocument();
+  });
+
+  it("shows the cloud when results are shown, and grows it live from word_update", async () => {
+    await renderScreen(cloudView({ runs: [cloudRun("results_shown")] }));
+    expect(screen.getByLabelText("rain, sent 3 times")).toBeInTheDocument();
+    await waitFor(() => expect(live.options).toBeDefined());
+
+    roomEvent(
+      "word_update",
+      {
+        activityRunId: "run-c",
+        entries: 7,
+        words: [
+          { key: "rain", text: "rain", count: 5 },
+          { key: "สวัสดี", text: "สวัสดี", count: 1 },
+        ],
+      },
+      1,
+    );
+    expect(screen.getByLabelText("rain, sent 5 times")).toBeInTheDocument();
+  });
+
+  it("takes a hidden word off the projector with the next word_update", async () => {
+    await renderScreen(cloudView({ runs: [cloudRun("results_shown")] }));
+    await waitFor(() => expect(live.options).toBeDefined());
+    roomEvent(
+      "word_update",
+      { activityRunId: "run-c", entries: 5, words: [{ key: "สวัสดี", text: "สวัสดี", count: 1 }] },
+      1,
+    );
+    expect(screen.queryByLabelText("rain, sent 3 times")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("สวัสดี, sent 1 time")).toBeInTheDocument();
+  });
+
+  it("says so when no word was sent", async () => {
+    await renderScreen(
+      cloudView({
+        runs: [cloudRun("results_shown")],
+        clouds: { "run-c": { words: [], entries: 0 } },
+      }),
+    );
+    expect(screen.getByText("No words yet")).toBeInTheDocument();
   });
 });

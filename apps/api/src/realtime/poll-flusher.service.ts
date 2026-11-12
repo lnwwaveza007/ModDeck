@@ -4,6 +4,7 @@ import Redis, { type Result } from "ioredis";
 import { PrismaService } from "../prisma/prisma.service";
 import { REDIS } from "../redis/redis.module";
 import { flushStreamKey } from "./poll-store.service";
+import { wordFlushStreamKey } from "./word-store.service";
 
 const FLUSH_INTERVAL_MS = 1000;
 const BATCH_SIZE = 1000;
@@ -34,9 +35,37 @@ interface StreamEntry {
   afterReopen: boolean;
 }
 
-function parseEntry(fields: string[]): StreamEntry {
+interface WordStreamEntry {
+  id: string;
+  run: string;
+  participant: string;
+  text: string;
+  key: string;
+  hidden: boolean;
+  at: string;
+}
+
+function fieldsOf(fields: string[]): Record<string, string> {
   const row: Record<string, string> = {};
   for (let i = 0; i < fields.length; i += 2) row[fields[i]] = fields[i + 1];
+  return row;
+}
+
+function parseWordEntry(fields: string[]): WordStreamEntry {
+  const row = fieldsOf(fields);
+  return {
+    id: row.i,
+    run: row.r,
+    participant: row.p,
+    text: row.t,
+    key: row.k,
+    hidden: row.h === "1",
+    at: new Date(Number(row.c)).toISOString(),
+  };
+}
+
+function parseEntry(fields: string[]): StreamEntry {
+  const row = fieldsOf(fields);
   return {
     run: row.r,
     participant: row.p,
@@ -48,10 +77,11 @@ function parseEntry(fields: string[]): StreamEntry {
 }
 
 /**
- * Writes accepted answers from the Redis stream to PostgreSQL (MD-9): one statement per batch,
- * every second while a poll is live and once when it closes. Entries leave the stream only after
- * the write. A crash in between writes them again, and the primary key of answers drops the
- * repeats. One flusher per session at a time keeps a changed answer in order.
+ * Writes accepted answers and word entries from the Redis streams to PostgreSQL (MD-9): one
+ * statement per batch, every second while an activity is live and once when it closes. Entries
+ * leave the stream only after the write. A crash in between writes them again, and the primary
+ * key of answers and word_entries (the client answerId) drops the repeats. One flusher per session
+ * at a time keeps a changed answer in order.
  */
 @Injectable()
 export class PollFlusherService implements OnModuleInit, OnModuleDestroy {
@@ -110,16 +140,38 @@ export class PollFlusherService implements OnModuleInit, OnModuleDestroy {
       await new Promise((resolve) => setTimeout(resolve, LOCK_POLL_MS));
     }
     try {
-      const stream = flushStreamKey(sessionId);
-      for (;;) {
-        const entries = await this.redis.xrange(stream, "-", "+", "COUNT", BATCH_SIZE);
-        if (entries.length === 0) return;
-        await this.write(entries.map(([, fields]) => parseEntry(fields)));
-        await this.redis.xdel(stream, ...entries.map(([id]) => id));
-      }
+      await this.drain(flushStreamKey(sessionId), (fields) => this.write(fields.map(parseEntry)));
+      await this.drain(wordFlushStreamKey(sessionId), (fields) =>
+        this.writeWords(fields.map(parseWordEntry)),
+      );
     } finally {
       await this.redis.releaseFlushLock(key, token);
     }
+  }
+
+  // Reads a stream in batches and removes each batch once `write` has stored it.
+  private async drain(stream: string, write: (entries: string[][]) => Promise<void>) {
+    for (;;) {
+      const entries = await this.redis.xrange(stream, "-", "+", "COUNT", BATCH_SIZE);
+      if (entries.length === 0) return;
+      await write(entries.map(([, fields]) => fields));
+      await this.redis.xdel(stream, ...entries.map(([id]) => id));
+    }
+  }
+
+  private async writeWords(entries: WordStreamEntry[]) {
+    await this.prisma.$executeRaw`
+      INSERT INTO word_entries (id, activity_run_id, participant_id, text, normalized_text, hidden, created_at)
+      SELECT * FROM unnest(
+        ${entries.map((e) => e.id)}::uuid[],
+        ${entries.map((e) => e.run)}::uuid[],
+        ${entries.map((e) => e.participant)}::uuid[],
+        ${entries.map((e) => e.text)}::text[],
+        ${entries.map((e) => e.key)}::text[],
+        ${entries.map((e) => e.hidden)}::boolean[],
+        ${entries.map((e) => e.at)}::timestamptz[]
+      )
+      ON CONFLICT DO NOTHING`;
   }
 
   private async write(entries: StreamEntry[]) {
