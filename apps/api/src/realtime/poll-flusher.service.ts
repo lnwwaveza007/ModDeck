@@ -11,6 +11,7 @@ const BATCH_SIZE = 1000;
 const LOCK_MS = 10_000;
 const LOCK_WAIT_MS = 3000;
 const LOCK_POLL_MS = 25;
+const FINAL_FLUSH_ATTEMPTS = 5;
 
 const lockKey = (sessionId: string) => `flushlock:{${sessionId}}`;
 
@@ -101,18 +102,24 @@ export class PollFlusherService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  /** The last write when a poll closes. It waits for a flush that is already running. */
+  /**
+   * The last write when a poll closes. It waits for a flush that is already running and retries
+   * with backoff. After FINAL_FLUSH_ATTEMPTS it throws, so the caller does not hang. Entries stay
+   * in the stream, and the next tick writes them.
+   */
   async finalFlush(sessionId: string): Promise<void> {
     let delayMs = FLUSH_INTERVAL_MS;
-    for (;;) {
+    for (let attempt = 1; ; attempt++) {
       try {
         await this.flush(sessionId, true);
         return;
       } catch (err) {
+        const last = attempt >= FINAL_FLUSH_ATTEMPTS;
         this.logger.error(
-          `Final answer flush failed for session ${sessionId}; retrying in ${delayMs}ms: ${String(err)}`,
+          `Final answer flush failed for session ${sessionId} (attempt ${attempt}/${FINAL_FLUSH_ATTEMPTS})${last ? "" : `; retrying in ${delayMs}ms`}: ${String(err)}`,
           err instanceof Error ? err.stack : undefined,
         );
+        if (last) throw err;
         await new Promise((resolve) => setTimeout(resolve, delayMs));
         delayMs = Math.min(delayMs * 2, 30_000);
       }
@@ -126,11 +133,7 @@ export class PollFlusherService implements OnModuleInit, OnModuleDestroy {
     while (!(await this.redis.set(key, token, "PX", LOCK_MS, "NX"))) {
       if (!wait) return;
       if (Date.now() >= deadline) {
-        if (wait) {
-          throw new Error(`Timed out waiting for the answer flush of session ${sessionId}`);
-        }
-        this.logger.warn(`Gave up waiting for the answer flush of session ${sessionId}`);
-        return;
+        throw new Error(`Timed out waiting for the answer flush of session ${sessionId}`);
       }
       await new Promise((resolve) => setTimeout(resolve, LOCK_POLL_MS));
     }

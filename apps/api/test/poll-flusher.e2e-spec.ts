@@ -1,4 +1,3 @@
-// poll-flusher.e2e-spec.ts  (next to poll-flusher.service.ts)
 import { randomUUID } from "node:crypto";
 import { Logger } from "@nestjs/common";
 import { Test, type TestingModule } from "@nestjs/testing";
@@ -260,5 +259,22 @@ describe("PollFlusherService (real Redis + PostgreSQL)", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].optionId).toBe(optionIds[1]);
     expect(await dbVotes(runId, optionIds)).toEqual((await store.tally(sessionId, runId)).votes);
+  });
+
+  it("a final flush that keeps failing gives up and leaves the entries in the stream", async () => {
+    const { deckId, sessionId, participantIds } = await seedSession(5);
+    const { runId, optionIds } = await addPoll(deckId, sessionId, 0);
+    await Promise.all(participantIds.map((pid) => vote(sessionId, runId, pid, optionIds[0])));
+
+    const errorLog = jest.spyOn(Logger.prototype, "error").mockImplementation();
+    jest
+      .spyOn(flusher as unknown as { write: (...args: never[]) => Promise<void> }, "write")
+      .mockRejectedValue(new Error("db down"));
+
+    await expect(flusher.finalFlush(sessionId)).rejects.toThrow("db down"); // 5 attempts, ~15s
+
+    expect(errorLog).toHaveBeenCalledTimes(5);
+    expect(await prisma.answer.count({ where: { activityRunId: runId } })).toBe(0);
+    expect(await streamLength(sessionId)).toBe(5);
   });
 });
