@@ -121,6 +121,11 @@ describe("PollFlusherService (real Redis + PostgreSQL)", () => {
       data: { sessionId, activityId: activity.id, state: "live", firstOpenedAt: new Date() },
     });
     await store.syncRun(sessionId, run.id); // what a state change does before telling the room
+    // Jest runs the e2e suites in parallel workers against one Postgres and one Redis, and every
+    // app instance has a flusher that writes the stream of any session with a live run. Redis keeps
+    // the run live so votes are accepted, but the DB row must not be, or another worker's flusher
+    // drains the stream before the flush under test and the mocked failures never happen.
+    await prisma.activityRun.update({ where: { id: run.id }, data: { state: "draft" } });
     return { runId: run.id, optionIds: activity.options.map((o) => o.id) };
   }
 
