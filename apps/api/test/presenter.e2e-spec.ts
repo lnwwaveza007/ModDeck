@@ -173,8 +173,11 @@ describe("presenter control (e2e)", () => {
 
   // The host's two screens on instance A and a student phone on instance B, all in the room.
   async function room(sessionId: string) {
+    // The token first: a socket that is already connecting would finish its handshake while the
+    // insert runs, and `connected()` would then wait for a `connect` event that already happened.
+    const token = await participantToken(sessionId);
     const screen = connect(a.url, { role: "host" }, hostA.cookie);
-    const phone = connect(b.url, { token: await participantToken(sessionId) });
+    const phone = connect(b.url, { token });
     await Promise.all([connected(screen), connected(phone)]);
     expect((await join(screen, sessionId)).ok).toBe(true);
     expect((await join(phone, sessionId)).ok).toBe(true);
@@ -284,6 +287,7 @@ describe("presenter control (e2e)", () => {
         type: "poll",
         prompt: "Which one?",
         allowAnswerChange: false,
+        maxEntries: 1,
         options: poll.options.map(({ id, label }) => ({ id, label })),
       });
       expect(view.currentSlideId).toBe(view.slides[0].id);
@@ -390,6 +394,7 @@ describe("presenter control (e2e)", () => {
         activityId: poll.id,
         prompt: "Which one, really?",
         options: options.map(({ id, label }) => ({ id, label })),
+        maxEntries: 1,
       });
     });
 

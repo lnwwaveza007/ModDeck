@@ -87,6 +87,9 @@ export interface ParticipantMe extends JoinResult {
   slideCount: number;
   /** null before the host shows the first slide. `index` starts at 0. */
   currentSlide: { id: string; index: number } | null;
-  /** The activity on the current slide, with the answer of this participant. */
-  currentActivity: (SlideActivityView & { myOptionId: string | null }) | null;
+  /**
+   * The activity on the current slide, with what this participant answered: the option they
+   * voted for (poll) or the words they sent (word cloud).
+   */
+  currentActivity: (SlideActivityView & { myOptionId: string | null; myWords: string[] }) | null;
 }

@@ -11,13 +11,17 @@ import {
   type ActivityRunDto,
   type LiveActivity,
   type PollTally,
+  type WordCloudTally,
+  type WordCount,
 } from "@moddeck/shared";
 import { RichText } from "@/components/content/RichText";
 import { PollChart } from "@/components/poll/PollChart";
+import { WordCloud } from "@/components/wordcloud/WordCloud";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { formatDuration, secondsLeft } from "@/lib/live/clock";
 import { Kbd } from "./Kbd";
+import { WordModeration } from "./WordModeration";
 
 const STATE_TONE: Record<ActivityRunDto["state"], BadgeTone> = {
   draft: "neutral",
@@ -55,6 +59,9 @@ export function ActivityControls({
   activity,
   run,
   tally,
+  cloud,
+  hiddenWords,
+  onSetWordHidden,
   liveChart,
   onLiveChart,
   now,
@@ -65,6 +72,10 @@ export function ActivityControls({
   activity: LiveActivity;
   run: ActivityRunDto;
   tally: PollTally;
+  /** Word cloud only: the words of the run and the ones the host hid. */
+  cloud: WordCloudTally;
+  hiddenWords: WordCount[];
+  onSetWordHidden: (key: string, hidden: boolean) => Promise<void>;
   liveChart: boolean;
   onLiveChart: () => void;
   now: number;
@@ -196,6 +207,32 @@ export function ActivityControls({
             )}
           </div>
           <PollChart options={activity.options} tally={tally} scale="panel" />
+        </div>
+      )}
+      {activity.type === "word_cloud" && run.state !== "draft" && (
+        <div className="flex flex-col gap-3 border-t border-neutral-200 pt-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="mr-auto text-sm font-semibold tabular-nums">
+              {t("wordsSent", { count: cloud.entries })}
+            </p>
+            {run.state === "live" && (
+              <Button variant="ghost" aria-pressed={liveChart} onClick={onLiveChart}>
+                {t("liveCloud")} <Kbd>L</Kbd>
+              </Button>
+            )}
+          </div>
+          {cloud.words.length > 0 && (
+            <WordCloud
+              words={cloud.words}
+              scale="panel"
+              className="min-h-32 rounded-lg bg-neutral-50 p-3"
+            />
+          )}
+          <WordModeration
+            words={cloud.words}
+            hiddenWords={hiddenWords}
+            onSetHidden={onSetWordHidden}
+          />
         </div>
       )}
     </section>

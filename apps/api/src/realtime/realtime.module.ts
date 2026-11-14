@@ -8,6 +8,8 @@ import { RealtimeGateway } from "./realtime.gateway";
 import { RoomAuthService } from "./room-auth.service";
 import { RoomEventsService } from "./room-events.service";
 import { VoteBatcherService } from "./vote-batcher.service";
+import { WordBatcherService } from "./word-batcher.service";
+import { WordStoreService } from "./word-store.service";
 
 // Feature modules publish live updates with RoomEventsService.publish().
 @Module({
@@ -22,6 +24,8 @@ import { VoteBatcherService } from "./vote-batcher.service";
     PollStoreService,
     PollFlusherService,
     VoteBatcherService,
+    WordStoreService,
+    WordBatcherService,
   ],
   exports: [
     RoomEventsService,
@@ -30,6 +34,8 @@ import { VoteBatcherService } from "./vote-batcher.service";
     PollStoreService,
     PollFlusherService,
     VoteBatcherService,
+    WordStoreService,
+    WordBatcherService,
   ],
 })
 export class RealtimeModule {}

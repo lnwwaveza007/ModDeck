@@ -13,10 +13,12 @@ import {
   PRESENCE_HEARTBEAT_MS,
   joinPayloadSchema,
   votePayloadSchema,
+  wordPayloadSchema,
   type AnswerAck,
   type ErrorBody,
   type JoinAck,
   type VoteResult,
+  type WordResult,
 } from "@moddeck/shared";
 import { MetricsService } from "../metrics/metrics.service";
 import { hostTokenFromHandshake, tokenFromHandshake, wantsHostRole } from "./participant-token";
@@ -26,6 +28,8 @@ import { RoomAuthError, RoomAuthService } from "./room-auth.service";
 import { RoomEventsService, roomName } from "./room-events.service";
 import type { RealtimeServer, RealtimeSocket, SocketData } from "./realtime.types";
 import { VoteBatcherService } from "./vote-batcher.service";
+import { WordBatcherService } from "./word-batcher.service";
+import { WordStoreService } from "./word-store.service";
 
 interface EnginePacketSource {
   on(event: "packetCreate", cb: (packet: { type: string }) => void): void;
@@ -48,6 +52,8 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     private readonly presence: PresenceService,
     private readonly polls: PollStoreService,
     private readonly voteBatcher: VoteBatcherService,
+    private readonly words: WordStoreService,
+    private readonly wordBatcher: WordBatcherService,
   ) {}
 
   // One heartbeat timer per connected socket.
@@ -204,6 +210,58 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     }
   }
 
+  // A student's word. The limit per student, the length and the state of the activity are all
+  // checked here: a phone that skips its own checks gets the same answer.
+  @SubscribeMessage("word")
+  async handleWord(
+    @ConnectedSocket() client: RealtimeSocket,
+    @MessageBody() payload: unknown,
+  ): Promise<AnswerAck<WordResult>> {
+    const { identity } = client.data;
+    if (identity.role !== "participant") {
+      return wordError("ROOM_FORBIDDEN", "Only a participant can send a word");
+    }
+    const parsed = wordPayloadSchema.safeParse(payload);
+    if (!parsed.success) {
+      return wordError(
+        "INVALID_PAYLOAD",
+        "word needs { activityRunId: uuid, text: string, answerId: uuid }",
+      );
+    }
+    const { activityRunId, text, answerId } = parsed.data;
+    try {
+      const outcome = await this.words.submit(
+        identity.sessionId,
+        identity.participantId,
+        activityRunId,
+        text,
+        answerId,
+      );
+      switch (outcome.status) {
+        case "accepted":
+          this.wordBatcher.schedule(identity.sessionId, activityRunId);
+          return { ok: true, duplicate: false, result: { text: outcome.text, sent: outcome.sent } };
+        case "duplicate":
+          return { ok: true, duplicate: true, result: { text: outcome.text, sent: outcome.sent } };
+        case "invalid":
+          return wordError("INVALID_PAYLOAD", "The word is empty or too long", {
+            field: "text",
+            reason: outcome.problem,
+          });
+        case "limit":
+          return wordError("LIMIT_REACHED", "You have sent all the words you may send");
+        case "closed":
+          return wordError("ACTIVITY_CLOSED", "This word cloud is closed");
+        case "not_found":
+          return wordError("NOT_FOUND", "This word cloud is not running in your session");
+      }
+    } catch (err) {
+      // Safe to send again: the answerId keeps it from counting twice.
+      this.logger.error(`Word failed: ${String(err)}`);
+      return wordError("INTERNAL", "Could not save the word");
+    }
+  }
+
   private async reject(
     client: RealtimeSocket,
     sessionId: string | null,
@@ -218,6 +276,14 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
 
 function voteError(code: ErrorBody["code"], message: string): AnswerAck<VoteResult> {
   return { ok: false, error: { code, message } };
+}
+
+function wordError(
+  code: ErrorBody["code"],
+  message: string,
+  details?: ErrorBody["details"],
+): AnswerAck<WordResult> {
+  return { ok: false, error: { code, message, ...(details && { details }) } };
 }
 
 function toErrorBody(err: unknown): ErrorBody {

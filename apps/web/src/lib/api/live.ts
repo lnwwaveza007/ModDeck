@@ -6,6 +6,7 @@ import type {
   ActivityWordingBody,
   LiveActivity,
   LiveSessionView,
+  WordVisibilityResult,
 } from "@moddeck/shared";
 import { HOST_API_BASE_URL, apiFetch } from "./client";
 
@@ -27,6 +28,18 @@ export const actOnActivity = (sessionId: string, activityId: string, body: Activ
     method: "PATCH",
     body,
   });
+
+/** Hides or shows one word of a word cloud. The key is the normalized word, so it is encoded. */
+export const setWordHidden = (
+  sessionId: string,
+  activityId: string,
+  wordKey: string,
+  hidden: boolean,
+) =>
+  apiFetch<WordVisibilityResult>(
+    `/sessions/${sessionId}/activities/${activityId}/words/${encodeURIComponent(wordKey)}`,
+    { ...host, method: "PATCH", body: { hidden } },
+  );
 
 export const editActivityWording = (deckId: string, slideId: string, body: ActivityWordingBody) =>
   apiFetch<LiveActivity>(`/decks/${deckId}/slides/${slideId}/activity`, {

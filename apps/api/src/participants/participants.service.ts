@@ -15,6 +15,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { hashToken } from "../realtime/participant-token";
 import { PollStoreService } from "../realtime/poll-store.service";
 import { PresenceService } from "../realtime/presence.service";
+import { WordStoreService } from "../realtime/word-store.service";
 import { SessionsService } from "../sessions/sessions.service";
 
 // Participant token lifetime (technical design §3.6: 8 h, sliding).
@@ -58,6 +59,7 @@ export class ParticipantsService {
     private readonly sessions: SessionsService,
     private readonly presence: PresenceService,
     private readonly polls: PollStoreService,
+    private readonly words: WordStoreService,
   ) {}
 
   /** GET /pins/{pin}. `token` is the participant cookie, if any. */
@@ -230,16 +232,23 @@ export class ParticipantsService {
     const view = session.currentSlide
       ? await this.polls.slideActivity(participant.sessionId, session.currentSlide.id)
       : null;
-    const myOptionId = view?.run
-      ? await this.polls.answerOf(participant.sessionId, view.run.activityRunId, participant.id)
-      : null;
+    const run = view?.run ?? null;
+    const myOptionId =
+      run && view?.activity.type === "poll"
+        ? await this.polls.answerOf(participant.sessionId, run.activityRunId, participant.id)
+        : null;
+    // What a student sent stays on their phone after a reload or a reconnect.
+    const myWords =
+      run && view?.activity.type === "word_cloud"
+        ? await this.words.wordsOf(participant.sessionId, run.activityRunId, participant.id)
+        : [];
     return {
       ...toResult(participant),
       title: session.deck.title,
       status: session.status,
       slideCount,
       currentSlide: session.currentSlide ? { id: session.currentSlide.id, index } : null,
-      currentActivity: view && { ...view, myOptionId },
+      currentActivity: view && { ...view, myOptionId, myWords },
     };
   }
 

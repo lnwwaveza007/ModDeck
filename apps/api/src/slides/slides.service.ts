@@ -15,7 +15,7 @@ import { ApiException } from "../common/api-error";
 import type { Prisma } from "../generated/prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { RoomEventsService } from "../realtime/room-events.service";
-import { slideArgs, toSlideDto } from "./slide.mapper";
+import { liveActivitySelect, slideArgs, toLiveActivity, toSlideDto } from "./slide.mapper";
 
 const uuid = z.uuid();
 
@@ -193,8 +193,9 @@ export class SlidesService {
   /**
    * The wording of a poll or word cloud. While the activity has started in a session that is
    * still open, only the wording can change: the same options in the same order, so answers
-   * already given still point at what the students chose. Open sessions of the deck get the new
-   * wording at once (activity_edited).
+   * already given still point at what the students chose, and the same limit of words per
+   * student, so no student has sent more than the limit allows. Open sessions of the deck get the
+   * new wording at once (activity_edited).
    */
   async updateActivity(
     ownerId: string,
@@ -214,6 +215,19 @@ export class SlidesService {
       const options = body.options;
       if (current.type === "word_cloud" && options?.length) {
         throw invalid("options", "not_poll", "A word cloud has no options");
+      }
+      const { maxEntries } = body;
+      if (maxEntries !== undefined) {
+        if (current.type !== "word_cloud") {
+          throw invalid("maxEntries", "not_word_cloud", "Only a word cloud has a word limit");
+        }
+        if (maxEntries !== current.maxEntriesPerPerson && (await this.hasStarted(tx, current.id))) {
+          throw new ApiException(
+            409,
+            "ACTIVITY_LOCKED",
+            "This activity has started: only its wording can change until the session ends",
+          );
+        }
       }
       if (current.type === "poll" && options) {
         if (options.length < POLL_OPTIONS_MIN || options.length > POLL_OPTIONS_MAX) {
@@ -268,14 +282,11 @@ export class SlidesService {
 
       const updated = await tx.activity.update({
         where: { id: current.id },
-        data: { prompt: body.prompt },
-        select: {
-          id: true,
-          type: true,
-          prompt: true,
-          allowAnswerChange: true,
-          options: { orderBy: { position: "asc" }, select: { id: true, label: true } },
+        data: {
+          prompt: body.prompt,
+          ...(maxEntries !== undefined && { maxEntriesPerPerson: maxEntries }),
         },
+        select: liveActivitySelect,
       });
       await tx.slide.update({
         where: { id: slide.id },
@@ -287,7 +298,7 @@ export class SlidesService {
         where: { deckId, status: { not: "ended" } },
         select: { id: true },
       });
-      return { activity: updated as LiveActivity, sessionIds: open.map((session) => session.id) };
+      return { activity: toLiveActivity(updated), sessionIds: open.map((session) => session.id) };
     });
 
     for (const sessionId of sessionIds) {
@@ -295,6 +306,7 @@ export class SlidesService {
         activityId: activity.id,
         prompt: activity.prompt,
         options: activity.options,
+        maxEntries: activity.maxEntries,
       });
     }
     return activity;

@@ -2,6 +2,7 @@ import { act, fireEvent, screen, waitFor, within } from "@testing-library/react"
 import type { DeckDetail, SlideDto, SlideElement } from "@moddeck/shared";
 import { ToastProvider } from "@/components/ui/Toast";
 import { ApiError } from "@/lib/api/client";
+import { editActivityWording } from "@/lib/api/live";
 import {
   createSlide,
   deleteSlide,
@@ -28,6 +29,7 @@ jest.mock("@/lib/api/slides", () => ({
   reorderSlides: jest.fn(),
   uploadSlideImage: jest.fn(),
 }));
+jest.mock("@/lib/api/live", () => ({ editActivityWording: jest.fn() }));
 // jsdom cannot decode a picture, so the file's shape is fixed here: twice as wide as it is tall.
 jest.mock("@/lib/editor/image", () => ({ readImageAspect: jest.fn().mockResolvedValue(2) }));
 
@@ -39,6 +41,7 @@ const api = {
   duplicate: jest.mocked(duplicateSlide),
   reorder: jest.mocked(reorderSlides),
   upload: jest.mocked(uploadSlideImage),
+  wording: jest.mocked(editActivityWording),
 };
 
 // jsdom has no PointerEvent, so one with coordinates stands in for it.
@@ -123,7 +126,12 @@ const first = slide("s1", 0, [heading, snippet, formula]);
 const empty = slide("s2", 1, []);
 const poll = slide("s3", 2, [], {
   kind: "poll",
-  activity: { id: "a3", type: "poll", prompt: "Q", options: [] },
+  activity: { id: "a3", type: "poll", prompt: "Q", options: [], maxEntries: 1 },
+});
+
+const cloud = slide("s4", 1, [], {
+  kind: "word_cloud",
+  activity: { id: "a4", type: "word_cloud", prompt: "One word?", options: [], maxEntries: 1 },
 });
 
 function deck(slides: SlideDto[]): DeckDetail {
@@ -602,6 +610,54 @@ describe("DeckEditor: the side panel", () => {
     expect(screen.queryByRole("group", { name: "Add to slide" })).not.toBeInTheDocument();
     expect(screen.queryByRole("group", { name: "Slide canvas" })).not.toBeInTheDocument();
   });
+
+  it("shows the word cloud editor on a word cloud slide, with the limit per student", async () => {
+    await renderEditor([first, cloud]);
+    fireEvent.click(slideButton(2));
+    expect(screen.getByRole("textbox", { name: "Prompt" })).toHaveValue("One word?");
+    const limits = within(screen.getByRole("group", { name: "Words per student" }));
+    expect(limits.getByRole("radio", { name: "1" })).toBeChecked();
+    expect(limits.getAllByRole("radio")).toHaveLength(3);
+    expect(screen.getByText(/up to 25 characters/)).toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Slide canvas" })).not.toBeInTheDocument();
+  });
+
+  it("saves the prompt and the limit once, after a pause", async () => {
+    api.wording.mockResolvedValue({
+      id: "a4",
+      type: "word_cloud",
+      prompt: "x",
+      options: [],
+      allowAnswerChange: false,
+      maxEntries: 3,
+    });
+    await renderEditor([first, cloud]);
+    fireEvent.click(slideButton(2));
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Prompt" }), {
+      target: { value: "What did you learn?" },
+    });
+    fireEvent.click(screen.getByRole("radio", { name: "3" }));
+    expect(api.wording).not.toHaveBeenCalled();
+    await waitFor(() => expect(api.wording).toHaveBeenCalledTimes(1), { timeout: 3000 });
+    expect(api.wording).toHaveBeenCalledWith("d1", "s4", {
+      prompt: "What did you learn?",
+      maxEntries: 3,
+    });
+  });
+
+  it("does not save a word cloud without a prompt, and blocks the start", async () => {
+    await renderEditor([first, cloud]);
+    fireEvent.click(slideButton(2));
+    fireEvent.change(screen.getByRole("textbox", { name: "Prompt" }), { target: { value: "  " } });
+    expect(within(panel()).getByRole("status")).toHaveTextContent("Write the prompt");
+
+    fireEvent.click(screen.getByRole("button", { name: "Start session" }));
+    expect(
+      await screen.findByText("Finish every activity before starting the session."),
+    ).toBeInTheDocument();
+    expect(api.wording).not.toHaveBeenCalled();
+  });
 });
 
 describe("DeckEditor: autosave", () => {
@@ -662,7 +718,7 @@ describe("DeckEditor: slides", () => {
     api.create.mockResolvedValue(
       slide("p2", 1, [], {
         kind: "poll",
-        activity: { id: "a2", type: "poll", prompt: "", options: [] },
+        activity: { id: "a2", type: "poll", prompt: "", options: [], maxEntries: 1 },
       }),
     );
     fireEvent.click(within(dialog).getByRole("button", { name: /^Live Poll/ }));

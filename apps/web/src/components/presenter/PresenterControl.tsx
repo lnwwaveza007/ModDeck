@@ -21,6 +21,7 @@ import { SlideStrip } from "./SlideStrip";
 import { WordingDialog } from "./WordingDialog";
 
 const NO_VOTES = { votes: {}, answered: 0 };
+const NO_WORDS = { words: [], entries: 0 };
 
 const ERROR_KEYS = [
   "SESSION_ENDED",
@@ -73,7 +74,7 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
     return runLiveCommand(command, state, controls, layers, duration ?? undefined);
   });
 
-  const { view, slides, currentIndex, runs, tallies } = state;
+  const { view, slides, currentIndex, runs, tallies, clouds, hiddenWords } = state;
   if (state.loadError || !view) {
     return (
       <main className="grid min-h-[70vh] place-items-center">
@@ -87,6 +88,7 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
   const activity = current?.activity ?? null;
   const run = activity ? runOf(runs, activity.id) : null;
   const tally = run ? (tallies[run.activityRunId] ?? NO_VOTES) : undefined;
+  const cloud = run ? (clouds[run.activityRunId] ?? NO_WORDS) : undefined;
   const pin = view.pin.replace(/(\d{3})(\d{3})/, "$1 $2");
   const elapsed = Math.max(0, (now - Date.parse(view.startedAt)) / 1000);
   const participants = end.session?.participantCount ?? view.participantCount;
@@ -154,6 +156,7 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
                         slide={current}
                         run={run ?? undefined}
                         tally={tally}
+                        cloud={cloud}
                         liveChart={screen.liveChart}
                         now={now}
                         className={cn("shadow-sm", fit)}
@@ -235,6 +238,9 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
                 activity={activity}
                 run={run}
                 tally={tally ?? NO_VOTES}
+                cloud={cloud ?? NO_WORDS}
+                hiddenWords={run ? (hiddenWords[run.activityRunId] ?? []) : []}
+                onSetWordHidden={(key, hidden) => controls.setWordHidden(activity.id, key, hidden)}
                 liveChart={screen.liveChart}
                 onLiveChart={() => setScreen({ liveChart: !screen.liveChart })}
                 now={now}

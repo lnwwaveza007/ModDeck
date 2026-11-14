@@ -6,6 +6,7 @@
 import { z } from "zod";
 import type { ErrorBody } from "./errors";
 import type { PollTally, SlideActivityView } from "./live";
+import { WORD_TEXT_INPUT_MAX, type WordCloudTally, type WordResult } from "./words";
 
 // ---- Client -> server ----------------------------------------------------
 
@@ -43,10 +44,13 @@ export interface RoomEventData {
     activityId: string;
     prompt: string;
     options: { id: string; label: string }[];
+    maxEntries: number;
   };
   // Sent in batches, at most one per VOTE_BATCH_MS for each run.
   vote_update: { activityRunId: string } & PollTally;
-  word_update: { activityRunId: string; words: { text: string; count: number }[] };
+  // The most sent visible words of a word cloud. Hidden words never travel in it: a phone or the
+  // projector that gets it has no way to read what the host hid. Batched like vote_update.
+  word_update: { activityRunId: string } & WordCloudTally;
   participant_count: { online: number; total: number };
   session_ended: { reason: "host" | "timeout" };
 }
@@ -106,6 +110,7 @@ export type ServerToClientEvents = {
 export interface ClientToServerEvents {
   join: (payload: JoinPayload, ack: (reply: JoinAck) => void) => void;
   vote: (payload: VotePayload, ack: (reply: AnswerAck<VoteResult>) => void) => void;
+  word: (payload: WordPayload, ack: (reply: AnswerAck<WordResult>) => void) => void;
 }
 
 // ---- Answers: client-generated id for retries (MD-13) ----------------------
@@ -122,6 +127,15 @@ export const votePayloadSchema = z.object({
   answerId: answerIdSchema,
 });
 export type VotePayload = z.infer<typeof votePayloadSchema>;
+
+// One word for a word cloud. The text is the raw input: the server normalizes and checks it, so a
+// client that skipped the checks cannot get a word past the limits.
+export const wordPayloadSchema = z.object({
+  activityRunId: z.uuid(),
+  text: z.string().max(WORD_TEXT_INPUT_MAX),
+  answerId: answerIdSchema,
+});
+export type WordPayload = z.infer<typeof wordPayloadSchema>;
 
 /** What counts for this student now. It differs from what they sent when their answer is locked. */
 export interface VoteResult {

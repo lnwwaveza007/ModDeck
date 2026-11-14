@@ -16,15 +16,29 @@ export function applyRoomEvent(
       return {
         ...view,
         run: event.data,
-        // The counts of the new state follow in a vote_update. Results leave with a reopen or hide.
+        // The counts or the cloud of the new state follow in a vote_update or a word_update.
+        // Results leave with a reopen or hide.
         results: event.data.state === "results_shown" ? view.results : null,
+        cloud: event.data.state === "results_shown" ? view.cloud : null,
       };
     case "activity_edited":
       if (view?.activity.id !== event.data.activityId) return view;
       return {
         ...view,
-        activity: { ...view.activity, prompt: event.data.prompt, options: event.data.options },
+        activity: {
+          ...view.activity,
+          prompt: event.data.prompt,
+          options: event.data.options,
+          maxEntries: event.data.maxEntries,
+        },
       };
+    case "word_update": {
+      // Like a poll, the phone draws no cloud during the activity (MD-5 §7.1).
+      if (view?.run?.activityRunId !== event.data.activityRunId) return view;
+      if (view.run.state !== "results_shown") return view;
+      const { words, entries } = event.data;
+      return { ...view, cloud: { words, entries } };
+    }
     case "vote_update": {
       // The phone draws no chart during voting (MD-5 §7.1), so counts before results are dropped.
       if (view?.run?.activityRunId !== event.data.activityRunId) return view;

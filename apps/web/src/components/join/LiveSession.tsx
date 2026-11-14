@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
-import type { ParticipantMe, SlideActivityView, VoteResult } from "@moddeck/shared";
+import {
+  wordKey,
+  type ParticipantMe,
+  type SlideActivityView,
+  type VoteResult,
+  type WordResult,
+} from "@moddeck/shared";
 import { LiveShell } from "@/components/shell/LiveShell";
 import { PagePlaceholder } from "@/components/shell/PagePlaceholder";
 import { Banner } from "@/components/ui/Banner";
@@ -14,6 +20,7 @@ import { LiveConnection, type ConnectionStatus } from "@/lib/realtime/live-conne
 import { applyRoomEvent } from "@/lib/live/student-activity";
 import { LiveStatusProvider } from "@/lib/realtime/live-status";
 import { PollActivity, type SendVote } from "./PollActivity";
+import { WordCloudActivity, type SendWord } from "./WordCloudActivity";
 
 type Stop = "notJoined" | "removed" | "ended" | "full" | "network";
 
@@ -28,8 +35,8 @@ function stopFor(error: unknown): Stop {
 
 /**
  * Student live screen (MD-15 S06). A late joiner starts from the slide the class is
- * on now: /participants/me gives it, then the socket keeps it current. A poll on the
- * current slide shows here once the host has started it. Word clouds plug in here too.
+ * on now: /participants/me gives it, then the socket keeps it current. A poll or word cloud on
+ * the current slide shows here once the host has started it.
  */
 export function LiveSession({ sessionId }: { sessionId: string }) {
   const t = useTranslations("live");
@@ -40,6 +47,8 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
   const [activity, setActivity] = useState<SlideActivityView | null>(null);
   // Run id → the answer the server confirmed. The phone keeps it when the room moves on and back.
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  // Run id → the words the server confirmed for this student, in the order they were sent.
+  const [words, setWords] = useState<Record<string, string[]>>({});
   const live = useRef<LiveConnection | undefined>(undefined);
 
   useEffect(() => {
@@ -52,6 +61,9 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
       const runId = value.currentActivity?.run?.activityRunId;
       const answer = value.currentActivity?.myOptionId;
       if (runId && answer) setAnswers((current) => ({ ...current, [runId]: answer }));
+      const sent = value.currentActivity?.myWords;
+      // The server knows every word it counted: it replaces what this phone remembered.
+      if (runId && sent) setWords((current) => ({ ...current, [runId]: sent }));
     };
     const refresh = () =>
       getParticipantMe().then(
@@ -112,8 +124,14 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
     if (!live.current) throw new Error("Not connected");
     return live.current.send<VoteResult>("vote", payload);
   };
+  const sendWord: SendWord = async (payload) => {
+    if (!live.current) throw new Error("Not connected");
+    return live.current.send<WordResult>("word", payload);
+  };
   const run = activity?.run;
-  const showPoll = activity?.activity.type === "poll" && run && run.state !== "draft";
+  const started = run && run.state !== "draft";
+  const showPoll = activity?.activity.type === "poll" && started;
+  const showCloud = activity?.activity.type === "word_cloud" && started;
 
   const statusText =
     status === "online"
@@ -146,6 +164,21 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
                 setAnswers((current) => ({ ...current, [run.activityRunId]: optionId }))
               }
               send={sendVote}
+            />
+          ) : showCloud ? (
+            <WordCloudActivity
+              view={activity}
+              myWords={words[run.activityRunId] ?? []}
+              onSent={(text) =>
+                setWords((current) => {
+                  const sent = current[run.activityRunId] ?? [];
+                  // A word the server already had (a repeat) is not listed twice.
+                  return sent.some((word) => wordKey(word) === wordKey(text))
+                    ? current
+                    : { ...current, [run.activityRunId]: [...sent, text] };
+                })
+              }
+              send={sendWord}
             />
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
