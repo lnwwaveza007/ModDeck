@@ -6,6 +6,7 @@ import { RealtimeModule } from "./realtime/realtime.module";
 import { RedisModule } from "./redis/redis.module";
 import { AuthModule } from "./auth/auth.module";
 import { DecksModule } from "./decks/decks.module";
+import { ImportsModule } from "./imports/imports.module";
 import { SlidesModule } from "./slides/slides.module";
 import { SessionsModule } from "./sessions/sessions.module";
 import { ParticipantsModule } from "./participants/participants.module";
@@ -19,6 +20,7 @@ import { ParticipantsModule } from "./participants/participants.module";
     AuthModule,
     DecksModule,
     SlidesModule,
+    ImportsModule,
     SessionsModule,
     ParticipantsModule,
   ],

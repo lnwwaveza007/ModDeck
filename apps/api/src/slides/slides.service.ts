@@ -88,6 +88,17 @@ export class SlidesService {
       if (isActivityKind(toKind(slide.kind))) {
         throw invalid("elements", "not_content", "Only a content slide has elements");
       }
+      // The import is about to write this slide: an edit now would be overwritten.
+      const pending = await tx.pdfImportPage.count({
+        where: { slideId, status: { in: ["queued", "running"] } },
+      });
+      if (pending) {
+        throw new ApiException(
+          409,
+          "IMPORT_RUNNING",
+          "This slide is still being imported from a PDF",
+        );
+      }
       const updated = await tx.slide.update({
         where: { id: slideId },
         data: { elements: toJson(elements) },

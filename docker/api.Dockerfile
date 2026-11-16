@@ -31,8 +31,8 @@ COPY apps/api/prisma.config.ts ./
 # The Prisma CLI downloads its schema engine on first use. Do it now, as root,
 # because the node user cannot write to node_modules at runtime.
 RUN ./node_modules/.bin/prisma version
-# Slide images (SLIDES_DIR). A named volume copies this owner on first mount.
-RUN mkdir -p /data/slides && chown node:node /data/slides
+# Slide images (SLIDES_DIR) and PDFs waiting for import (IMPORTS_DIR). A named volume copies this owner on first mount.
+RUN mkdir -p /data/slides /data/imports && chown node:node /data/slides /data/imports
 USER node
 EXPOSE 4000
 # Apply pending migrations, then start. migrate deploy is a no-op when up to date.

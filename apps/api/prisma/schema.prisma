@@ -163,22 +163,26 @@ model Deck {
 }
 
 model Slide {
-  id        String    @id @default(uuid(7)) @db.Uuid
-  deckId    String    @map("deck_id") @db.Uuid
+  id         String    @id @default(uuid(7)) @db.Uuid
+  deckId     String    @map("deck_id") @db.Uuid
   // Not unique: a reorder rewrites every position in one transaction, and a
   // unique key would collide halfway through.
-  position  Int
-  kind      SlideKind
+  position   Int
+  kind       SlideKind
   // Content slides: the canvas, back to front. Validated by slideElementsSchema in packages/shared.
-  elements  Json      @default("[]")
+  elements   Json      @default("[]")
   // Unused since the canvas editor; the data now lives in elements. Dropped in a later contract
   // migration (technical design §1.5: expand, then contract).
-  content   String?
-  imageRef  String?   @map("image_ref")
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  content    String?
+  imageRef   String?   @map("image_ref")
+  // Text of the PDF page this slide was imported from, Thai repair applied. Kept for the AI
+  // features of Release 2; the editor does not show it.
+  sourceText String?   @map("source_text")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   deck           Deck            @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  importPage     PdfImportPage?
   activity       Activity?
   currentIn      Session[]       @relation("SessionCurrentSlide")
   reactionCounts ReactionCount[]
@@ -218,19 +222,42 @@ model ActivityOption {
   @@map("activity_options")
 }
 
+// The queue of the PDF import (technical design §3.3): the runner takes the oldest queued row.
+// The uploaded file waits in the import folder until the job ends.
 model PdfImport {
   id        String       @id @default(uuid(7)) @db.Uuid
   deckId    String       @map("deck_id") @db.Uuid
   fileName  String       @map("file_name")
+  fileRef   String?      @map("file_ref") // uploaded file in the import folder; empty after the job
   pageCount Int?         @map("page_count") // known after the PDF is parsed
   status    ImportStatus @default(queued)
+  errorCode String?      @map("error_code") // ImportErrorCode, set when the whole import failed
   createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  deck Deck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  deck  Deck            @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  pages PdfImportPage[]
 
   @@index([deckId, createdAt(sort: Desc)])
+  @@index([status, createdAt]) // the runner: oldest queued import
   @@map("pdf_imports")
+}
+
+// One PDF page and the slide that waits for it. Deleting the slide drops the row, and the worker
+// skips a page whose row is gone.
+model PdfImportPage {
+  importId  String       @map("import_id") @db.Uuid
+  page      Int // 1-based page number in the PDF
+  slideId   String       @unique @map("slide_id") @db.Uuid
+  status    ImportStatus @default(queued) // running while the worker draws it
+  errorCode String?      @map("error_code")
+  attempts  Int          @default(0)
+
+  pdfImport PdfImport @relation(fields: [importId], references: [id], onDelete: Cascade)
+  slide     Slide     @relation(fields: [slideId], references: [id], onDelete: Cascade)
+
+  @@id([importId, page])
+  @@map("pdf_import_pages")
 }
 
 // One run of a deck, with its own PIN, participants and answers.
