@@ -13,6 +13,7 @@ import { SHORTCUT_LIST, useShortcuts } from "@/lib/live/shortcuts";
 import { runOf, useLiveSession, type LiveSessionState } from "@/lib/live/use-live-session";
 import { Kbd } from "./Kbd";
 import { LiveStage } from "./LiveStage";
+import { ReactionLayer } from "./ReactionLayer";
 import { ShortcutHelp } from "./ShortcutHelp";
 
 const NO_VOTES = { votes: {}, answered: 0 };
@@ -112,6 +113,7 @@ export function AudienceScreen({ sessionId }: { sessionId: string }) {
               </div>
             )
           )}
+          {state.reactionsEnabled && <ReactionLayer subscribe={controls.subscribeReactions} />}
           {connectionLost && (
             <p
               role="status"

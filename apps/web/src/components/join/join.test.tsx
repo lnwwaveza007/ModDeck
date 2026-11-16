@@ -193,6 +193,7 @@ describe("LiveSession", () => {
     slideCount: 20,
     currentSlide: { id: "slide-5", index: 4 },
     currentActivity: null,
+    reactionsEnabled: true,
     ...overrides,
   });
 

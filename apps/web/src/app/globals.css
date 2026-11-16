@@ -123,3 +123,73 @@ body {
   color: var(--color-foreground);
   font-family: var(--font-sans);
 }
+
+/* Live reactions (F11): each emoji rises up its own full-height column, so translateY(-100%) is
+   the height of the box it floats in, and sways a little on the way. It starts to fade halfway up
+   and is gone before it reaches the top, so the edge of the box never cuts it. */
+@keyframes reaction-rise {
+  0% {
+    transform: translateY(0) scale(0.6);
+    opacity: 0;
+  }
+  10% {
+    transform: translateY(-7%) scale(1);
+    opacity: 1;
+  }
+  45% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-75%) scale(1.1);
+    opacity: 0;
+  }
+}
+
+@keyframes reaction-sway {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(var(--reaction-sway, 1cqw));
+  }
+}
+
+@keyframes reaction-fade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  15%,
+  70% {
+    opacity: 1;
+  }
+}
+
+.reaction-rise {
+  opacity: 0;
+  animation-name: reaction-rise;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+/* The box reactions float in: soft at the top, so nothing ever ends on a hard line. */
+.reaction-area {
+  mask-image: linear-gradient(to top, #000 55%, transparent 100%);
+}
+
+.reaction-sway {
+  display: inline-block;
+  animation: reaction-sway ease-in-out infinite;
+}
+
+/* Reduced motion: the emoji fades in and out near the bottom of the stage instead of flying. */
+@media (prefers-reduced-motion: reduce) {
+  .reaction-rise {
+    animation-name: reaction-fade;
+    padding-bottom: 6cqw;
+  }
+  .reaction-sway {
+    animation: none;
+  }
+}

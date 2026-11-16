@@ -86,6 +86,7 @@ const view = (overrides: Partial<LiveSessionView> = {}): LiveSessionView => ({
   clouds: {},
   hiddenWords: {},
   showResultsLive: false,
+  reactionsEnabled: true,
   participantCount: 12,
   ...overrides,
 });

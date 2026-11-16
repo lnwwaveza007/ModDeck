@@ -20,6 +20,7 @@ import { LiveConnection, type ConnectionStatus } from "@/lib/realtime/live-conne
 import { applyRoomEvent } from "@/lib/live/student-activity";
 import { LiveStatusProvider } from "@/lib/realtime/live-status";
 import { PollActivity, type SendVote } from "./PollActivity";
+import { ReactionBar } from "./ReactionBar";
 import { WordCloudActivity, type SendWord } from "./WordCloudActivity";
 
 type Stop = "notJoined" | "removed" | "ended" | "full" | "network";
@@ -49,6 +50,7 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   // Run id → the words the server confirmed for this student, in the order they were sent.
   const [words, setWords] = useState<Record<string, string[]>>({});
+  const [reactionsEnabled, setReactionsEnabled] = useState(false);
   const live = useRef<LiveConnection | undefined>(undefined);
 
   useEffect(() => {
@@ -58,6 +60,7 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
     const apply = (value: ParticipantMe) => {
       setSlideIndex(value.currentSlide?.index ?? null);
       setActivity(value.currentActivity);
+      setReactionsEnabled(value.reactionsEnabled);
       const runId = value.currentActivity?.run?.activityRunId;
       const answer = value.currentActivity?.myOptionId;
       if (runId && answer) setAnswers((current) => ({ ...current, [runId]: answer }));
@@ -88,6 +91,7 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
           onSnapshot: () => void refresh(),
           onEvent: (event) => {
             if (event.type === "slide_changed") setSlideIndex(event.data.index);
+            if (event.type === "reactions_toggled") setReactionsEnabled(event.data.enabled);
             setActivity((current) => applyRoomEvent(current, event));
             if (event.type === "session_ended") setStop("ended");
           },
@@ -192,6 +196,9 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
           )
         }
         qa={<PagePlaceholder page="live" titled={false} />}
+        reactions={
+          reactionsEnabled && <ReactionBar react={(emoji) => live.current?.react(emoji) ?? false} />
+        }
       />
     </LiveStatusProvider>
   );
