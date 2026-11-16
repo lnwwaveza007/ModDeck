@@ -2,11 +2,12 @@ import { apiFetch, HOST_API_BASE_URL } from "./client";
 
 export interface SessionInfo {
   id: string;
-  pin: string;
+  /** null once the session has ended: the PIN goes back to the pool. */
+  pin: string | null;
   status: "live" | "host_away" | "ended";
   participantCount: number;
   deck: { title: string };
-  joinUrl: string;
+  joinUrl: string | null;
   /** Server clock in ms when the response was built. */
   serverNow?: number;
 }

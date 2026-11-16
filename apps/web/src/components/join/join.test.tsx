@@ -160,8 +160,29 @@ describe("JoinFlow", () => {
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/s/s1"));
   });
 
+  it("sends an unknown PIN back to PIN entry, which asks for it again", async () => {
+    // A typo in the URL, or the QR code of a session that ended and gave its PIN back.
+    api.info.mockRejectedValue(apiError(404, "NOT_FOUND"));
+    renderWithIntl(<JoinFlow pin={PIN} />, "en");
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/?pin=invalid"));
+    expect(screen.queryByRole("heading")).not.toBeInTheDocument();
+  });
+
+  it("sends the student back to PIN entry when the session gives its PIN back before the join", async () => {
+    api.info.mockResolvedValue(info());
+    api.join.mockRejectedValue(apiError(404, "NOT_FOUND"));
+    renderWithIntl(<JoinFlow pin={PIN} />, "en");
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Join as a guest (choose a nickname)" }),
+    );
+    fireEvent.change(screen.getByLabelText("Nickname"), { target: { value: "Ploy" } });
+    fireEvent.click(screen.getByRole("button", { name: "Join" }));
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/?pin=invalid"));
+  });
+
   it.each([
-    [apiError(404, "NOT_FOUND"), "No session found"],
     [apiError(410, "SESSION_ENDED"), "Session ended"],
     [apiError(409, "SESSION_FULL"), "This class is full"],
     [apiError(429, "TOO_MANY_ATTEMPTS", { retryAfter: 42 }), "Wait 42 seconds, then try again."],

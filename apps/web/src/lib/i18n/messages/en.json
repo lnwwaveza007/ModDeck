@@ -28,6 +28,12 @@
     "pinLabel": "PIN",
     "pinHelp": "You join automatically after 6 digits",
     "join": "Join",
+    "checking": "Checking…",
+    "errors": {
+      "invalid": "No class uses this PIN. Check the PIN on the screen and enter it again.",
+      "tooMany": "Too many wrong PINs. Wait {seconds} seconds, then enter the PIN again.",
+      "network": "Can't reach ModDeck. Check your internet connection, then press Join."
+    },
     "qrHint": "QR code on the screen? Scan it with your phone camera. No PIN needed.",
     "hostPrompt": "Teaching?",
     "hostLogin": "Log in with your KMUTT account"
@@ -51,9 +57,7 @@
     "status": {
       "checking": "Checking session…",
       "endedTitle": "Session ended",
-      "endedBody": "This session has ended. Thanks for joining.",
-      "invalidTitle": "No session found",
-      "invalidBody": "Check the PIN on the screen and try again."
+      "endedBody": "This session has ended. Thanks for joining."
     },
     "pin": "PIN {pin}",
     "liveCount": "Live · {count, plural, =0 {no one has joined yet} one {# participant} other {# participants}}",

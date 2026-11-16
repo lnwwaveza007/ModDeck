@@ -26,6 +26,11 @@ const joinAddress = (joinUrl: string) =>
   joinUrl.replace(/^https?:\/\//, "").replace(/\/j\/\d+$/, "");
 const spacedPin = (pin: string) => pin.replace(/(\d{3})(\d{3})/, "$1 $2");
 
+/** A view that still holds its PIN, so it can show how to join. An ended session holds none. */
+type JoinableView = LiveSessionView & { pin: string; joinUrl: string };
+const joinable = (view: LiveSessionView): view is JoinableView =>
+  view.pin !== null && view.joinUrl !== null;
+
 /**
  * MD-15 P01–P09 audience screen, for the projector. It follows the room like every other screen.
  * Every size on the stage is a `cqw`, so it is the same picture on any projector resolution.
@@ -101,7 +106,7 @@ export function AudienceScreen({ sessionId }: { sessionId: string }) {
               className="rounded-none border-0"
             />
           )}
-          {screen.join ? (
+          {!joinable(view) ? null : screen.join ? (
             <JoinPanel view={view} participants={participants} />
           ) : (
             screen.joinBar && (
@@ -146,7 +151,7 @@ export function AudienceScreen({ sessionId }: { sessionId: string }) {
 }
 
 /** Big PIN and QR for joining (MD-15 P01): on the first slide until moved on, toggled with J. */
-function JoinPanel({ view, participants }: { view: LiveSessionView; participants: number }) {
+function JoinPanel({ view, participants }: { view: JoinableView; participants: number }) {
   const t = useTranslations("screen");
   const [qr, setQr] = useState("");
   useEffect(() => {
