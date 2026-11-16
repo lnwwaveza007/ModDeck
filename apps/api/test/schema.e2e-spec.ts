@@ -48,13 +48,23 @@ describe("database schema (e2e)", () => {
     await expect(startSession("900001")).rejects.toThrow();
   });
 
-  it("lets a new session reuse the PIN of an ended one", async () => {
+  it("lets a new session reuse the PIN an ended one gave back", async () => {
     const ended = await startSession("900002");
+    // What SessionsService.finish writes: ending a session releases its PIN.
     await prisma.session.update({
       where: { id: ended.id },
-      data: { status: "ended", endedAt: new Date(), endReason: "host" },
+      data: { status: "ended", endedAt: new Date(), endReason: "host", pin: null },
     });
     await expect(startSession("900002")).resolves.toMatchObject({ pin: "900002" });
+  });
+
+  it("keeps any number of ended sessions without a PIN", async () => {
+    const ids = [await startSession("900004"), await startSession("900005")].map((s) => s.id);
+    const { count } = await prisma.session.updateMany({
+      where: { id: { in: ids } },
+      data: { status: "ended", endedAt: new Date(), endReason: "host", pin: null },
+    });
+    expect(count).toBe(2);
   });
 
   it("drops a repeated answer in the flush insert (MD-9)", async () => {

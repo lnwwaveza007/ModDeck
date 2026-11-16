@@ -29,7 +29,8 @@ function toCard(deck: DeckWithCounts): Omit<DeckSummary, "firstSlide"> {
     title: deck.title,
     slideCount: deck._count.slides,
     sessionCount: deck._count.sessions,
-    liveSessions: deck.sessions,
+    // Open sessions always hold a PIN; the filter only narrows the type.
+    liveSessions: deck.sessions.flatMap(({ id, pin }) => (pin ? [{ id, pin }] : [])),
     createdAt: deck.createdAt.toISOString(),
     updatedAt: deck.updatedAt.toISOString(),
   };

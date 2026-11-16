@@ -168,10 +168,12 @@ export interface LiveSessionView {
   id: string;
   /** For wording edits, which go to the deck (PATCH /decks/{deckId}/slides/{slideId}/activity). */
   deckId: string;
-  pin: string;
+  /** null once the session has ended: the PIN goes back to the pool. */
+  pin: string | null;
   status: SessionStatus;
   title: string;
-  joinUrl: string;
+  /** null once the session has ended, like `pin`. */
+  joinUrl: string | null;
   startedAt: string;
   /** Server clock in ms when the response was built, to correct the browser clock. */
   serverNow: number;

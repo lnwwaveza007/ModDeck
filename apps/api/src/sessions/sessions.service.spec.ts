@@ -54,13 +54,14 @@ async function expectApiError(promise: Promise<unknown>, status: number, code: s
 }
 
 describe("SessionsService.end", () => {
-  it("ends the session at once, frees the PIN and tells the room", async () => {
+  it("ends the session at once, gives the PIN back and tells the room", async () => {
     const { service, session, redis, events } = setup({});
     await expect(service.end(OWNER, SESSION)).resolves.toEqual({ status: "ended" });
 
+    // The PIN is cleared in the same guarded write, so the number can be issued again.
     expect(session.updateMany).toHaveBeenCalledWith({
       where: { id: SESSION, endedAt: null },
-      data: expect.objectContaining({ status: "ended", endReason: "host" }),
+      data: expect.objectContaining({ status: "ended", endReason: "host", pin: null }),
     });
     expect(redis.del).toHaveBeenCalledWith(`session-pin:${PIN}`);
     expect(events.publish).toHaveBeenCalledWith(SESSION, "session_ended", { reason: "host" });
@@ -93,10 +94,12 @@ describe("SessionsService.openByPin", () => {
     await expect(service.openByPin(PIN)).resolves.toEqual({ id: SESSION, status: "live" });
   });
 
-  it("answers 410 for an ended session and finishes one left half-ended", async () => {
-    const { service, session } = setup({ status: "ended" });
-    await expectApiError(service.openByPin(PIN), 410, "SESSION_ENDED");
-    expect(session.updateMany).toHaveBeenCalled();
+  it("looks only at open sessions, so the PIN of an ended one is unknown", async () => {
+    const { service, session } = setup({ status: "live" });
+    await service.openByPin(PIN);
+    expect(session.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { pin: PIN, status: { not: "ended" } } }),
+    );
   });
 
   it("answers 404 for an unknown PIN", async () => {

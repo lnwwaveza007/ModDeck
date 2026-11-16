@@ -145,14 +145,17 @@ export class SessionsService {
     return { status: "ended" as const };
   }
 
-  /** Guarded write: only the first caller ends the session and tells the room. */
-  private async finish(session: { id: string; pin: string }) {
+  /**
+   * Guarded write: only the first caller ends the session and tells the room. The same write
+   * clears the PIN, so the number goes back to the pool and a stale PIN finds nothing (404).
+   */
+  private async finish(session: { id: string; pin: string | null }) {
     const { count } = await this.prisma.session.updateMany({
       where: { id: session.id, endedAt: null },
-      data: { status: "ended", endedAt: new Date(), endReason: "host" },
+      data: { status: "ended", endedAt: new Date(), endReason: "host", pin: null },
     });
     if (count === 0) return;
-    await this.redis.del(pinKey(session.pin));
+    if (session.pin) await this.redis.del(pinKey(session.pin));
     await this.closeLiveRuns(session.id);
     await this.events.publish(session.id, "session_ended", { reason: "host" });
     // A phone still connected after the end can no longer react. Last, and never fatal: should it
@@ -178,19 +181,14 @@ export class SessionsService {
   }
 
   // The open session behind a PIN, for the join flow (ParticipantsService). The
-  // id stays on the server until the student has joined.
+  // id stays on the server until the student has joined. Only open sessions hold
+  // a PIN, so the PIN of an ended session is as unknown as one never issued.
   async openByPin(pin: string) {
     const session = await this.prisma.session.findFirst({
-      where: { pin },
-      orderBy: { startedAt: "desc" },
-      select: { id: true, pin: true, status: true, endedAt: true },
+      where: { pin, status: { not: "ended" } },
+      select: { id: true, status: true },
     });
     if (!session) throw new ApiException(404, "NOT_FOUND", "No session found");
-    if (session.status === "ended") {
-      // Left over from the old undo window: marked ended but never finished.
-      if (!session.endedAt) await this.finish(session);
-      throw new ApiException(410, "SESSION_ENDED", "Session ended");
-    }
     return { id: session.id, status: session.status };
   }
 }

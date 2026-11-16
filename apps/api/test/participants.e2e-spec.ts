@@ -60,9 +60,10 @@ describe("student join (e2e)", () => {
       const pin = String(100000 + Math.floor(Math.random() * 900000));
       const taken = await prisma.session.findFirst({ where: { pin } });
       if (taken) continue;
-      return prisma.session.create({
+      const session = await prisma.session.create({
         data: { deckId, ownerId: host.id, pin, settings, currentSlideId: slideIds[0] },
       });
+      return { ...session, pin };
     }
   }
 
@@ -139,16 +140,48 @@ describe("student join (e2e)", () => {
       expect(JSON.stringify(res.body)).not.toContain(session.id);
     });
 
-    it("answers 404 for an unknown or malformed PIN, and 410 for an ended session", async () => {
+    it("answers 404 for an unknown or malformed PIN", async () => {
       await api().get("/pins/000000").set("Cookie", device()).expect(404);
       await api().get("/pins/12ab").set("Cookie", device()).expect(404);
+    });
+
+    it("gives the PIN back when the session ends, so it can be issued again", async () => {
       const session = await startSession();
-      await prisma.session.update({
+      const seated = await joinGuest(session.pin, "Stays").expect(201);
+      await api()
+        .patch(`/sessions/${session.id}`)
+        .set("Cookie", host.cookie)
+        .send({ status: "ended" })
+        .expect(200);
+
+      // The ended session keeps its records under its id, but no longer holds the PIN.
+      const ended = await prisma.session.findUniqueOrThrow({
         where: { id: session.id },
-        data: { status: "ended", endedAt: new Date() },
+        include: { participants: true },
       });
-      const res = await api().get(`/pins/${session.pin}`).set("Cookie", device()).expect(410);
-      expect(res.body.error.code).toBe("SESSION_ENDED");
+      expect(ended).toMatchObject({ status: "ended", pin: null });
+      expect(ended.participants.map((p) => p.id)).toEqual([seated.body.participantId]);
+
+      // A stale PIN is an unknown PIN: 404, which counts as a wrong PIN.
+      const cookie = device();
+      const res = await api().get(`/pins/${session.pin}`).set("Cookie", cookie).expect(404);
+      expect(res.body.error.code).toBe("NOT_FOUND");
+      await joinGuest(session.pin, "Late").expect(404);
+      expect(await app.get<Redis>(REDIS).get(`pin-fail:dev:${cookie.split("=")[1]}`)).toBe("1");
+
+      // The same number can go to a new session, and then it finds that one.
+      const next = await prisma.session.create({
+        data: {
+          deckId,
+          ownerId: host.id,
+          pin: session.pin,
+          settings: {},
+          currentSlideId: slideIds[0],
+        },
+      });
+      await api().get(`/pins/${session.pin}`).set("Cookie", device()).expect(200);
+      const joined = await joinGuest(session.pin, "Next").expect(201);
+      expect(joined.body.sessionId).toBe(next.id);
     });
   });
 
