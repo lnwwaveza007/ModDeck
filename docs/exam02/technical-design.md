@@ -374,7 +374,7 @@ Every route from the [MD-5 sitemap](../ux/md-5-ia-and-flows.md#3-sitemap) is bui
 | Resources | Plural nouns, nested at most two levels: `/decks/{deckId}/slides/{slideId}` |
 | Methods | `GET` read, `POST` create, `PATCH` partial update, `PUT` replace (order, settings), `DELETE` remove. No verbs in paths. State changes are `PATCH` on a `state` / `status` field. |
 | Format | JSON, `camelCase`. Times in ISO 8601 UTC. |
-| IDs | Opaque string IDs. The PIN is not an ID: it is a lookup key for joining. |
+| IDs | Opaque string IDs. The PIN is not an ID: it is a lookup key for joining, held only while the session is open. Ending the session releases it for reuse, so nothing kept after a session is stored under the PIN. |
 | Auth: host | Session cookie after OIDC login (`HttpOnly`, `Secure`, `SameSite=Lax`) |
 | Auth: participant | Room-scoped participant token in a cookie (`HttpOnly`, `Secure`), from MD-7. Expiry 8 h, sliding (MD-13 fix 2) |
 | Roles | `owner` (deck owner / session owner), `cohost` (Q&A only), `participant` |
@@ -481,7 +481,7 @@ Progress is also pushed over the socket (`import_progress`), so the editor does 
 
 | Method | Path | Purpose | Auth | Success | Errors |
 | --- | --- | --- | --- | --- | --- |
-| GET | `/pins/{pin}` | Check a PIN before join: title, host name, participant count, `requireLogin`, and `joined` when this browser already holds a seat. The session id is not sent before the join | none | 200 | 404 `NOT_FOUND` (unknown or not 6 digits), 410 `SESSION_ENDED` (24 h), 409 `SESSION_FULL` (unless already joined), 429 `TOO_MANY_ATTEMPTS` |
+| GET | `/pins/{pin}` | Check a PIN before join: title, host name, participant count, `requireLogin`, and `joined` when this browser already holds a seat. The session id is not sent before the join | none | 200 | 404 `NOT_FOUND` (unknown, not 6 digits, or the PIN of an ended session: ending a session gives its PIN back), 409 `SESSION_FULL` (unless already joined), 429 `TOO_MANY_ATTEMPTS` |
 | POST | `/pins/{pin}/participants` | Join. Guest: `{ nickname }`. SSO user: no body (uses the login). Sets the participant cookie. Joins by PIN, so the session id stays private until the student is in | none / host cookie | 201 (new) or 200 (rejoin, same participant) | 401 no login and no nickname, 403 `LOGIN_REQUIRED`, 409 `SESSION_FULL`, 409 `NICKNAME_TAKEN`, 422 `NICKNAME_INVALID`, 403 `PARTICIPANT_REMOVED`, 429 `TOO_MANY_ATTEMPTS` |
 | GET | `/participants/me` | The participant of this cookie, the session title and status, slide count and current slide (late join) | participant | 200 | 401, 403 `PARTICIPANT_REMOVED`, 410 `SESSION_ENDED` |
 | GET | `/sessions/{sessionId}/participants` | Participant list with online / offline | owner | 200 | — |
@@ -554,7 +554,7 @@ One error body for REST and socket errors:
 | 403 Forbidden | Logged in but not allowed (co-host changing slides, removed participant, login required) |
 | 404 Not Found | Resource or PIN does not exist |
 | 409 Conflict | State conflict: `SESSION_FULL`, `NICKNAME_TAKEN`, `ACTIVITY_LOCKED`, `INVALID_TRANSITION`, `DECK_LIVE` |
-| 410 Gone | PIN of a session that ended in the last 24 h |
+| 410 Gone | The participant's session has ended (`/participants/me`). A PIN never answers 410: an ended session no longer holds one |
 | 413 Payload Too Large | PDF over 50 MB |
 | 415 Unsupported Media Type | Upload is not a PDF |
 | 422 Unprocessable Entity | Valid JSON that breaks a rule: empty poll question, under 2 options, nickname rules, over 150 pages |
