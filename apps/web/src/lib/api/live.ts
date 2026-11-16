@@ -22,6 +22,14 @@ export const moveToSlide = (sessionId: string, currentSlideId: string) =>
     body: { currentSlideId },
   });
 
+/** Turns live reactions on or off for the room. */
+export const setReactionsEnabled = (sessionId: string, reactionsEnabled: boolean) =>
+  apiFetch<{ reactionsEnabled: boolean }>(`/sessions/${sessionId}`, {
+    ...host,
+    method: "PATCH",
+    body: { reactionsEnabled },
+  });
+
 export const actOnActivity = (sessionId: string, activityId: string, body: ActivityActionBody) =>
   apiFetch<ActivityRunDto>(`/sessions/${sessionId}/activities/${activityId}`, {
     ...host,

@@ -15,6 +15,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { hashToken } from "../realtime/participant-token";
 import { PollStoreService } from "../realtime/poll-store.service";
 import { PresenceService } from "../realtime/presence.service";
+import { reactionsEnabled } from "../realtime/reaction.service";
 import { WordStoreService } from "../realtime/word-store.service";
 import { SessionsService } from "../sessions/sessions.service";
 
@@ -205,6 +206,7 @@ export class ParticipantsService {
           select: {
             status: true,
             deckId: true,
+            settings: true,
             deck: { select: { title: true } },
             currentSlide: { select: { id: true, position: true } },
           },
@@ -249,6 +251,7 @@ export class ParticipantsService {
       slideCount,
       currentSlide: session.currentSlide ? { id: session.currentSlide.id, index } : null,
       currentActivity: view && { ...view, myOptionId, myWords },
+      reactionsEnabled: reactionsEnabled(session.settings),
     };
   }
 

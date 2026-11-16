@@ -18,6 +18,7 @@ export function LiveShell({
   banner,
   activity,
   qa,
+  reactions,
 }: {
   title: string;
   status?: string;
@@ -25,6 +26,8 @@ export function LiveShell({
   banner?: ReactNode;
   activity: ReactNode;
   qa: ReactNode;
+  /** The live reaction bar, above the tabs on both of them. Absent while reactions are off. */
+  reactions?: ReactNode;
 }) {
   const t = useTranslations("live");
   const [tab, setTab] = useState<LiveTab>("activity");
@@ -76,6 +79,8 @@ export function LiveShell({
       {banner}
 
       <div className="flex flex-1 flex-col bg-surface">{tab === "activity" ? activity : qa}</div>
+
+      {reactions}
 
       <nav
         aria-label={t("tabs")}

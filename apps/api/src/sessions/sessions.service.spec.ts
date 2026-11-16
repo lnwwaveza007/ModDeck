@@ -5,6 +5,7 @@ import type { RoomEventsService } from "../realtime/room-events.service";
 import { SessionsService } from "./sessions.service";
 import type { PollFlusherService } from "../realtime/poll-flusher.service";
 import type { PollStoreService } from "../realtime/poll-store.service";
+import type { ReactionService } from "../realtime/reaction.service";
 
 const OWNER = "owner-1";
 const SESSION = "session-1";
@@ -29,14 +30,16 @@ function setup(row: Partial<Row> | null) {
   const events = { publish: jest.fn(async () => undefined) };
   const polls = { syncRun: jest.fn(async () => true) };
   const flusher = { finalFlush: jest.fn(async () => undefined) };
+  const reactions = { setEnabled: jest.fn(async () => undefined) };
   const service = new SessionsService(
     { session, activityRun: { findMany: jest.fn(async () => []) } } as unknown as PrismaService,
     redis as unknown as Redis,
     events as unknown as RoomEventsService,
     polls as unknown as PollStoreService,
     flusher as unknown as PollFlusherService,
+    reactions as unknown as ReactionService,
   );
-  return { service, session, redis, events };
+  return { service, session, redis, events, reactions };
 }
 
 /** Asserts the promise rejects with an ApiException of this HTTP status and error code. */
@@ -60,6 +63,14 @@ describe("SessionsService.end", () => {
       data: expect.objectContaining({ status: "ended", endReason: "host" }),
     });
     expect(redis.del).toHaveBeenCalledWith(`session-pin:${PIN}`);
+    expect(events.publish).toHaveBeenCalledWith(SESSION, "session_ended", { reason: "host" });
+  });
+
+  it("turns reactions off, and still ends the session when that fails", async () => {
+    const { service, events, reactions } = setup({});
+    reactions.setEnabled.mockRejectedValueOnce(new Error("Redis down"));
+    await expect(service.end(OWNER, SESSION)).resolves.toEqual({ status: "ended" });
+    expect(reactions.setEnabled).toHaveBeenCalledWith(SESSION, false);
     expect(events.publish).toHaveBeenCalledWith(SESSION, "session_ended", { reason: "host" });
   });
 

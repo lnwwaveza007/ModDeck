@@ -92,4 +92,6 @@ export interface ParticipantMe extends JoinResult {
    * voted for (poll) or the words they sent (word cloud).
    */
   currentActivity: (SlideActivityView & { myOptionId: string | null; myWords: string[] }) | null;
+  /** The reaction bar shows. The room's reactions_toggled events keep it current. */
+  reactionsEnabled: boolean;
 }

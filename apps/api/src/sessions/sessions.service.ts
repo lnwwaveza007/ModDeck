@@ -1,10 +1,11 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { randomInt } from "node:crypto";
 import Redis from "ioredis";
 import { ApiException } from "../common/api-error";
 import { PrismaService } from "../prisma/prisma.service";
 import { PollFlusherService } from "../realtime/poll-flusher.service";
 import { PollStoreService } from "../realtime/poll-store.service";
+import { ReactionService } from "../realtime/reaction.service";
 import { REDIS } from "../redis/redis.module";
 import { RoomEventsService } from "../realtime/room-events.service";
 import { joinUrl } from "./join-url";
@@ -13,12 +14,15 @@ const pinKey = (pin: string) => `session-pin:${pin}`;
 
 @Injectable()
 export class SessionsService {
+  private readonly logger = new Logger(SessionsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     @Inject(REDIS) private readonly redis: Redis,
     private readonly events: RoomEventsService,
     private readonly polls: PollStoreService,
     private readonly flusher: PollFlusherService,
+    private readonly reactions: ReactionService,
   ) {}
 
   async create(ownerId: string, deckId: string) {
@@ -151,6 +155,11 @@ export class SessionsService {
     await this.redis.del(pinKey(session.pin));
     await this.closeLiveRuns(session.id);
     await this.events.publish(session.id, "session_ended", { reason: "host" });
+    // A phone still connected after the end can no longer react. Last, and never fatal: should it
+    // fail, a stray tap only reaches host screens that already show the end and draw no reactions.
+    await this.reactions.setEnabled(session.id, false).catch((err: unknown) => {
+      this.logger.warn(`Could not turn reactions off for session ${session.id}: ${String(err)}`);
+    });
   }
 
   /** An activity that is still live closes with the session (MD-5 §7.1). */

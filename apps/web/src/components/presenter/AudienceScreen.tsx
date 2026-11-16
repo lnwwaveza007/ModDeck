@@ -13,6 +13,7 @@ import { SHORTCUT_LIST, useShortcuts } from "@/lib/live/shortcuts";
 import { runOf, useLiveSession, type LiveSessionState } from "@/lib/live/use-live-session";
 import { Kbd } from "./Kbd";
 import { LiveStage } from "./LiveStage";
+import { ReactionLayer } from "./ReactionLayer";
 import { ShortcutHelp } from "./ShortcutHelp";
 
 const NO_VOTES = { votes: {}, answered: 0 };
@@ -111,6 +112,10 @@ export function AudienceScreen({ sessionId }: { sessionId: string }) {
                 </b>
               </div>
             )
+          )}
+          {/* Not over the join panel: an emoji rising across the QR code can spoil a scan. */}
+          {state.reactionsEnabled && !screen.join && (
+            <ReactionLayer subscribe={controls.subscribeReactions} />
           )}
           {connectionLost && (
             <p

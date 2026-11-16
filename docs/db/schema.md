@@ -108,7 +108,7 @@ erDiagram
         boolean anonymous_allowed "default true"
         boolean show_results_live "default false"
         boolean auto_start "default false"
-        boolean reactions_enabled "default false"
+        boolean reactions_enabled "default true"
         timestamptz created_at
         timestamptz updated_at
         timestamptz deleted_at "null unless deleted"

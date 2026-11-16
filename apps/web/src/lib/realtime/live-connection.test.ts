@@ -13,6 +13,8 @@ class FakeSocket {
   /** Answers sent after the join. `answerAck` plays the server: undefined means the ack is lost. */
   sent: unknown[] = [];
   answerAck: (payload: unknown) => AnswerAck | undefined = () => ({ ok: true, duplicate: false });
+  /** Fire-and-forget emits (reactions): no ack, no timeout. */
+  emitted: { event: string; payload: unknown }[] = [];
   connected = false;
   connectCalls = 0;
   answerJoin: (payload: JoinPayload) => JoinAck | undefined = () => ({
@@ -46,6 +48,11 @@ class FakeSocket {
         queueMicrotask(() => (reply ? ack(null, reply) : ack(new Error("timeout"))));
       },
     };
+  }
+
+  emit(event: string, payload: unknown) {
+    this.emitted.push({ event, payload });
+    return this;
   }
 
   connect() {
@@ -366,6 +373,50 @@ describe("LiveConnection", () => {
       // Offline, so the end arrives at the next join: the server refuses it.
       socket.fire("error", { code: "SESSION_ENDED", message: "ended", seq: 1 });
       await expect(result).rejects.toMatchObject({ reason: "ended" });
+    });
+  });
+
+  describe("reactions", () => {
+    it("sends a reaction once, with no ack, only while joined", async () => {
+      const { socket, live } = setup();
+      expect(live.react("👏")).toBe(false);
+      live.connect();
+      await flush();
+
+      expect(live.react("👏")).toBe(true);
+      expect(socket.emitted).toEqual([{ event: "reaction", payload: { emoji: "👏" } }]);
+      expect(socket.sent).toEqual([]);
+
+      socket.drop();
+      expect(live.react("🎉")).toBe(false);
+      expect(socket.emitted).toHaveLength(1);
+      live.close();
+    });
+
+    it("hands reaction bursts to the host screen, outside the seq order", async () => {
+      const socket = new FakeSocket();
+      const bursts: unknown[] = [];
+      const events: RoomEvent[] = [];
+      const live = new LiveConnection({
+        sessionId: SESSION,
+        socket: socket as unknown as SessionSocket,
+        onEvent: (e) => events.push(e),
+        onReactionBurst: (burst) => bursts.push(burst),
+      });
+      live.connect();
+      await flush();
+
+      const burst = { sessionId: SESSION, counts: { "👏": 3 } };
+      socket.fire("reaction_burst", burst);
+      expect(bursts).toEqual([burst]);
+      expect(events).toEqual([]);
+      expect(live.lastSeq).toBe(0);
+
+      // Before the join ack (after a drop) a burst is dropped like a room event would be.
+      socket.drop();
+      socket.fire("reaction_burst", burst);
+      expect(bursts).toHaveLength(1);
+      live.close();
     });
   });
 });

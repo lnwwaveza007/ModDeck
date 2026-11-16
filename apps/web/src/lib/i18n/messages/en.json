@@ -182,6 +182,14 @@
       "yourWords": "Your words ({sent} of {limit})",
       "noWords": "You did not send a word.",
       "entries": "{count, plural, one {# word sent} other {# words sent}}"
+    },
+    "reactions": {
+      "label": "Send a reaction",
+      "clap": "Clap",
+      "heart": "Love it",
+      "laugh": "Laugh",
+      "wow": "Wow",
+      "party": "Celebrate"
     }
   },
   "host": {
@@ -648,6 +656,11 @@
       "INVALID_TRANSITION": "The activity changed in the meantime. The screen now shows its state.",
       "ACTIVITY_LOCKED": "This activity has started: only the wording can change.",
       "NETWORK_ERROR": "No connection to ModDeck. Check your internet."
+    },
+    "reactions": {
+      "title": "Reactions",
+      "toggle": "Live reactions",
+      "description": "Students tap an emoji and it floats up on the screen."
     }
   },
   "screen": {

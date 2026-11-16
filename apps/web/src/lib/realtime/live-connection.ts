@@ -4,6 +4,7 @@
 //  - stops for good when the session ends or the server refuses the participant
 //  - send() re-sends one answer with the same answerId until the server acks it, so a
 //    lost ack never counts an answer twice (the server dedupes by answerId)
+//  - react() sends a live reaction once, with no ack and no retry
 // Socket.IO's own reconnect (with backoff) brings the connection back.
 
 import {
@@ -12,6 +13,8 @@ import {
   type ErrorBody,
   type ErrorCode,
   type JoinAck,
+  type ReactionBurst,
+  type ReactionEmoji,
   type RoomEvent,
   type SessionSnapshot,
   type StatePayload,
@@ -31,6 +34,8 @@ export interface LiveConnectionOptions {
   onSnapshot?: (snapshot: SessionSnapshot) => void;
   onStatus?: (status: ConnectionStatus) => void;
   onError?: (error: ErrorBody) => void;
+  /** Host screens only: a batch of the room's live reactions. Not numbered, never replayed. */
+  onReactionBurst?: (burst: ReactionBurst) => void;
   /** "host" for presenter control and the audience screen. */
   role?: SocketRole;
   /** Injected in tests. */
@@ -104,6 +109,9 @@ export class LiveConnection {
       this.options.onError?.(error);
       if (FINAL_ERRORS.includes(error.code)) this.end();
     });
+    this.socket.on("reaction_burst", (burst) => {
+      if (this.joined) this.options.onReactionBurst?.(burst);
+    });
     const onRoomEvent = (event: RoomEvent) => this.receive(event);
     for (const type of ROOM_EVENT_TYPES) {
       (this.socket.on as (type: string, listener: (event: RoomEvent) => void) => void)(
@@ -147,6 +155,16 @@ export class LiveConnection {
       if (attempt < attempts) await this.untilOnline();
     }
     throw new SendError("no_ack");
+  }
+
+  /**
+   * Sends one live reaction. Fire and forget: the server drops a tap that comes too soon or while
+   * reactions are off, and a lost one is not worth sending again. False when not joined.
+   */
+  react(emoji: ReactionEmoji): boolean {
+    if (!this.joined) return false;
+    this.socket.emit("reaction", { emoji });
+    return true;
   }
 
   // ----- internals -----

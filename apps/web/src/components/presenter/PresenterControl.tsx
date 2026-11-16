@@ -12,10 +12,12 @@ import { useShortcuts } from "@/lib/live/shortcuts";
 import { runOf, useLiveSession } from "@/lib/live/use-live-session";
 import { Button, buttonClass } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
+import { Toggle } from "@/components/ui/Toggle";
 import { ActivityControls } from "./ActivityControls";
 import { EndSessionButton, useSessionEnd } from "./EndSession";
 import { Kbd } from "./Kbd";
 import { LiveStage } from "./LiveStage";
+import { ReactionLayer } from "./ReactionLayer";
 import { ShortcutHelp } from "./ShortcutHelp";
 import { SlideStrip } from "./SlideStrip";
 import { WordingDialog } from "./WordingDialog";
@@ -152,15 +154,23 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
                 {current && (
                   <StageBox>
                     {(fit) => (
-                      <LiveStage
-                        slide={current}
-                        run={run ?? undefined}
-                        tally={tally}
-                        cloud={cloud}
-                        liveChart={screen.liveChart}
-                        now={now}
-                        className={cn("shadow-sm", fit)}
-                      />
+                      <div className={cn("relative w-full", fit)}>
+                        <LiveStage
+                          slide={current}
+                          run={run ?? undefined}
+                          tally={tally}
+                          cloud={cloud}
+                          liveChart={screen.liveChart}
+                          now={now}
+                          className="shadow-sm"
+                        />
+                        {state.reactionsEnabled && (
+                          <ReactionLayer
+                            subscribe={controls.subscribeReactions}
+                            className="rounded-lg"
+                          />
+                        )}
+                      </div>
                     )}
                   </StageBox>
                 )}
@@ -265,6 +275,19 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
               </h2>
               {/* Q&A moderation plugs in here (F6). */}
               <p className="text-sm text-muted">{t("qa.soon")}</p>
+            </section>
+            <section
+              aria-label={t("reactions.title")}
+              className="flex flex-col gap-1 rounded-xl border border-neutral-200 bg-background p-5"
+            >
+              <h2 className="font-bold">{t("reactions.title")}</h2>
+              <Toggle
+                label={t("reactions.toggle")}
+                description={t("reactions.description")}
+                checked={state.reactionsEnabled}
+                disabled={state.ended}
+                onCheckedChange={(enabled) => void controls.setReactions(enabled)}
+              />
             </section>
             <section className="flex flex-col gap-1 rounded-xl border border-neutral-200 bg-background p-5 text-sm">
               <h2 className="font-bold">{t("singleDisplay.title")}</h2>

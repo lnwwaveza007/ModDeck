@@ -13,6 +13,7 @@ import type {
   LiveSessionView,
   LiveSlide,
   PollTally,
+  ReactionBurst,
   RoomEvent,
   WordCloudTally,
   WordCount,
@@ -23,6 +24,7 @@ import {
   editActivityWording,
   getLiveSession,
   moveToSlide,
+  setReactionsEnabled,
   setWordHidden,
 } from "@/lib/api/live";
 import { LiveConnection, type ConnectionStatus } from "@/lib/realtime/live-connection";
@@ -41,6 +43,8 @@ export interface LiveSessionState {
   clouds: Record<string, WordCloudTally>;
   /** Run id → the words the host hid, so one can be shown again. */
   hiddenWords: Record<string, WordCount[]>;
+  /** Students can send live reactions. */
+  reactionsEnabled: boolean;
   connection: ConnectionStatus;
   ended: boolean;
   loadError: LiveLoadError | null;
@@ -56,6 +60,13 @@ export interface LiveSessionControls {
   editWording: (slideId: string, body: ActivityWordingBody) => Promise<void>;
   /** Hides or shows one word of a word cloud on every screen. */
   setWordHidden: (activityId: string, key: string, hidden: boolean) => Promise<void>;
+  /** Turns live reactions on or off for the room. */
+  setReactions: (enabled: boolean) => Promise<void>;
+  /**
+   * Calls `listener` with every batch of reactions. A subscription, not state: bursts come up to
+   * four times a second and only the reaction layer needs to redraw. Returns the unsubscribe.
+   */
+  subscribeReactions: (listener: (burst: ReactionBurst) => void) => () => void;
 }
 
 const runsById = (runs: ActivityRunDto[]) =>
@@ -83,6 +94,8 @@ export function useLiveSession(
   const [tallies, setTallies] = useState<Record<string, PollTally>>({});
   const [clouds, setClouds] = useState<Record<string, WordCloudTally>>({});
   const [hiddenWords, setHiddenWords] = useState<Record<string, WordCount[]>>({});
+  const [reactionsEnabled, setReactionsOn] = useState(true);
+  const reactionListeners = useRef(new Set<(burst: ReactionBurst) => void>());
   const [connection, setConnection] = useState<ConnectionStatus>("connecting");
   const [ended, setEnded] = useState(false);
   const [loadError, setLoadError] = useState<LiveLoadError | null>(null);
@@ -116,6 +129,7 @@ export function useLiveSession(
       setTallies(value.tallies);
       setClouds(value.clouds);
       setHiddenWords(value.hiddenWords);
+      setReactionsOn(value.reactionsEnabled);
       // A refresh after the end: the socket would refuse to join, so read it from here too.
       if (value.status === "ended") setEnded(true);
       if (!sending.current) setCurrentId(value.currentSlideId ?? value.slides[0]?.id ?? null);
@@ -154,11 +168,15 @@ export function useLiveSession(
             withActivity(current, { id: event.data.activityId, ...event.data }),
           );
           break;
+        case "reactions_toggled":
+          setReactionsOn(event.data.enabled);
+          break;
         case "session_ended":
           setEnded(true);
           break;
       }
     };
+    const listeners = reactionListeners.current;
 
     // Outside the effect body: load() sets state.
     const initial = setTimeout(() => void load().then(start), 0);
@@ -174,6 +192,9 @@ export function useLiveSession(
         // Too far behind for a replay: read the whole state again.
         onSnapshot: () => void load(),
         onEvent,
+        onReactionBurst: (burst) => {
+          for (const listener of listeners) listener(burst);
+        },
       });
       connection.connect();
     }
@@ -252,6 +273,28 @@ export function useLiveSession(
     [sessionId],
   );
 
+  // The switch moves at once. Its replies are not applied: two quick presses can come back in
+  // either order, while the room's reactions_toggled events arrive in seq order and settle it.
+  const setReactions = useCallback(
+    async (enabled: boolean) => {
+      setReactionsOn(enabled);
+      try {
+        await setReactionsEnabled(sessionId, enabled);
+      } catch (error) {
+        onErrorRef.current?.(error);
+        // Another press may have gone through meanwhile: show what the server has.
+        void load();
+      }
+    },
+    [load, sessionId],
+  );
+
+  const subscribeReactions = useCallback((listener: (burst: ReactionBurst) => void) => {
+    const listeners = reactionListeners.current;
+    listeners.add(listener);
+    return () => void listeners.delete(listener);
+  }, []);
+
   const editWording = useCallback(
     async (slideId: string, body: ActivityWordingBody) => {
       if (!view) return;
@@ -276,12 +319,22 @@ export function useLiveSession(
       tallies,
       clouds,
       hiddenWords,
+      reactionsEnabled,
       connection,
       ended,
       loadError,
       clockOffset,
     },
-    { goTo, next, previous, act, editWording, setWordHidden: hideWord },
+    {
+      goTo,
+      next,
+      previous,
+      act,
+      editWording,
+      setWordHidden: hideWord,
+      setReactions,
+      subscribeReactions,
+    },
   ];
 }
 

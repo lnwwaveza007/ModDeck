@@ -6,6 +6,7 @@ import { PrismaService } from "../src/prisma/prisma.service";
 import { REDIS } from "../src/redis/redis.module";
 import { PollFlusherService } from "../src/realtime/poll-flusher.service";
 import { PollStoreService, flushStreamKey } from "../src/realtime/poll-store.service";
+import { WordStoreService } from "../src/realtime/word-store.service";
 
 jest.setTimeout(30_000);
 
@@ -26,6 +27,8 @@ describe("PollFlusherService (real Redis + PostgreSQL)", () => {
       providers: [
         PrismaService,
         PollStoreService,
+        // PollStoreService reads word cloud runs through it.
+        WordStoreService,
         PollFlusherService,
         { provide: REDIS, useValue: redis },
       ],
