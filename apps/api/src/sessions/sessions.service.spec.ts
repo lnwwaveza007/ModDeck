@@ -66,6 +66,14 @@ describe("SessionsService.end", () => {
     expect(events.publish).toHaveBeenCalledWith(SESSION, "session_ended", { reason: "host" });
   });
 
+  it("turns reactions off, and still ends the session when that fails", async () => {
+    const { service, events, reactions } = setup({});
+    reactions.setEnabled.mockRejectedValueOnce(new Error("Redis down"));
+    await expect(service.end(OWNER, SESSION)).resolves.toEqual({ status: "ended" });
+    expect(reactions.setEnabled).toHaveBeenCalledWith(SESSION, false);
+    expect(events.publish).toHaveBeenCalledWith(SESSION, "session_ended", { reason: "host" });
+  });
+
   it("does nothing more when the session has already ended", async () => {
     const { service, session, events } = setup({ status: "ended", endedAt: new Date() });
     session.updateMany.mockResolvedValueOnce({ count: 0 });

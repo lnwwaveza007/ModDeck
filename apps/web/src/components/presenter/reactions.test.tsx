@@ -144,6 +144,14 @@ describe("audience screen", () => {
     expect(screen.queryByTestId("reaction-layer")).toBeNull();
   });
 
+  it("keeps reactions off the join panel, so nothing covers the QR code", async () => {
+    // The first slide: the join panel shows until the host moves on.
+    jest.mocked(getLiveSession).mockResolvedValue(view({ currentSlideId: "slide-0" }));
+    renderWithIntl(<AudienceScreen sessionId="s1" />, "en");
+    await screen.findByAltText(/QR/);
+    expect(screen.queryByTestId("reaction-layer")).toBeNull();
+  });
+
   it("has no reaction layer when the session starts with reactions off", async () => {
     jest.mocked(getLiveSession).mockResolvedValue(view({ reactionsEnabled: false }));
     renderWithIntl(<AudienceScreen sessionId="s1" />, "en");
@@ -181,6 +189,36 @@ describe("presenter control", () => {
     expect(toggle).toHaveAttribute("aria-checked", "true");
   });
 
+  it("ends on the last press when two quick presses come back out of order", async () => {
+    let finishFirst: (value: { reactionsEnabled: boolean }) => void = () => undefined;
+    jest
+      .mocked(setReactionsEnabled)
+      .mockImplementationOnce(() => new Promise((resolve) => (finishFirst = resolve)))
+      .mockResolvedValueOnce({ reactionsEnabled: true });
+    const toggle = await renderPresenter();
+
+    fireEvent.click(toggle); // off: its reply is late
+    fireEvent.click(toggle); // on: its reply comes first
+    await waitFor(() => expect(setReactionsEnabled).toHaveBeenCalledTimes(2));
+    await act(async () => finishFirst({ reactionsEnabled: false }));
+    expect(toggle).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("follows the room when another window turns reactions off", async () => {
+    const toggle = await renderPresenter();
+    await waitFor(() => expect(live.options).toBeDefined());
+    act(() =>
+      live.options!.onEvent!({
+        type: "reactions_toggled",
+        seq: 1,
+        sessionId: "s1",
+        at: 0,
+        data: { enabled: false },
+      } as RoomEvent),
+    );
+    expect(toggle).toHaveAttribute("aria-checked", "false");
+  });
+
   it("shows the reactions on its own preview of the slide too", async () => {
     await renderPresenter();
     await waitFor(() => expect(live.options).toBeDefined());
@@ -188,11 +226,13 @@ describe("presenter control", () => {
     expect(floating()).toHaveLength(1);
   });
 
-  it("puts the switch back and says so when the change fails", async () => {
+  it("shows the server's state again and says so when the change fails", async () => {
     jest.mocked(setReactionsEnabled).mockRejectedValue(new ApiError(0, "NETWORK_ERROR", "x"));
     const toggle = await renderPresenter();
+    expect(getLiveSession).toHaveBeenCalledTimes(1);
 
     fireEvent.click(toggle);
+    await waitFor(() => expect(getLiveSession).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(toggle).toHaveAttribute("aria-checked", "true"));
     expect(await screen.findByText("No connection to ModDeck. Check your internet.")).toBeVisible();
   });

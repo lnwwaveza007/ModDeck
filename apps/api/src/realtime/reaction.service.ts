@@ -17,6 +17,11 @@ const LIVE_KEY_TTL_SECONDS = 24 * 60 * 60;
 const switchKey = (sid: string) => `reactions:{${sid}}`; // "1" on, "0" off
 const lastTapKey = (sid: string, participantId: string) => `rtap:{${sid}}:${participantId}`;
 
+// The phone rests REACTION_INTERVAL_MS after a tap, but two taps can travel at different speeds:
+// a second tap sent right at 1 s can land a little sooner than that after the first one. The
+// server window is shorter by this much, so a tap the phone showed is not dropped for jitter.
+const NETWORK_JITTER_MS = 200;
+
 /** The host's screens (presenter control, audience screen) of a session. Phones never join it. */
 export const hostRoomName = (sessionId: string) => `hosts:${sessionId}`;
 
@@ -96,7 +101,7 @@ export class ReactionService implements OnModuleDestroy {
     return this.redis.reactionTap(
       switchKey(sessionId),
       lastTapKey(sessionId, participantId),
-      REACTION_INTERVAL_MS,
+      REACTION_INTERVAL_MS - NETWORK_JITTER_MS,
     );
   }
 

@@ -113,7 +113,10 @@ export function AudienceScreen({ sessionId }: { sessionId: string }) {
               </div>
             )
           )}
-          {state.reactionsEnabled && <ReactionLayer subscribe={controls.subscribeReactions} />}
+          {/* Not over the join panel: an emoji rising across the QR code can spoil a scan. */}
+          {state.reactionsEnabled && !screen.join && (
+            <ReactionLayer subscribe={controls.subscribeReactions} />
+          )}
           {connectionLost && (
             <p
               role="status"

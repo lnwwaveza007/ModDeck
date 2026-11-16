@@ -217,6 +217,19 @@ describe("live reactions (e2e)", () => {
     expect(seen.total("😂")).toBe(1);
   });
 
+  it("counts a tap that lands a little under a second after the last one", async () => {
+    // The phone waits a full second, but the second tap can travel faster than the first.
+    const sessionId = await liveSession();
+    const { screen, phones } = await room(sessionId, 1);
+    const seen = collect(screen);
+
+    phones[0].emit("reaction", { emoji: "👏" });
+    await wait(REACTION_INTERVAL_MS - 100);
+    phones[0].emit("reaction", { emoji: "👏" });
+    await wait(SETTLE_MS);
+    expect(seen.total("👏")).toBe(2);
+  });
+
   it("drops an emoji outside the set, a tap from a host socket, and one before join", async () => {
     const sessionId = await liveSession();
     const { screen, phones, tokens } = await room(sessionId, 1);

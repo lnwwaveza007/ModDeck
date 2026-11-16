@@ -273,17 +273,20 @@ export function useLiveSession(
     [sessionId],
   );
 
+  // The switch moves at once. Its replies are not applied: two quick presses can come back in
+  // either order, while the room's reactions_toggled events arrive in seq order and settle it.
   const setReactions = useCallback(
     async (enabled: boolean) => {
       setReactionsOn(enabled);
       try {
-        setReactionsOn((await setReactionsEnabled(sessionId, enabled)).reactionsEnabled);
+        await setReactionsEnabled(sessionId, enabled);
       } catch (error) {
-        setReactionsOn(!enabled);
         onErrorRef.current?.(error);
+        // Another press may have gone through meanwhile: show what the server has.
+        void load();
       }
     },
-    [sessionId],
+    [load, sessionId],
   );
 
   const subscribeReactions = useCallback((listener: (burst: ReactionBurst) => void) => {
