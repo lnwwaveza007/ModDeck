@@ -186,5 +186,7 @@ export interface LiveSessionView {
   hiddenWords: Record<string, WordCount[]>;
   /** Session setting: the audience screen draws the chart while voting is open (MD-5 §7.1). */
   showResultsLive: boolean;
+  /** Students can send live reactions. The host turns it on or off during the session. */
+  reactionsEnabled: boolean;
   participantCount: number;
 }

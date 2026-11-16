@@ -147,7 +147,7 @@ model Deck {
   anonymousAllowed  Boolean   @default(true) @map("anonymous_allowed")
   showResultsLive   Boolean   @default(false) @map("show_results_live")
   autoStart         Boolean   @default(false) @map("auto_start")
-  reactionsEnabled  Boolean   @default(false) @map("reactions_enabled") // MD-5 Q14
+  reactionsEnabled  Boolean   @default(true) @map("reactions_enabled") // MD-5 Q14, on by default (R1-15)
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
   deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(3)

@@ -5,6 +5,7 @@ import { ApiException } from "../common/api-error";
 import { PrismaService } from "../prisma/prisma.service";
 import { PollFlusherService } from "../realtime/poll-flusher.service";
 import { PollStoreService } from "../realtime/poll-store.service";
+import { ReactionService } from "../realtime/reaction.service";
 import { REDIS } from "../redis/redis.module";
 import { RoomEventsService } from "../realtime/room-events.service";
 import { joinUrl } from "./join-url";
@@ -19,6 +20,7 @@ export class SessionsService {
     private readonly events: RoomEventsService,
     private readonly polls: PollStoreService,
     private readonly flusher: PollFlusherService,
+    private readonly reactions: ReactionService,
   ) {}
 
   async create(ownerId: string, deckId: string) {
@@ -149,6 +151,8 @@ export class SessionsService {
     });
     if (count === 0) return;
     await this.redis.del(pinKey(session.pin));
+    // A phone still connected after the end can no longer react.
+    await this.reactions.setEnabled(session.id, false);
     await this.closeLiveRuns(session.id);
     await this.events.publish(session.id, "session_ended", { reason: "host" });
   }

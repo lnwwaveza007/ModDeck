@@ -12,6 +12,7 @@ import {
 import {
   PRESENCE_HEARTBEAT_MS,
   joinPayloadSchema,
+  reactionPayloadSchema,
   votePayloadSchema,
   wordPayloadSchema,
   type AnswerAck,
@@ -24,6 +25,7 @@ import { MetricsService } from "../metrics/metrics.service";
 import { hostTokenFromHandshake, tokenFromHandshake, wantsHostRole } from "./participant-token";
 import { PollStoreService } from "./poll-store.service";
 import { PresenceService } from "./presence.service";
+import { ReactionService, hostRoomName } from "./reaction.service";
 import { RoomAuthError, RoomAuthService } from "./room-auth.service";
 import { RoomEventsService, roomName } from "./room-events.service";
 import type { RealtimeServer, RealtimeSocket, SocketData } from "./realtime.types";
@@ -54,6 +56,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     private readonly voteBatcher: VoteBatcherService,
     private readonly words: WordStoreService,
     private readonly wordBatcher: WordBatcherService,
+    private readonly reactions: ReactionService,
   ) {}
 
   // One heartbeat timer per connected socket.
@@ -61,6 +64,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
 
   afterInit(server: RealtimeServer) {
     this.roomEvents.attach(server);
+    this.reactions.attach(server);
 
     // Handshake: a socket without a valid participant token (or, when it asks
     // for the host role, a valid host login) never connects. The rejection
@@ -158,6 +162,8 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     }
 
     await client.join(roomName(sessionId));
+    // Reaction bursts go to the host's screens only, never to the 300 phones.
+    if (identity.role === "host") await client.join(hostRoomName(sessionId));
     const state = await this.roomEvents.sync(sessionId, parsed.data.lastSeq);
     client.emit("state", state);
     return { ok: true, ...state };
@@ -259,6 +265,23 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       // Safe to send again: the answerId keeps it from counting twice.
       this.logger.error(`Word failed: ${String(err)}`);
       return wordError("INTERNAL", "Could not save the word");
+    }
+  }
+
+  // A student's reaction. No ack: the phone shows its own tap at once, and a dropped one (too soon,
+  // reactions off, bad emoji) is not worth telling it about.
+  @SubscribeMessage("reaction")
+  async handleReaction(@ConnectedSocket() client: RealtimeSocket, @MessageBody() payload: unknown) {
+    const { identity } = client.data;
+    if (identity.role !== "participant") return;
+    // Only a socket that joined its room may react: one that never sent `join` is not live yet.
+    if (!client.rooms.has(roomName(identity.sessionId))) return;
+    const parsed = reactionPayloadSchema.safeParse(payload);
+    if (!parsed.success) return;
+    try {
+      await this.reactions.tap(identity.sessionId, identity.participantId, parsed.data.emoji);
+    } catch (err) {
+      this.logger.warn(`Reaction failed: ${String(err)}`);
     }
   }
 

@@ -13,6 +13,7 @@ import { ApiException } from "../common/api-error";
 import { PrismaService } from "../prisma/prisma.service";
 import { PollFlusherService } from "../realtime/poll-flusher.service";
 import { PollStoreService, runRowSelect, toRunDto } from "../realtime/poll-store.service";
+import { ReactionService, reactionsEnabled } from "../realtime/reaction.service";
 import { RoomEventsService } from "../realtime/room-events.service";
 import { VoteBatcherService } from "../realtime/vote-batcher.service";
 import { WordBatcherService } from "../realtime/word-batcher.service";
@@ -43,6 +44,7 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
     private readonly voteBatcher: VoteBatcherService,
     private readonly words: WordStoreService,
     private readonly wordBatcher: WordBatcherService,
+    private readonly reactions: ReactionService,
   ) {}
 
   // After a restart, arm the countdowns that are still running.
@@ -108,6 +110,7 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
       clouds: Object.fromEntries(cloudRuns.map((run, i) => [run.id, clouds[i]])),
       hiddenWords: Object.fromEntries(cloudRuns.map((run, i) => [run.id, hidden[i]])),
       showResultsLive: (session.settings as { showResultsLive?: boolean }).showResultsLive === true,
+      reactionsEnabled: reactionsEnabled(session.settings),
       participantCount,
     };
   }
@@ -138,6 +141,24 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
       activity: await this.polls.slideActivity(sessionId, slide.id),
     });
     return { currentSlideId: slide.id, index: slide.position };
+  }
+
+  /** Turns live reactions on or off for the whole room. The phones show or hide their bar. */
+  async setReactions(ownerId: string, sessionId: string, enabled: boolean) {
+    const session = await this.ownedSession(ownerId, sessionId);
+    this.assertOpen(session.status);
+    const settings = {
+      ...(session.settings as Record<string, unknown>),
+      reactionsEnabled: enabled,
+    };
+    await this.prisma.session.update({
+      where: { id: sessionId },
+      data: { settings },
+      select: { id: true },
+    });
+    await this.reactions.setEnabled(sessionId, enabled);
+    await this.events.publish(sessionId, "reactions_toggled", { enabled });
+    return { reactionsEnabled: enabled };
   }
 
   async act(

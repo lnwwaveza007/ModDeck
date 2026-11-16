@@ -4,5 +4,6 @@ export * from "./events";
 export * from "./limits";
 export * from "./live";
 export * from "./participants";
+export * from "./reactions";
 export * from "./slides";
 export * from "./words";

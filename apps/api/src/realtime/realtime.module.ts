@@ -4,6 +4,7 @@ import { AnswerLedgerService } from "./answer-ledger.service";
 import { PollFlusherService } from "./poll-flusher.service";
 import { PollStoreService } from "./poll-store.service";
 import { PresenceService } from "./presence.service";
+import { ReactionService } from "./reaction.service";
 import { RealtimeGateway } from "./realtime.gateway";
 import { RoomAuthService } from "./room-auth.service";
 import { RoomEventsService } from "./room-events.service";
@@ -26,6 +27,7 @@ import { WordStoreService } from "./word-store.service";
     VoteBatcherService,
     WordStoreService,
     WordBatcherService,
+    ReactionService,
   ],
   exports: [
     RoomEventsService,
@@ -36,6 +38,7 @@ import { WordStoreService } from "./word-store.service";
     VoteBatcherService,
     WordStoreService,
     WordBatcherService,
+    ReactionService,
   ],
 })
 export class RealtimeModule {}

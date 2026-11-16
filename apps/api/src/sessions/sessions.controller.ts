@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/co
 import {
   activityActionBodySchema,
   currentSlideBodySchema,
+  reactionsToggleBodySchema,
   wordVisibilityBodySchema,
   type ActivityActionBody,
   type WordVisibilityBody,
@@ -14,10 +15,12 @@ import { ZodBody } from "../common/api-error";
 import { LiveService } from "./live.service";
 import { SessionsService } from "./sessions.service";
 
-// PATCH /sessions/{id} takes one change at a time: end the session, or move to a slide.
+// PATCH /sessions/{id} takes one change at a time: end the session, move to a slide, or turn
+// reactions on or off.
 const sessionPatchSchema = z.union([
   z.object({ status: z.literal("ended") }).strict(),
   currentSlideBodySchema.strict(),
+  reactionsToggleBodySchema.strict(),
 ]);
 
 @Controller()
@@ -60,6 +63,8 @@ export class SessionsController {
     @Body(new ZodBody(sessionPatchSchema)) body: z.infer<typeof sessionPatchSchema>,
   ) {
     if ("currentSlideId" in body) return this.live.moveTo(user.id, id, body.currentSlideId);
+    if ("reactionsEnabled" in body)
+      return this.live.setReactions(user.id, id, body.reactionsEnabled);
     return this.sessions.end(user.id, id);
   }
 

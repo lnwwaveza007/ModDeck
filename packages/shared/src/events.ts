@@ -6,6 +6,7 @@
 import { z } from "zod";
 import type { ErrorBody } from "./errors";
 import type { PollTally, SlideActivityView } from "./live";
+import type { ReactionBurst, ReactionPayload } from "./reactions";
 import { WORD_TEXT_INPUT_MAX, type WordCloudTally, type WordResult } from "./words";
 
 // ---- Client -> server ----------------------------------------------------
@@ -52,6 +53,9 @@ export interface RoomEventData {
   // projector that gets it has no way to read what the host hid. Batched like vote_update.
   word_update: { activityRunId: string } & WordCloudTally;
   participant_count: { online: number; total: number };
+  // The host turned live reactions on or off. Numbered and replayed, so a phone that was offline
+  // when it happened shows or hides its reaction bar after the reconnect.
+  reactions_toggled: { enabled: boolean };
   session_ended: { reason: "host" | "timeout" };
 }
 
@@ -64,6 +68,7 @@ export const ROOM_EVENT_TYPES = [
   "vote_update",
   "word_update",
   "participant_count",
+  "reactions_toggled",
   "session_ended",
 ] as const satisfies readonly RoomEventType[];
 
@@ -105,12 +110,15 @@ export type JoinAck = ({ ok: true } & StatePayload) | { ok: false; error: ErrorB
 export type ServerToClientEvents = {
   state: (payload: StatePayload) => void;
   error: (payload: ErrorEvent) => void;
+  // Not a room event: no seq, not in the replay log, and only the host's screens get it.
+  reaction_burst: (payload: ReactionBurst) => void;
 } & { [K in RoomEventType]: (event: RoomEvent<K>) => void };
 
 export interface ClientToServerEvents {
   join: (payload: JoinPayload, ack: (reply: JoinAck) => void) => void;
   vote: (payload: VotePayload, ack: (reply: AnswerAck<VoteResult>) => void) => void;
   word: (payload: WordPayload, ack: (reply: AnswerAck<WordResult>) => void) => void;
+  reaction: (payload: ReactionPayload) => void;
 }
 
 // ---- Answers: client-generated id for retries (MD-13) ----------------------
