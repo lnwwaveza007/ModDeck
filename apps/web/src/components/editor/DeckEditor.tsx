@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
+  IMPORT_MAX_BYTES,
   SLIDE_ELEMENTS_MAX,
   SLIDE_IMAGE_MAX_BYTES,
+  type ImportDto,
   type ActivityWordingBody,
   type SlideDto,
   type SlideElement,
@@ -44,6 +46,8 @@ import {
   type LayerMove,
 } from "@/lib/editor/elements";
 import { History } from "@/lib/editor/history";
+import { mergeImported } from "@/lib/editor/import-merge";
+import { usePdfImport } from "@/lib/editor/use-pdf-import";
 import { readImageAspect } from "@/lib/editor/image";
 import {
   isPollComplete,
@@ -70,6 +74,7 @@ import {
 } from "./ActionIcons";
 import { AddSlideDialog } from "./AddSlideDialog";
 import { ElementPanel } from "./ElementPanel";
+import { ImportProgress } from "./ImportProgress";
 import { InsertBar, type InsertKind } from "./InsertBar";
 import { PollEditor } from "./PollEditor";
 import { SaveIndicator } from "./SaveIndicator";
@@ -126,6 +131,28 @@ export function DeckEditor({ deckId }: { deckId: string }) {
   const latest = useRef(slides);
   useEffect(() => {
     latest.current = slides;
+  });
+
+  // PDF import (F9): the pages come in while the host keeps editing. A finished page replaces the
+  // empty slide that waited for it; nothing else in the editor changes.
+  const tImport = useTranslations("editor.import");
+  const refreshImported = useCallback(() => {
+    getDeck(deckId).then(
+      (deck) => {
+        latest.current = mergeImported(latest.current, deck.slides);
+        setSlides(latest.current);
+      },
+      () => undefined,
+    );
+  }, [deckId]);
+  const pdf = usePdfImport({
+    deckId,
+    onSlidesChanged: refreshImported,
+    onFinished: (job: ImportDto) => {
+      if (job.failedPages === 0) {
+        toast(tImport("done", { count: job.donePages }), { tone: "success" });
+      }
+    },
   });
 
   const selectedIndex = slides.findIndex((slide) => slide.id === selectedId);
@@ -302,6 +329,42 @@ export function DeckEditor({ deckId }: { deckId: string }) {
     } catch (error) {
       recover(error);
     }
+  }
+
+  function importPdf(file: File) {
+    setAddOpen(false);
+    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    if (!isPdf) return void toast(tImport("errors.not_pdf"), { tone: "error" });
+    if (file.size > IMPORT_MAX_BYTES) {
+      return void toast(tImport("errors.too_large", { size: IMPORT_MAX_BYTES / (1024 * 1024) }), {
+        tone: "error",
+      });
+    }
+    pdf.start(file).catch((error: unknown) => {
+      if (error instanceof ApiError && error.status === 401) return router.replace("/login");
+      toast(importError(error), { tone: "error" });
+    });
+  }
+
+  // The reason the server gave, or the status when the answer was not in the usual shape.
+  function importError(error: unknown): string {
+    if (error instanceof ApiError) {
+      const reason = error.details?.reason;
+      if (typeof reason === "string" && tImport.has(`errors.${reason}` as "errors.not_pdf")) {
+        return tImport(`errors.${reason}` as "errors.not_pdf", {
+          size: IMPORT_MAX_BYTES / 1048576,
+        });
+      }
+      if (error.code === "IMPORT_RUNNING") return tImport("errors.running");
+      if (error.status === 413) {
+        return tImport("errors.too_large", { size: IMPORT_MAX_BYTES / 1048576 });
+      }
+    }
+    return tImport("errors.generic");
+  }
+
+  function retryImportPages() {
+    pdf.retry().catch((error: unknown) => toast(importError(error), { tone: "error" }));
   }
 
   function rejectImage(reason: "type" | "size") {
@@ -607,7 +670,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
         <>
           <SaveIndicator queue={queue} />
           <Button
-            disabled={starting}
+            disabled={starting || pdf.busy}
             onClick={async () => {
               if (
                 [...pollDrafts.values()].some((draft) => !isPollComplete(draft)) ||
@@ -702,6 +765,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
     // height, the slide takes what is left, and the slide list and side panel scroll on their own.
     <div className="flex min-h-0 flex-1 flex-col lg:h-dvh lg:flex-none lg:overflow-hidden">
       {header}
+      <ImportProgress state={pdf.state} onRetry={retryImportPages} onDismiss={pdf.dismiss} />
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <nav
           aria-label={tPages("deckEditor.title")}
@@ -728,7 +792,9 @@ export function DeckEditor({ deckId }: { deckId: string }) {
               >
                 {selected.kind === "content" && (
                   <InsertBar
-                    disabled={selected.elements.length >= SLIDE_ELEMENTS_MAX}
+                    disabled={
+                      selected.elements.length >= SLIDE_ELEMENTS_MAX || !!selected.importStatus
+                    }
                     onInsert={insertElement}
                     onInsertImage={insertImage}
                     onImageRejected={rejectImage}
@@ -788,7 +854,32 @@ export function DeckEditor({ deckId }: { deckId: string }) {
                   largest 16:9 that fits it, so it never needs a scroll. Below lg it just fills
                   the width and the page scrolls. */}
               <div className="min-h-0 flex-1 lg:grid lg:place-items-center lg:[container-type:size]">
-                <div className="mx-auto w-full max-w-240 lg:w-[min(100cqw,calc(100cqh*16/9))] lg:max-w-none">
+                <div className="relative mx-auto w-full max-w-240 lg:w-[min(100cqw,calc(100cqh*16/9))] lg:max-w-none">
+                  {selected.importStatus && (
+                    <div
+                      role="status"
+                      className="absolute inset-0 z-10 grid place-items-center rounded-lg bg-background p-4 text-center"
+                    >
+                      {selected.importStatus === "pending" ? (
+                        <p className="flex items-center gap-2 font-medium text-primary-700">
+                          <span
+                            aria-hidden="true"
+                            className="size-5 animate-spin rounded-full border-2 border-primary-100 border-t-primary-500 motion-reduce:animate-none"
+                          />
+                          {tImport("pagePending")}
+                        </p>
+                      ) : (
+                        <div className="flex flex-col items-center gap-2">
+                          <p className="font-medium text-warning-800">{tImport("pageFailed")}</p>
+                          {pdf.state.phase === "finished" && (
+                            <Button variant="secondary" onClick={retryImportPages}>
+                              {tImport("retry")}
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {selected.kind === "content" ? (
                     <SlideCanvas
                       key={selected.id}
@@ -877,7 +968,14 @@ export function DeckEditor({ deckId }: { deckId: string }) {
         )}
       </div>
 
-      {addOpen && <AddSlideDialog onAdd={addSlide} onClose={() => setAddOpen(false)} />}
+      {addOpen && (
+        <AddSlideDialog
+          onAdd={addSlide}
+          onImportPdf={importPdf}
+          importDisabled={pdf.busy}
+          onClose={() => setAddOpen(false)}
+        />
+      )}
     </div>
   );
 }

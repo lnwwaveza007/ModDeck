@@ -24,6 +24,24 @@ import type { SlideDto } from "@moddeck/shared";
 import { SlideRenderer } from "@/components/content/SlideRenderer";
 import { cn } from "@/lib/cn";
 
+// A page that the PDF import has not filled in yet, or could not.
+function ImportBadge({ status }: { status: "pending" | "failed" }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute inset-0.5 grid place-items-center rounded-md bg-background/70"
+    >
+      {status === "pending" ? (
+        <span className="size-6 animate-spin rounded-full border-2 border-primary-100 border-t-primary-500 motion-reduce:animate-none" />
+      ) : (
+        <span className="grid size-6 place-items-center rounded-full bg-warning-500 text-sm font-bold text-white">
+          !
+        </span>
+      )}
+    </span>
+  );
+}
+
 const SlideItem = memo(function SlideItem({
   slide,
   number,
@@ -62,14 +80,18 @@ const SlideItem = memo(function SlideItem({
         {...listeners}
         role="button"
         aria-current={selected ? "true" : undefined}
-        aria-label={t("slideLabel", { number, kind: t(`kinds.${slide.kind}`) })}
+        aria-label={
+          t("slideLabel", { number, kind: t(`kinds.${slide.kind}`) }) +
+          (slide.importStatus ? `, ${t(`import.thumb.${slide.importStatus}`)}` : "")
+        }
         onClick={() => onSelect(slide.id)}
         className={cn(
-          "min-w-0 flex-1 touch-none rounded-lg p-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+          "relative min-w-0 flex-1 touch-none rounded-lg p-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
           selected ? "ring-2 ring-primary-500" : "hover:ring-2 hover:ring-neutral-300",
         )}
       >
         <SlideRenderer slide={slide} mode="thumbnail" />
+        {slide.importStatus && <ImportBadge status={slide.importStatus} />}
       </button>
     </li>
   );
