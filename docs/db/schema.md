@@ -39,7 +39,7 @@ The ticket lists the tables by working names. The technical design (§4.1) refin
 | questions | `questions` | |
 | question_votes | `question_votes` | Upvotes (`UPVOTE`) |
 | session_results | `activity_runs` | State of each activity in one session. Results are **counted** from `answers` and `word_entries`, never stored as counters (technical design §4.2, MD-9 §3) |
-| — | `session_cohosts`, `pdf_imports`, `word_entries`, `reaction_counts` | In the technical design, needed by F3, F9, F8 and F11 |
+| — | `session_cohosts`, `pdf_imports`, `pdf_import_pages`, `word_entries`, `reaction_counts` | In the technical design, needed by F3, F9, F8 and F11 |
 
 ## 3. ERD
 
@@ -55,6 +55,8 @@ erDiagram
 
     decks ||--|{ slides : contains
     decks ||--o{ pdf_imports : "imports from"
+    pdf_imports ||--|{ pdf_import_pages : "has one per page"
+    slides ||--o| pdf_import_pages : "waits for"
     decks ||--o{ sessions : "is run as"
 
     slides ||--o| activities : has
@@ -120,7 +122,8 @@ erDiagram
         slide_kind kind "content poll word_cloud (text code math image are the old kinds)"
         jsonb elements "canvas of a content slide, back to front"
         text content "unused, replaced by elements"
-        text image_ref "unused, replaced by elements"
+        text image_ref "old column; the PDF import also sets it to the page image"
+        text source_text "text of the imported PDF page, Thai repair applied (R2 AI features)"
         timestamptz created_at
         timestamptz updated_at
     }
@@ -143,10 +146,20 @@ erDiagram
         uuid id PK
         uuid deck_id FK
         text file_name
+        text file_ref "uploaded PDF, empty after the job"
         int page_count
         import_status status "queued running done failed"
+        text error_code "set when the whole import failed"
         timestamptz created_at
         timestamptz updated_at
+    }
+    pdf_import_pages {
+        uuid import_id PK,FK
+        int page PK "1-based"
+        uuid slide_id FK,UK
+        import_status status
+        text error_code
+        int attempts
     }
     sessions {
         uuid id PK
@@ -243,6 +256,7 @@ Other indexes:
 - `host_sessions.token_hash` UK: resolve the host cookie on every host request. `host_sessions (expires_at)`: delete expired logins.
 - `answers (activity_run_id, option_id)`: count votes per option for results and export.
 - `word_entries (activity_run_id, normalized_text)`: group words for the cloud.
+- `pdf_imports (status, created_at)`: the import runner takes the oldest queued import. `pdf_import_pages (import_id, page)` PK and `slide_id` UK: one row per PDF page, and one row at most per slide.
 - Each foreign key column that is not the first column of another index has its own index, so cascading deletes do not scan whole tables.
 
 ## 5. Rules carried by keys
@@ -280,6 +294,7 @@ Host login (MD-7): after KMUTT SSO the server makes a random token, puts it in t
 - Deleting a deck is a soft delete: `DELETE /decks/{id}` sets `deleted_at`, and the deck leaves My decks and answers 404. Its slides, past sessions, answers and questions stay, so session history, results and export keep working. The API refuses while a session is live (`409 DECK_LIVE`). The `ON DELETE CASCADE` from decks still applies to a real row delete, which only maintenance scripts do.
 - Deleting a slide or activity deletes its past runs and answers. The API refuses while the activity is live (`409 ACTIVITY_LOCKED`). Keeping history after a deck edit is a candidate change for R2 (copy the activity into the session at start).
 - A content slide is a canvas: `slides.elements` holds its text, code, formula and image elements back to front, each with a position and size in percent of the 16:9 stage. The api validates the list with `slideElementsSchema` (packages/shared) and an element that fails it is skipped on read. The old kinds `text`, `code`, `math` and `image` and the `content` and `image_ref` columns were converted into elements by migration `20261101120100_slide_elements`; the columns and enum values are dropped in a later contract migration.
+- A PDF import (F9) is its own queue: `pdf_imports.status` is the state of the job and `pdf_import_pages` has one row per PDF page, linked to the slide that waits for it. Deleting that slide cascades to its page row, and the worker skips a page whose row is gone. The uploaded PDF (`file_ref`, in the `imports` volume) is deleted when every page is done, and kept for 24 h when a page failed so the host can retry.
 - A user who owns decks or sessions cannot be deleted (`RESTRICT`). There is no user delete in R1.
 - R1 never deletes participants; removal is a status change.
 - Deleting a user deletes their host logins (cascade).
