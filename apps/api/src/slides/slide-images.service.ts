@@ -24,6 +24,9 @@ const MIME_BY_EXTENSION: Record<string, string> = Object.fromEntries(
 // Only names the api wrote are read back, so a request cannot walk out of the slides folder.
 export const IMAGE_REF_PATTERN = SLIDE_IMAGE_REF_PATTERN;
 
+/** The `slides` volume (technical design §1). The PDF import writes its page images here too. */
+export const slidesDir = () => process.env.SLIDES_DIR ?? join(process.cwd(), "data", "slides");
+
 const PNG_SIGNATURE = Buffer.from("89504e470d0a1a0a", "hex");
 
 /** The type from the file's first bytes. The upload's own content type is not trusted. */
@@ -51,7 +54,7 @@ export function sniffImageType(bytes: Buffer): SlideImageType | null {
  */
 @Injectable()
 export class SlideImagesService {
-  private readonly dir = process.env.SLIDES_DIR ?? join(process.cwd(), "data", "slides");
+  private readonly dir = slidesDir();
 
   async save(bytes: Buffer): Promise<string> {
     if (bytes.length === 0) {

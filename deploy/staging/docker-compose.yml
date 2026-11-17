@@ -45,8 +45,10 @@ services:
       # Public URL incl. prefix. The Entra redirect URI is this + /api/auth/callback.
       APP_BASE_URL: ${PUBLIC_ORIGIN:-https://${STAGING_HOST}}${BASE_PATH:-}
       SLIDES_DIR: /data/slides
+      IMPORTS_DIR: /data/imports
     volumes:
       - slides:/data/slides
+      - imports:/data/imports
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/health"]
       interval: 10s
@@ -93,3 +95,4 @@ volumes:
   pgdata:
   redisdata:
   slides:
+  imports:

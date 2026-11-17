@@ -260,7 +260,7 @@ state/                    Zustand stores, one per slice
 | `ConnectionBanner` | session | Every live screen | Reads connection state from the store |
 | `ParticipantList` | session | Presenter, session results | Rename, remove (host only) |
 | `PresenterOverlay` | session | Mirror mode (one display) | Key `O` |
-| `ImportProgress` | session | Deck editor | Per-page PDF import progress |
+| `ImportProgress` | deck editor | Deck editor | Per-page PDF import progress, retry for failed pages |
 
 **Example: one component, three surfaces (Live Poll)**
 
@@ -354,7 +354,7 @@ Every route from the [MD-5 sitemap](../ux/md-5-ia-and-flows.md#3-sitemap) is bui
 | Join | `/j/:pin` | `Card`, `Banner`, `Button`, `Input`, `Tabs` (language) | `drafts`, `identity`, `prefs` · `GET /pins/{pin}`, `POST /pins/{pin}/participants` |
 | Student live screen | `/s/:sessionId` | `ConnectionBanner`, `Tabs`, `Badge`, `WaitingView`, `ActivityRenderer` (`PollOptionButton`, `WordCloudInput`, `PollChart`), `QuestionList` (`QuestionCard`), `AskForm` (`AnonymousToggle`), `ReactionBar`, `RichText` | `connection`, `liveSession`, `myResponses`, `qa`, `drafts` · socket `hello`, `vote`, `word`, `question`, `upvote`, `reaction` |
 | My decks | `/decks` | `Button`, `Card`, `Badge`, `Dialog`, `Input` | TanStack Query `["decks"]` · `GET/POST /decks`, `POST …/copies`, `DELETE /decks/{id}` |
-| Deck editor | `/decks/:deckId` | `Button`, `Banner`, `SlideThumbnail`, `Dialog`, `ImportProgress`, `SlideRenderer`, `RichText`, `Input`, `Toggle` | TanStack Query `["deck", id]` · slides, `slide-order`, `settings`, `imports` · socket `import_progress` |
+| Deck editor | `/decks/:deckId` | `Button`, `Banner`, `SlideThumbnail`, `Dialog`, `ImportProgress`, `SlideRenderer`, `RichText`, `Input`, `Toggle` | TanStack Query `["deck", id]` · slides, `slide-order`, `settings`, `imports` (polled while an import runs) |
 | Presenter control | `/host/:sessionId` | `JoinBar`, `ConnectionBanner`, `Banner`, `SlideRenderer`, `SlideThumbnail`, `ActivityRenderer` (`PollChart`, `WordCloudView`), `Button`, `QuestionList` (`QuestionCard`), `ParticipantList`, `Toggle`, `HoldButton`, `PresenterOverlay` | `connection`, `liveSession`, `qa` · `PATCH` session, activity, question · socket `slide_changed`, `activity_state`, `vote_update`, `participant_count`, `question_posted` |
 | Co-host Q&A | `/host/:sessionId/qa` | `ConnectionBanner`, `Banner`, `Button`, `Tabs`, `QuestionList` (`QuestionCard`) | `connection`, `qa` · `PATCH` question, `POST …/sender-removals`, `POST …/takeovers` |
 | Audience screen | `/screen/:sessionId` | `SlideRenderer`, `RichText`, `ActivityRenderer` (`PollChart`, `WordCloudView`), `JoinBar`, `QuestionCard`, `ReactionLayer`, `Card` | `connection`, `liveSession` (read only) · socket `slide_changed`, `activity_state`, `vote_update`, `word_update`, `reaction_burst`, `session_ended` |
@@ -454,11 +454,18 @@ Paths are relative to `/api/v1`. "Errors" lists the main non-2xx codes. The comm
 
 | Method | Path | Purpose | Auth | Success | Errors |
 | --- | --- | --- | --- | --- | --- |
-| POST | `/decks/{deckId}/imports` | Upload a PDF (`multipart/form-data`), start the background job | owner | 202 + `Location: /imports/{importId}` | 413 over 50 MB, 415 not PDF, 422 over 150 pages or password-protected |
-| GET | `/imports/{importId}` | Job status and per-page progress | owner | 200 | 404 |
-| POST | `/imports/{importId}/retries` | Retry failed pages | owner | 202 | 409 job still running |
+| POST | `/decks/{deckId}/imports` | Upload a PDF (`multipart/form-data`, field `file`). The api reads the PDF, adds one empty slide per page at the end of the deck, and starts the background job | owner | 202 + `Location: /imports/{importId}` + `ImportDto` | 413 over 50 MB, 415 not PDF, 422 empty, corrupt, password-protected, over 150 pages or deck over 200 slides (`details.reason`), 409 `IMPORT_RUNNING` another import of this deck is running |
+| GET | `/decks/{deckId}/imports` | The 5 newest imports of the deck, so the editor can pick up one that is still running | owner | 200 `ImportDto[]` | 404 |
+| GET | `/imports/{importId}` | Job status and the state of each page | owner | 200 `ImportDetail` | 404 |
+| POST | `/imports/{importId}/retries` | Run the failed pages again | owner | 202 | 409 job still running, 422 `nothing_to_retry` or `file_expired` (the PDF is kept 24 h) |
 
-Progress is also pushed over the socket (`import_progress`), so the editor does not have to poll.
+How it runs (R1-14):
+
+- **The queue is Postgres.** `pdf_imports.status` is the queue. One runner in `api` takes the oldest `queued` row (`FOR UPDATE SKIP LOCKED`, and only when none is `running`), so one import runs at a time. No Redis queue and no extra container.
+- **The work is a worker thread** (`pdfjs-dist` + `@napi-rs/canvas`). Each page is drawn as WebP, 1920 px wide, quality 80, written to the `slides` volume, and its text gets the Thai repair of MD-14. The thread sends one message per finished page, and the runner saves it at once: the slide gets one full-canvas image element and `slides.source_text` (kept for Release 2).
+- **Slides come first.** The upload creates the slides with an empty canvas and `pdf_import_pages` rows. A slide whose page is not done shows as `importStatus: pending` (`failed` when it gave up). Editing a pending slide answers 409 `IMPORT_RUNNING`. The host can edit every other slide, and the session cannot start while an import runs.
+- **Progress is polled, not pushed.** The editor reads `GET /imports/{id}` once a second while the import runs, and reloads the deck when a page has come in. This replaces the `import_progress` socket event: the editor has no socket, and rooms belong to live sessions.
+- **Failures.** A bad page fails alone (`PAGE_RENDER_FAILED`). A page that takes over 20 s is dropped (`PAGE_TIMEOUT`). If the thread crashes, the page is tried once more, then fails (`WORKER_CRASH`). The import is `failed` only when no page came out; otherwise it is `done` with failed pages, and the PDF stays for 24 h so `retries` can run them again. After an api restart, a `running` import goes back to `queued`, and pages that are done stay done.
 
 **Sessions (F3, F10, F12, F13)**
 
@@ -518,7 +525,6 @@ All live traffic uses one Socket.IO namespace (`/`). Each session is one room. E
 | S → C | `question_posted` / `question_updated` | question fields (author hidden if anonymous) | |
 | S → C | `participant_count` | `online`, `total` | Coalesced. Replaces per-person `user_joined` (MD-8 §9: join was quadratic) |
 | S → C | `reaction_burst` | counts per emoji | Audience screen only |
-| S → C | `import_progress` | `importId`, `page`, `status` | Host only |
 | S → C | `session_ended` | `reason: "host" \| "timeout"` | |
 | S → C | `error` | `code`, `message`, `seq` | Same codes as REST |
 
@@ -685,7 +691,15 @@ erDiagram
         string fileName
         int pageCount
         string status "queued, running, done, failed"
+        string errorCode "whole import failed"
         datetime createdAt
+    }
+    PDF_IMPORT_PAGE {
+        string importId FK
+        int page "1-based"
+        string slideId FK
+        string status "queued, running, done, failed"
+        string errorCode
     }
     SESSION {
         string sessionId PK

@@ -4,8 +4,9 @@ import {
   type LiveActivity,
   type SlideDto,
   type SlideElement,
+  type SlideImportStatus,
 } from "@moddeck/shared";
-import type { Prisma } from "../generated/prisma/client";
+import type { ImportStatus, Prisma } from "../generated/prisma/client";
 
 // What a screen needs to draw an activity. The live view, the phones and the wording editor all
 // read it, so one select keeps them the same.
@@ -31,6 +32,8 @@ export const toLiveActivity = ({
 // Slide rows always come with the activity wording, so the editor can show and edit it.
 export const slideArgs = {
   include: {
+    // A page of a PDF import that has no image yet, or could not get one.
+    importPage: { select: { status: true } },
     activity: {
       select: {
         id: true,
@@ -43,7 +46,10 @@ export const slideArgs = {
   },
 } satisfies Prisma.SlideDefaultArgs;
 
-type SlideRow = Prisma.SlideGetPayload<typeof slideArgs>;
+// The live channel reads slides without the import state, so it is optional here.
+type SlideRow = Omit<Prisma.SlideGetPayload<typeof slideArgs>, "importPage"> & {
+  importPage?: { status: ImportStatus } | null;
+};
 
 /**
  * Elements are written through slideElementsSchema, so an element that fails it was edited by
@@ -57,6 +63,11 @@ function readElements(value: Prisma.JsonValue): SlideElement[] {
       return parsed.success ? [parsed.data] : [];
     })
     .slice(0, SLIDE_ELEMENTS_MAX);
+}
+
+function importStatus(status: ImportStatus | undefined): SlideImportStatus | null {
+  if (status === "failed") return "failed";
+  return status === "queued" || status === "running" ? "pending" : null;
 }
 
 export function toSlideDto(slide: SlideRow): SlideDto {
@@ -75,6 +86,7 @@ export function toSlideDto(slide: SlideRow): SlideDto {
       options: slide.activity.options,
       maxEntries: slide.activity.maxEntriesPerPerson,
     },
+    importStatus: importStatus(slide.importPage?.status),
     updatedAt: slide.updatedAt.toISOString(),
   };
 }

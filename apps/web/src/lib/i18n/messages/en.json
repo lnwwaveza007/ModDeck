@@ -476,6 +476,49 @@
       "entries": "Words per student",
       "limit": "Each word can be up to {max} characters. Thai vowels and tone marks count with their letter.",
       "incomplete": "Write the prompt. It saves when complete."
+    },
+    "import": {
+      "section": "Import",
+      "pdf": "PDF file",
+      "pdfHint": "Each page becomes an image slide",
+      "busy": "An import is already running",
+      "uploading": "Reading {name}…",
+      "progress": "Importing {name}: {done} of {total} pages",
+      "progressLabel": "PDF import progress",
+      "keepEditing": "You can keep editing.",
+      "done": "Imported {count, plural, one {# page} other {# pages}}",
+      "failedAll": "Could not import {name}: {reason}",
+      "failedSome": "{failed} of {total} pages could not be imported.",
+      "retry": "Try again",
+      "dismiss": "Dismiss",
+      "pagePending": "Importing this page…",
+      "pageFailed": "This page could not be imported.",
+      "thumb": {
+        "pending": "importing",
+        "failed": "import failed"
+      },
+      "codes": {
+        "PDF_INVALID": "The file is not a readable PDF.",
+        "PDF_PROTECTED": "The PDF is password protected.",
+        "PAGE_RENDER_FAILED": "The page could not be drawn.",
+        "PAGE_TIMEOUT": "The page took too long.",
+        "WORKER_CRASH": "The import stopped unexpectedly.",
+        "ALL_PAGES_FAILED": "No page could be imported.",
+        "unknown": "Something went wrong."
+      },
+      "errors": {
+        "not_pdf": "Choose a PDF file.",
+        "empty": "This file is empty.",
+        "too_large": "This PDF is larger than {size} MB.",
+        "corrupt": "This PDF is damaged and cannot be read.",
+        "protected": "This PDF is password protected. Remove the password and try again.",
+        "too_many_pages": "A PDF can have at most 150 pages.",
+        "deck_full": "A deck holds at most 200 slides. This PDF does not fit.",
+        "file_expired": "The PDF is no longer kept. Upload it again.",
+        "nothing_to_retry": "No page failed.",
+        "running": "A PDF import is already running on this deck.",
+        "generic": "Could not import the PDF. Try again."
+      }
     }
   },
   "pages": {

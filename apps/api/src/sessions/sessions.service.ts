@@ -33,7 +33,11 @@ export class SessionsService {
           orderBy: { position: "asc" },
           include: { activity: { include: { options: true } } },
         },
-        imports: { where: { status: "running" }, select: { id: true }, take: 1 },
+        imports: {
+          where: { status: { in: ["queued", "running"] } },
+          select: { id: true },
+          take: 1,
+        },
       },
     });
     if (!deck) throw new ApiException(404, "NOT_FOUND", "Deck not found");

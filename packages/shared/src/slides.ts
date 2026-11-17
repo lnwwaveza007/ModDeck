@@ -6,6 +6,7 @@
 
 import { z } from "zod";
 import type { DeckSummary } from "./decks";
+import type { SlideImportStatus } from "./imports";
 
 export const SLIDE_KINDS = ["content", "poll", "word_cloud"] as const;
 export type SlideKind = (typeof SLIDE_KINDS)[number];
@@ -162,6 +163,8 @@ export interface SlideDto {
     options: { id: string; label: string }[];
     maxEntries: number;
   } | null;
+  // Set while a PDF import has not filled this slide in yet ("pending"), or could not ("failed").
+  importStatus?: SlideImportStatus | null;
   updatedAt: string;
 }
 

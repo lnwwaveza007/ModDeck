@@ -42,6 +42,7 @@ services:
       ENTRA_CLIENT_SECRET: ${ENTRA_CLIENT_SECRET:-}
       APP_BASE_URL: http://localhost:${WEB_PORT:-3000}
       SLIDES_DIR: /data/slides
+      IMPORTS_DIR: /data/imports
     # Apply pending migrations and the demo seed (idempotent) before the dev server.
     command: ["sh", "-c", "pnpm db:generate && pnpm db:deploy && pnpm db:seed && pnpm dev"]
     ports:
@@ -50,6 +51,7 @@ services:
       - ./apps/api/src:/repo/apps/api/src
       - ./apps/api/prisma:/repo/apps/api/prisma
       - slides:/data/slides
+      - imports:/data/imports
     depends_on:
       postgres:
         condition: service_healthy
@@ -77,3 +79,4 @@ services:
 volumes:
   pgdata:
   slides:
+  imports:
