@@ -1,12 +1,18 @@
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { LanguageSwitch } from "@/components/shell/LanguageSwitch";
 import { Logo } from "@/components/shell/Logo";
 import { PinForm } from "@/components/shell/PinForm";
 
 // Landing `/` from MD-15 Main: PIN entry for students, a link to login for hosts.
-export default function Home() {
-  const t = useTranslations("landing");
+// /j/:pin sends a student back here with ?pin=invalid when no session holds the PIN.
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ pin?: string | string[] }>;
+}) {
+  const t = await getTranslations("landing");
+  const stalePin = (await searchParams).pin === "invalid";
   return (
     <>
       <header className="flex items-center justify-between py-3 pr-2 pl-5">
@@ -20,7 +26,7 @@ export default function Home() {
           <p className="text-muted">{t("subtitle")}</p>
         </div>
 
-        <PinForm />
+        <PinForm initialError={stalePin ? { kind: "invalid" } : undefined} />
 
         <div className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-surface p-4">
           <QrIcon />

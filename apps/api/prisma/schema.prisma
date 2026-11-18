@@ -265,8 +265,10 @@ model Session {
   id             String            @id @default(uuid(7)) @db.Uuid
   deckId         String            @map("deck_id") @db.Uuid
   ownerId        String            @map("owner_id") @db.Uuid
-  pin            String            @db.Char(6)
-  status         SessionStatus     @default(live)
+  // Held only while the session is open: ending it clears the PIN so the number can be issued
+  // again. What the session leaves behind (participants, runs, answers) is keyed by `id`.
+  pin            String?           @unique @db.Char(6)
+  status        SessionStatus     @default(live)
   currentSlideId String?           @map("current_slide_id") @db.Uuid
   settings       Json // deck settings copied at start
   startedAt      DateTime          @default(now()) @map("started_at") @db.Timestamptz(3)
@@ -282,11 +284,6 @@ model Session {
   questions      Question[]
   reactionCounts ReactionCount[]
 
-  // A PIN is unique among sessions that have not ended. An ended session keeps
-  // its PIN so GET /pins/{pin} can answer 410 for 24 h; the plain index serves
-  // that lookup.
-  @@unique([pin], map: "sessions_live_pin_key", where: raw("status <> 'ended'"))
-  @@index([pin])
   @@index([ownerId, startedAt(sort: Desc)])
   @@index([deckId, status])
   @@map("sessions")

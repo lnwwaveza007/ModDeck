@@ -21,7 +21,8 @@ type Blocker = "invalid" | "ended" | "full" | "tooMany" | "removed" | "network";
 
 type View =
   | { kind: "checking" }
-  | { kind: "blocked"; reason: Blocker; retryAfter?: number }
+  // An unknown PIN never shows here: it goes back to PIN entry.
+  | { kind: "blocked"; reason: Exclude<Blocker, "invalid">; retryAfter?: number }
   | { kind: "identity" }
   | { kind: "nickname" }
   | { kind: "joining" };
@@ -99,9 +100,16 @@ export function JoinFlow({
     router.replace(`/s/${sessionId}`);
   }
 
+  // No session holds this PIN (a typo in the URL, or a QR code of a session that has ended and
+  // given its PIN back): back to PIN entry, which clears the field and asks for the PIN again.
+  function block(blocker: { reason: Blocker; retryAfter?: number }) {
+    if (blocker.reason === "invalid") return router.replace("/?pin=invalid");
+    setView({ kind: "blocked", reason: blocker.reason, retryAfter: blocker.retryAfter });
+  }
+
   function failJoin(error: unknown, from: "identity" | "nickname") {
     const blocker = blockerFor(error);
-    if (blocker) return setView({ kind: "blocked", ...blocker });
+    if (blocker) return block(blocker);
     const code = error instanceof ApiError ? error.code : "";
     if (code === "NICKNAME_TAKEN") setNicknameError("TAKEN");
     else if (code === "NICKNAME_INVALID") {
@@ -147,7 +155,7 @@ export function JoinFlow({
         setView({ kind: "identity" });
       },
       (error: unknown) => {
-        if (active) setView({ kind: "blocked", ...(blockerFor(error) ?? { reason: "network" }) });
+        if (active) block(blockerFor(error) ?? { reason: "network" });
       },
     );
     return () => {
@@ -322,7 +330,7 @@ function BlockedView({
   info,
   onRetry,
 }: {
-  reason: Blocker;
+  reason: Exclude<Blocker, "invalid">;
   retryAfter?: number;
   info: PinInfo | null;
   onRetry: () => void;
@@ -338,16 +346,10 @@ function BlockedView({
       {t("retry")}
     </Button>
   );
-  const content: Record<Blocker, { title: string; body: string; actions: ReactNode }> = {
-    invalid: {
-      title: t("status.invalidTitle"),
-      body: t("status.invalidBody"),
-      actions: (
-        <Link href="/" className={buttonClass({ size: "lg", fullWidth: true })}>
-          {t("retry")}
-        </Link>
-      ),
-    },
+  const content: Record<
+    Exclude<Blocker, "invalid">,
+    { title: string; body: string; actions: ReactNode }
+  > = {
     ended: { title: t("status.endedTitle"), body: t("status.endedBody"), actions: otherPin },
     full: {
       title: t("full.title"),

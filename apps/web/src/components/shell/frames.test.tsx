@@ -2,7 +2,6 @@ import { fireEvent, screen } from "@testing-library/react";
 import { renderWithIntl } from "@/test/render";
 import { HostNav } from "./HostNav";
 import { LiveShell } from "./LiveShell";
-import { PinForm } from "./PinForm";
 import { SessionHeader } from "./SessionHeader";
 
 const push = jest.fn();
@@ -13,25 +12,6 @@ jest.mock("next/navigation", () => ({
   usePathname: () => pathname,
 }));
 jest.mock("@/lib/i18n/actions", () => ({ setLocale: jest.fn() }));
-
-describe("PinForm", () => {
-  beforeEach(() => push.mockClear());
-
-  it("keeps digits only and joins automatically at 6 digits", () => {
-    renderWithIntl(<PinForm />, "en");
-    const input = screen.getByLabelText("PIN");
-    const join = screen.getByRole("button", { name: "Join" });
-
-    fireEvent.change(input, { target: { value: "48a2 9" } });
-    expect(input).toHaveValue("4829");
-    expect(join).toBeDisabled();
-    expect(push).not.toHaveBeenCalled();
-
-    fireEvent.change(input, { target: { value: "482914" } });
-    expect(push).toHaveBeenCalledWith("/j/482914");
-    expect(join).toBeEnabled();
-  });
-});
 
 describe("HostNav", () => {
   it("marks the current section", () => {

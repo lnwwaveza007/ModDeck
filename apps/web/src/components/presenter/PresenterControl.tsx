@@ -91,7 +91,7 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
   const run = activity ? runOf(runs, activity.id) : null;
   const tally = run ? (tallies[run.activityRunId] ?? NO_VOTES) : undefined;
   const cloud = run ? (clouds[run.activityRunId] ?? NO_WORDS) : undefined;
-  const pin = view.pin.replace(/(\d{3})(\d{3})/, "$1 $2");
+  const pin = view.pin?.replace(/(\d{3})(\d{3})/, "$1 $2");
   const elapsed = Math.max(0, (now - Date.parse(view.startedAt)) / 1000);
   const participants = end.session?.participantCount ?? view.participantCount;
   const [screen, setScreen] = layers;
@@ -103,9 +103,12 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
           {t("live")}
         </span>
         <h1 className="min-w-0 flex-1 truncate text-lg font-bold">{view.title}</h1>
-        <span className="rounded-md bg-neutral-100 px-2.5 py-1 font-mono text-sm font-semibold text-primary-700">
-          PIN {pin}
-        </span>
+        {/* An ended session has given its PIN back. */}
+        {pin && (
+          <span className="rounded-md bg-neutral-100 px-2.5 py-1 font-mono text-sm font-semibold text-primary-700">
+            PIN {pin}
+          </span>
+        )}
         <span className="rounded-md bg-neutral-100 px-2.5 py-1 text-sm font-semibold tabular-nums">
           <span className="sr-only">{t("elapsed")} </span>
           {formatDuration(elapsed)}

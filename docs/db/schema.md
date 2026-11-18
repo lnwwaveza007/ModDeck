@@ -17,7 +17,7 @@ Why Prisma, not TypeORM:
 | Drift check in CI | `prisma migrate diff --exit-code` fails the build when someone edits the schema without a migration. |
 | Typed queries | The generated client types every query and relation. Fewer runtime errors in the many small CRUD endpoints (decks, slides, settings). |
 | The hot path does not need an ORM | Answers go to Redis first and are flushed with one raw `INSERT ... ON CONFLICT DO NOTHING` (MD-9). Prisma's `$executeRaw` covers that. TypeORM's strengths (active record, complex entity listeners) are not needed. |
-| Partial indexes | Prisma 7 supports `where:` on indexes (`partialIndexes` preview), used for the live-session PIN rule. |
+| Partial indexes | Prisma 7 supports `where:` on indexes (`partialIndexes` preview), used for the guest nickname rule and the deck list (`deleted_at IS NULL`). |
 
 Trade-offs we accept: the generated client must be rebuilt after a schema change (`pnpm db:generate`, also run by `build` and `dev`); `partialIndexes` is a preview feature; pgvector columns (R2) need raw SQL.
 
@@ -165,7 +165,7 @@ erDiagram
         uuid id PK
         uuid deck_id FK
         uuid owner_id FK
-        char6 pin "UK while not ended"
+        char6 pin "UK, null once ended"
         session_status status "live host_away ended"
         uuid current_slide_id FK
         jsonb settings "copied from deck"
@@ -246,7 +246,7 @@ The three lookups named in the ticket:
 
 | Lookup | Index | Used by |
 | --- | --- | --- |
-| Session by PIN | `sessions_live_pin_key`: `UNIQUE (pin) WHERE status <> 'ended'`, plus `sessions_pin_idx` on `pin` | `GET /pins/{pin}`, join. The partial unique index stops two open sessions from sharing a PIN. Ended sessions keep their PIN, so the plain index also finds them for the 410 "session ended" answer in the first 24 h |
+| Session by PIN | `sessions_pin_key`: `UNIQUE (pin)` | `GET /pins/{pin}`, join. Only an open session holds a PIN: ending the session sets `pin` to NULL in the same write, so the number goes back to the pool and a stale PIN answers 404 like an unknown one. NULLs never collide, so any number of ended sessions sit side by side. What an ended session keeps (participants, runs, answers, word entries, reactions) hangs off `sessions.id`, never the PIN |
 | Decks by owner | `decks_owner_id_updated_at_idx` on `(owner_id, updated_at DESC) WHERE deleted_at IS NULL` | `GET /decks` (my decks, newest first, deleted decks left out) |
 | Rows by session ID | `participants (session_id, nickname) WHERE login_type = 'guest'` UK, `participants (session_id, user_id)` UK, `activity_runs (session_id, activity_id)` UK, `questions (session_id, created_at)`, `sessions (deck_id, status)`, `sessions (owner_id, started_at DESC)`, and the composite keys of `session_cohosts` and `reaction_counts` | Live screens, rejoin, results, export, history, "live now" count, `DECK_LIVE` check |
 
