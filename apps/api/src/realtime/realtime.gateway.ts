@@ -22,6 +22,7 @@ import {
   type WordResult,
 } from "@moddeck/shared";
 import { MetricsService } from "../metrics/metrics.service";
+import { ParticipantChannelService } from "./participant-channel.service";
 import { hostTokenFromHandshake, tokenFromHandshake, wantsHostRole } from "./participant-token";
 import { PollStoreService } from "./poll-store.service";
 import { PresenceService } from "./presence.service";
@@ -57,6 +58,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     private readonly words: WordStoreService,
     private readonly wordBatcher: WordBatcherService,
     private readonly reactions: ReactionService,
+    private readonly channel: ParticipantChannelService,
   ) {}
 
   // One heartbeat timer per connected socket.
@@ -65,6 +67,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   afterInit(server: RealtimeServer) {
     this.roomEvents.attach(server);
     this.reactions.attach(server);
+    this.channel.attach(server);
 
     // Handshake: a socket without a valid participant token (or, when it asks
     // for the host role, a valid host login) never connects. The rejection
@@ -103,7 +106,10 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     // A host holds no seat.
     const { identity } = client.data;
     if (identity.role !== "participant") return;
-    const { participantId } = identity;
+    const { participantId, sessionId } = identity;
+    // The host's participant list shows them online from now on.
+    this.channel.enter(client, participantId, sessionId);
+    this.announce(sessionId, participantId);
     this.touch(participantId);
     this.heartbeats.set(
       client.id,
@@ -117,7 +123,18 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     this.heartbeats.delete(client.id);
     // A socket that failed the handshake has no identity.
     const identity = client.data.identity as SocketData["identity"] | undefined;
-    if (identity?.role === "participant") this.touch(identity.participantId);
+    if (identity?.role === "participant") {
+      this.touch(identity.participantId);
+      // Offline only when this was their last socket: the announce counts the ones left.
+      this.announce(identity.sessionId, identity.participantId);
+    }
+  }
+
+  // The list is a convenience for the host: a failed update is logged, never thrown.
+  private announce(sessionId: string, participantId: string) {
+    this.channel.announce(sessionId, participantId).catch((err: unknown) => {
+      this.logger.warn(`Participant list update failed: ${String(err)}`);
+    });
   }
 
   // A failed write only makes the hold start a little early, so it is logged, not thrown.
@@ -166,7 +183,13 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     if (identity.role === "host") await client.join(hostRoomName(sessionId));
     const state = await this.roomEvents.sync(sessionId, parsed.data.lastSeq);
     client.emit("state", state);
-    return { ok: true, ...state };
+    // A participant's name as of this connect: a rename while the phone was away is not in the
+    // replay of room events, so the phone learns it here.
+    return {
+      ok: true,
+      ...state,
+      ...(identity.role === "participant" && { nickname: identity.nickname }),
+    };
   }
 
   // A student's vote. The ack is what lets the phone say "Answer sent" (MD-5 rule 6). The session
@@ -208,6 +231,8 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
           return voteError("INVALID_PAYLOAD", "The option is not in this poll");
         case "not_found":
           return voteError("NOT_FOUND", "This poll is not running in your session");
+        case "removed":
+          return voteError("PARTICIPANT_REMOVED", "You were removed from this session");
       }
     } catch (err) {
       // Safe to send again: the answerId keeps it from counting twice.
@@ -260,6 +285,8 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
           return wordError("ACTIVITY_CLOSED", "This word cloud is closed");
         case "not_found":
           return wordError("NOT_FOUND", "This word cloud is not running in your session");
+        case "removed":
+          return wordError("PARTICIPANT_REMOVED", "You were removed from this session");
       }
     } catch (err) {
       // Safe to send again: the answerId keeps it from counting twice.

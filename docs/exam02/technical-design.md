@@ -492,8 +492,9 @@ How it runs (R1-14):
 | POST | `/pins/{pin}/participants` | Join. Guest: `{ nickname }`. SSO user: no body (uses the login). Sets the participant cookie. Joins by PIN, so the session id stays private until the student is in | none / host cookie | 201 (new) or 200 (rejoin, same participant) | 401 no login and no nickname, 403 `LOGIN_REQUIRED`, 409 `SESSION_FULL`, 409 `NICKNAME_TAKEN`, 422 `NICKNAME_INVALID`, 403 `PARTICIPANT_REMOVED`, 429 `TOO_MANY_ATTEMPTS` |
 | GET | `/participants/me` | The participant of this cookie, the session title and status, slide count and current slide (late join) | participant | 200 | 401, 403 `PARTICIPANT_REMOVED`, 410 `SESSION_ENDED` |
 | GET | `/sessions/{sessionId}/participants` | Participant list with online / offline | owner | 200 | — |
-| PATCH | `/sessions/{sessionId}/participants/{participantId}` | Rename (to "Guest N") | owner | 200 | 422 |
-| DELETE | `/sessions/{sessionId}/participants/{participantId}` | Remove a participant and block the device token for this session | owner | 204 | — |
+| GET | `/sessions/{sessionId}/participants` | The participant list: nickname, `loginType`, `online`. Removed participants are not listed | owner | 200 | 404 |
+| PATCH | `/sessions/{sessionId}/participants/{participantId}` | Rename a guest to `{ nickname }`, typed by the host. Same rules as a guest nickname | owner | 200 | 404, 409 `NICKNAME_TAKEN`, 409 `NOT_A_GUEST` (KMUTT), 409 `SESSION_ENDED`, 422 `NICKNAME_INVALID` |
+| DELETE | `/sessions/{sessionId}/participants/{participantId}` | Remove a participant: block the device token for this session, close their sockets, take their answers out of the live results. Safe to repeat | owner | 204 | 404, 409 `SESSION_ENDED` |
 
 **Q&A moderation (F6)**
 
@@ -525,6 +526,8 @@ All live traffic uses one Socket.IO namespace (`/`). Each session is one room. E
 | S → C | `question_posted` / `question_updated` | question fields (author hidden if anonymous) | |
 | S → C | `participant_count` | `online`, `total` | Coalesced. Replaces per-person `user_joined` (MD-8 §9: join was quadratic) |
 | S → C | `reaction_burst` | counts per emoji | Audience screen only |
+| S → C | `participant_update` / `participant_removed` | a participant row / `participantId` | Host screens only, not numbered: the list loads again after a reconnect |
+| S → C | `renamed` | `nickname` | The renamed participant's own sockets only |
 | S → C | `session_ended` | `reason: "host" \| "timeout"` | |
 | S → C | `error` | `code`, `message`, `seq` | Same codes as REST |
 

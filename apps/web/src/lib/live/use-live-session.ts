@@ -27,7 +27,11 @@ import {
   setReactionsEnabled,
   setWordHidden,
 } from "@/lib/api/live";
-import { LiveConnection, type ConnectionStatus } from "@/lib/realtime/live-connection";
+import {
+  LiveConnection,
+  type ConnectionStatus,
+  type PeopleEvent,
+} from "@/lib/realtime/live-connection";
 
 export type LiveLoadError = "notFound" | "network";
 
@@ -67,6 +71,8 @@ export interface LiveSessionControls {
    * four times a second and only the reaction layer needs to redraw. Returns the unsubscribe.
    */
   subscribeReactions: (listener: (burst: ReactionBurst) => void) => () => void;
+  /** Calls `listener` with every change to the participant list. Returns the unsubscribe. */
+  subscribePeople: (listener: (event: PeopleEvent) => void) => () => void;
 }
 
 const runsById = (runs: ActivityRunDto[]) =>
@@ -96,6 +102,7 @@ export function useLiveSession(
   const [hiddenWords, setHiddenWords] = useState<Record<string, WordCount[]>>({});
   const [reactionsEnabled, setReactionsOn] = useState(true);
   const reactionListeners = useRef(new Set<(burst: ReactionBurst) => void>());
+  const peopleListeners = useRef(new Set<(event: PeopleEvent) => void>());
   const [connection, setConnection] = useState<ConnectionStatus>("connecting");
   const [ended, setEnded] = useState(false);
   const [loadError, setLoadError] = useState<LiveLoadError | null>(null);
@@ -177,6 +184,7 @@ export function useLiveSession(
       }
     };
     const listeners = reactionListeners.current;
+    const people = peopleListeners.current;
 
     // Outside the effect body: load() sets state.
     const initial = setTimeout(() => void load().then(start), 0);
@@ -194,6 +202,9 @@ export function useLiveSession(
         onEvent,
         onReactionBurst: (burst) => {
           for (const listener of listeners) listener(burst);
+        },
+        onPeople: (event) => {
+          for (const listener of people) listener(event);
         },
       });
       connection.connect();
@@ -295,6 +306,12 @@ export function useLiveSession(
     return () => void listeners.delete(listener);
   }, []);
 
+  const subscribePeople = useCallback((listener: (event: PeopleEvent) => void) => {
+    const listeners = peopleListeners.current;
+    listeners.add(listener);
+    return () => void listeners.delete(listener);
+  }, []);
+
   const editWording = useCallback(
     async (slideId: string, body: ActivityWordingBody) => {
       if (!view) return;
@@ -334,6 +351,7 @@ export function useLiveSession(
       setWordHidden: hideWord,
       setReactions,
       subscribeReactions,
+      subscribePeople,
     },
   ];
 }

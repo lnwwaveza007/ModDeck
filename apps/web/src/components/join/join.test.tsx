@@ -251,6 +251,30 @@ describe("LiveSession", () => {
     expect(screen.getByText("This session is full")).toBeVisible();
   });
 
+  it("tells the student when the host changes their name", async () => {
+    api.me.mockResolvedValue(me());
+    renderWithIntl(<LiveSession sessionId="s1" />, "en");
+    await screen.findByText("INT365 Software Engineering");
+    act(() => live.options!.onStatus!("online"));
+
+    act(() => live.options!.onNickname!("Guest Seven"));
+    expect(screen.getByText("The host changed your name to Guest Seven.")).toBeVisible();
+    expect(screen.getByText("Connected · Guest Seven")).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "OK" }));
+    expect(screen.queryByText(/The host changed your name/)).toBeNull();
+  });
+
+  it("finds a rename that happened while the phone was offline", async () => {
+    api.me.mockResolvedValue(me());
+    renderWithIntl(<LiveSession sessionId="s1" />, "en");
+    await screen.findByText("INT365 Software Engineering");
+
+    // Back after a drop: the snapshot reloads /participants/me with the new name.
+    api.me.mockResolvedValue(me({ nickname: "Guest Seven" }));
+    act(() => live.options!.onSnapshot!({ status: "live", currentSlideId: null }));
+    expect(await screen.findByText("The host changed your name to Guest Seven.")).toBeVisible();
+  });
+
   it("keeps the removed message when the connection ends after it", async () => {
     api.me.mockResolvedValue(me());
     renderWithIntl(<LiveSession sessionId="s1" />, "en");

@@ -20,6 +20,7 @@ const mockRouter = { push: jest.fn(), replace: jest.fn() };
 jest.mock("next/navigation", () => ({ useRouter: () => mockRouter }));
 jest.mock("@/lib/api/live");
 jest.mock("@/lib/api/sessions");
+jest.mock("@/lib/api/participants");
 jest.mock("qrcode", () => ({ toDataURL: jest.fn().mockResolvedValue("data:image/png;base64,") }));
 
 // The host socket: the test plays the server through `live.options`.

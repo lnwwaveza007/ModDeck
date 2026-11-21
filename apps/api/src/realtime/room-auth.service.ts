@@ -10,7 +10,7 @@ import { PresenceService } from "./presence.service";
 // (presenter control, audience screen) can join the rooms of sessions they own,
 // checked at join time.
 export type SocketIdentity =
-  | { role: "participant"; participantId: string; sessionId: string }
+  | { role: "participant"; participantId: string; sessionId: string; nickname: string }
   | { role: "host"; userId: string };
 
 export class RoomAuthError extends Error {
@@ -38,6 +38,7 @@ export class RoomAuthService {
       select: {
         id: true,
         sessionId: true,
+        nickname: true,
         status: true,
         tokenExpiresAt: true,
         lastSeenAt: true,
@@ -58,7 +59,12 @@ export class RoomAuthService {
     if (!(await this.presence.canSeat(participant, this.prisma, now))) {
       throw new RoomAuthError("SESSION_FULL", "Session is full");
     }
-    return { role: "participant", participantId: participant.id, sessionId: participant.sessionId };
+    return {
+      role: "participant",
+      participantId: participant.id,
+      sessionId: participant.sessionId,
+      nickname: participant.nickname,
+    };
   }
 
   /** The host login cookie. The socket does not renew it: the REST calls of the same page do. */

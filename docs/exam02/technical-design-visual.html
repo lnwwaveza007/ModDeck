@@ -826,7 +826,7 @@ packages/shared   new workspace package (needs packages/* in pnpm-workspace.yaml
     <tr><td><span class="m GET">GET</span></td><td><code>/pins/{pin}</code></td><td>Check PIN: title, <code>requireLogin</code>, <code>allowGuest</code></td><td>none</td><td>200</td><td>400, 404 <code>PIN_NOT_FOUND</code>, 410 <code>SESSION_ENDED</code> (24 h), 409 <code>SESSION_FULL</code>, 429</td></tr>
     <tr><td><span class="m POST">POST</span></td><td><code>/sessions/{sessionId}/participants</code></td><td>Join. Guest: <code>{nickname}</code>. SSO: no body. Sets cookie</td><td>none / host cookie</td><td>201 new, 200 rejoin</td><td>403 <code>LOGIN_REQUIRED</code>, <code>PARTICIPANT_REMOVED</code>; 409 <code>SESSION_FULL</code>, <code>NICKNAME_TAKEN</code>; 422 <code>NICKNAME_INVALID</code></td></tr>
     <tr><td><span class="m GET">GET</span></td><td><code>/sessions/{sessionId}/participants</code></td><td>List with online / offline</td><td>owner</td><td>200</td><td>—</td></tr>
-    <tr><td><span class="m PATCH">PATCH</span></td><td><code>…/participants/{participantId}</code></td><td>Rename (to "Guest N")</td><td>owner</td><td>200</td><td>422</td></tr>
+    <tr><td><span class="m PATCH">PATCH</span></td><td><code>…/participants/{participantId}</code></td><td>Rename a guest to the name the host types</td><td>owner</td><td>200</td><td>409, 422</td></tr>
     <tr><td><span class="m DELETE">DELETE</span></td><td><code>…/participants/{participantId}</code></td><td>Remove + block device token for this session</td><td>owner</td><td>204</td><td>—</td></tr>
   </table></div></details>
 

@@ -124,6 +124,30 @@ describe("LiveConnection", () => {
     live.close();
   });
 
+  it("passes on the participant's name from every join ack and from a rename", async () => {
+    const socket = new FakeSocket();
+    const names: string[] = [];
+    socket.answerJoin = () => ({
+      ok: true,
+      nickname: "Guest Seven",
+      sessionId: SESSION,
+      seq: 0,
+      mode: "replay",
+      events: [],
+    });
+    const live = new LiveConnection({
+      sessionId: SESSION,
+      socket: socket as unknown as SessionSocket,
+      onNickname: (name) => names.push(name),
+    });
+    live.connect();
+    await flush();
+    socket.fire("renamed", { nickname: "Fern" });
+
+    expect(names).toEqual(["Guest Seven", "Fern"]);
+    live.close();
+  });
+
   it("sends lastSeq on rejoin and applies the replayed events", async () => {
     const { socket, live, events, statuses } = setup(4);
     socket.answerJoin = () => ({
