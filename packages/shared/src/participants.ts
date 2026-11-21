@@ -95,3 +95,23 @@ export interface ParticipantMe extends JoinResult {
   /** The reaction bar shows. The room's reactions_toggled events keep it current. */
   reactionsEnabled: boolean;
 }
+
+// ---- Host participant management (F13, MD-5 §2.5) ---------------------------
+
+/** One row of the host's participant list. Removed participants are not listed. */
+export interface ParticipantRow {
+  id: string;
+  nickname: string;
+  loginType: LoginType;
+  /** At least one of their phones or tabs is connected now. */
+  online: boolean;
+  joinedAt: string;
+}
+
+/**
+ * PATCH /sessions/{id}/participants/{participantId}: the host types the new name. It passes the
+ * same rules a guest's own nickname does at join. Only guests can be renamed: a KMUTT student
+ * shows the name from their KMUTT account.
+ */
+export const renameParticipantBodySchema = z.object({ nickname: z.string().max(200) }).strict();
+export type RenameParticipantBody = z.infer<typeof renameParticipantBodySchema>;

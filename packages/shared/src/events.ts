@@ -6,6 +6,7 @@
 import { z } from "zod";
 import type { ErrorBody } from "./errors";
 import type { PollTally, SlideActivityView } from "./live";
+import type { ParticipantRow } from "./participants";
 import type { ReactionBurst, ReactionPayload } from "./reactions";
 import { WORD_TEXT_INPUT_MAX, type WordCloudTally, type WordResult } from "./words";
 
@@ -112,6 +113,12 @@ export type ServerToClientEvents = {
   error: (payload: ErrorEvent) => void;
   // Not a room event: no seq, not in the replay log, and only the host's screens get it.
   reaction_burst: (payload: ReactionBurst) => void;
+  // The participant list, to the host's screens only. Not numbered either: after a reconnect the
+  // host loads the list again. `participant_update` is a new or changed row (online, nickname).
+  participant_update: (row: ParticipantRow) => void;
+  participant_removed: (payload: { participantId: string }) => void;
+  // To the renamed participant's own phones and tabs only.
+  renamed: (payload: { nickname: string }) => void;
 } & { [K in RoomEventType]: (event: RoomEvent<K>) => void };
 
 export interface ClientToServerEvents {
