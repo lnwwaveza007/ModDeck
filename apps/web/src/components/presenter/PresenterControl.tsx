@@ -9,6 +9,7 @@ import { formatDuration, useServerNow } from "@/lib/live/clock";
 import { runLiveCommand } from "@/lib/live/commands";
 import { useScreenLayers } from "@/lib/live/screen-channel";
 import { useShortcuts } from "@/lib/live/shortcuts";
+import { pinnedQuestion } from "@/lib/live/questions";
 import { runOf, useLiveSession } from "@/lib/live/use-live-session";
 import { useParticipants } from "@/lib/live/use-participants";
 import { Button, buttonClass } from "@/components/ui/Button";
@@ -19,6 +20,8 @@ import { EndSessionButton, useSessionEnd } from "./EndSession";
 import { Kbd } from "./Kbd";
 import { LiveStage } from "./LiveStage";
 import { PeopleDrawer } from "./PeopleDrawer";
+import { PinnedQuestion } from "./PinnedQuestion";
+import { QaPanel } from "./QaPanel";
 import { ReactionLayer } from "./ReactionLayer";
 import { ShortcutHelp } from "./ShortcutHelp";
 import { SlideStrip } from "./SlideStrip";
@@ -50,7 +53,7 @@ function errorKey(error: unknown): ErrorKey {
 
 /**
  * MD-15 H05 presenter control: the host runs the lecture from this one screen (MD-5 rule 2).
- * Current and next slide, the slide strip, activity controls, the Q&A slot, the participant
+ * Current and next slide, the slide strip, activity controls, Q&A moderation, the participant
  * count and the clock. The audience screen (/screen/:id) follows the room, in another window on
  * the projector, or full screen on the only display with the O overlay.
  */
@@ -104,6 +107,7 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
   const participants =
     participantList.rows?.length ?? end.session?.participantCount ?? view.participantCount;
   const [screen, setScreen] = layers;
+  const pinned = pinnedQuestion(state.questions);
 
   return (
     <div className="flex min-h-screen flex-col bg-neutral-100 text-foreground lg:h-dvh lg:min-h-[42rem]">
@@ -168,7 +172,7 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
                 {current && (
                   <StageBox>
                     {(fit) => (
-                      <div className={cn("relative w-full", fit)}>
+                      <div className={cn("@container relative w-full", fit)}>
                         <LiveStage
                           slide={current}
                           run={run ?? undefined}
@@ -178,6 +182,9 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
                           now={now}
                           className="shadow-sm"
                         />
+                        {pinned && !screen.join && (
+                          <PinnedQuestion question={pinned} className="rounded-lg" />
+                        )}
                         {state.reactionsEnabled && (
                           <ReactionLayer
                             subscribe={controls.subscribeReactions}
@@ -280,16 +287,13 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
           </main>
 
           <aside className="flex flex-col gap-4 lg:min-h-0 lg:overflow-y-auto">
-            <section
-              aria-label={t("qa.title")}
-              className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-background p-5"
-            >
-              <h2 className="font-bold">
-                {t("qa.title")} <Kbd>Q</Kbd>
-              </h2>
-              {/* Q&A moderation plugs in here (F6). */}
-              <p className="text-sm text-muted">{t("qa.soon")}</p>
-            </section>
+            <QaPanel
+              questions={state.questions}
+              open={state.qaOpen}
+              ended={state.ended}
+              onSetOpen={(open) => void controls.setQa(open)}
+              onModerate={controls.moderate}
+            />
             <section
               aria-label={t("reactions.title")}
               className="flex flex-col gap-1 rounded-xl border border-neutral-200 bg-background p-5"

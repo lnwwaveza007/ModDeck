@@ -5,7 +5,9 @@ import type {
   ActivityRunDto,
   ActivityWordingBody,
   LiveActivity,
+  LiveQuestion,
   LiveSessionView,
+  QuestionAction,
   WordVisibilityResult,
 } from "@moddeck/shared";
 import { HOST_API_BASE_URL, apiFetch } from "./client";
@@ -54,4 +56,20 @@ export const editActivityWording = (deckId: string, slideId: string, body: Activ
     ...host,
     method: "PATCH",
     body,
+  });
+
+/** Opens or closes Q&A for the room. */
+export const setQaOpen = (sessionId: string, qaOpen: boolean) =>
+  apiFetch<{ qaOpen: boolean }>(`/sessions/${sessionId}`, {
+    ...host,
+    method: "PATCH",
+    body: { qaOpen },
+  });
+
+/** Marks a question answered, hides it, pins it to the projector, or puts it back. */
+export const setQuestionStatus = (sessionId: string, questionId: string, action: QuestionAction) =>
+  apiFetch<LiveQuestion>(`/sessions/${sessionId}/questions/${questionId}/status`, {
+    ...host,
+    method: "PATCH",
+    body: { action },
   });

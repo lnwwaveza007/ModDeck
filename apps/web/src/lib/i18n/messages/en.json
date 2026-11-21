@@ -196,7 +196,13 @@
       "party": "Celebrate"
     },
     "renamed": "The host changed your name to {name}.",
-    "renamedOk": "OK"
+    "renamedOk": "OK",
+    "qaPanel": {
+      "closed": "The host has closed Q&A. You can still read the questions.",
+      "closedError": "The host has closed Q&A.",
+      "answered": "Answered",
+      "onScreen": "On screen"
+    }
   },
   "host": {
     "live": "LIVE",
@@ -596,7 +602,31 @@
     "noActivity": "Content slide. Polls and word clouds get their controls here.",
     "qa": {
       "title": "Q&A",
-      "soon": "Student questions will appear here."
+      "open": "Open for questions",
+      "openOn": "Students can ask and vote.",
+      "openOff": "Closed. Students can read the list but cannot ask or vote.",
+      "empty": "No questions yet.",
+      "newCount": "{count} new",
+      "markSeen": "Mark all as seen",
+      "newBadge": "New",
+      "anonymous": "Anonymous",
+      "votes": "{count, plural, one {# vote} other {# votes}}",
+      "pinned": "On the projector",
+      "pin": "Pin",
+      "unpin": "Unpin",
+      "answer": "Answered",
+      "reopen": "Reopen",
+      "hide": "Hide",
+      "show": "Show",
+      "pinLabel": "Pin to the projector: {text}",
+      "unpinLabel": "Take off the projector: {text}",
+      "answerLabel": "Mark answered: {text}",
+      "reopenLabel": "Reopen: {text}",
+      "hideLabel": "Hide from students: {text}",
+      "showLabel": "Show to students again: {text}",
+      "openTitle": "Questions",
+      "answeredTitle": "Answered ({count})",
+      "hiddenTitle": "Hidden ({count})"
     },
     "singleDisplay": {
       "title": "Only one display?",
@@ -769,6 +799,11 @@
       "participants": "{count, plural, one {# participant} other {# participants}}",
       "next": "Next: slide {index}",
       "lastSlide": "Last slide"
+    },
+    "question": {
+      "label": "Audience question",
+      "anonymous": "Anonymous",
+      "votes": "{count, plural, one {# vote} other {# votes}}"
     }
   }
 }
