@@ -81,6 +81,18 @@ export interface JoinResult {
 }
 
 /** GET /participants/me: the live screen's first load, before the socket connects. */
+export interface LiveQuestion {
+  id: string;
+  text: string;
+  anonymous: boolean;
+  status: string;
+  createdAt: string;
+  votes: number;
+  /** Absent for anonymous questions, not even null. */
+  author?: string;
+  voted?: boolean;
+}
+
 export interface ParticipantMe extends JoinResult {
   title: string;
   status: "live" | "host_away" | "ended";
@@ -94,4 +106,6 @@ export interface ParticipantMe extends JoinResult {
   currentActivity: (SlideActivityView & { myOptionId: string | null; myWords: string[] }) | null;
   /** The reaction bar shows. The room's reactions_toggled events keep it current. */
   reactionsEnabled: boolean;
+  qaEnabled: boolean;
+  anonymousAllowed: boolean;
 }

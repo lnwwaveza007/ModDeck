@@ -1,15 +1,7 @@
+import type { LiveQuestion } from "@moddeck/shared";
 import { apiFetch } from "./client";
 
-export interface LiveQuestion {
-  id: string;
-  text: string;
-  anonymous: boolean;
-  status: string;
-  createdAt: string;
-  votes: number;
-  author: string | null;
-  voted?: boolean;
-}
+export type { LiveQuestion } from "@moddeck/shared";
 export const getQuestions = (sessionId: string, sort: "top" | "newest" = "top") =>
   apiFetch<{ questions: LiveQuestion[] }>(`/sessions/${sessionId}/questions?sort=${sort}`);
 export const askQuestion = (sessionId: string, text: string, anonymous: boolean) =>

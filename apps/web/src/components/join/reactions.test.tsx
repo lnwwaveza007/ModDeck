@@ -35,6 +35,8 @@ const me = (overrides: Partial<ParticipantMe> = {}): ParticipantMe => ({
   currentSlide: { id: "slide-5", index: 4 },
   currentActivity: null,
   reactionsEnabled: true,
+  qaEnabled: true,
+  anonymousAllowed: true,
   ...overrides,
 });
 

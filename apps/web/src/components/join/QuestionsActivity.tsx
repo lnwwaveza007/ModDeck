@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { RichText } from "@/components/content/RichText";
+import { Toggle } from "@/components/ui/Toggle";
 import {
   askQuestion,
   getQuestions,
@@ -21,9 +22,13 @@ export function QuestionsActivity({
   const [questions, setQuestions] = useState<LiveQuestion[]>([]);
   const [sort, setSort] = useState<"top" | "newest">("top");
   const [text, setText] = useState("");
-  const [anonymous, setAnonymous] = useState(true);
+  const [anonymous, setAnonymous] = useState(anonymousAllowed);
+  const [composing, setComposing] = useState(false);
+  const [preview, setPreview] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+
   const refresh = useCallback(
     () =>
       getQuestions(sessionId, sort)
@@ -41,12 +46,15 @@ export function QuestionsActivity({
       window.removeEventListener("moddeck-questions-changed", changed);
     };
   }, [refresh]);
+
   const submit = async () => {
     setBusy(true);
     setError("");
     try {
       await askQuestion(sessionId, text, anonymous);
       setText("");
+      setPreview(false);
+      setComposing(false);
       await refresh();
     } catch {
       setError("Please wait before asking another question, or check your connection.");
@@ -54,50 +62,172 @@ export function QuestionsActivity({
       setBusy(false);
     }
   };
-  const vote = async (q: LiveQuestion) => {
+
+  const vote = async (question: LiveQuestion) => {
     try {
-      const result = await toggleQuestionVote(sessionId, q.id);
+      const result = await toggleQuestionVote(sessionId, question.id);
       setQuestions((items) =>
         items.map((item) =>
-          item.id === q.id ? { ...item, votes: result.votes, voted: result.voted } : item,
+          item.id === question.id
+            ? { ...item, votes: result.votes, voted: result.voted }
+            : item,
         ),
       );
     } catch {
       setError("Could not update your vote.");
     }
   };
+
+  if (composing) {
+    return (
+      <section className="flex min-h-0 flex-1 flex-col bg-background">
+        <header className="flex h-14 items-center gap-3 border-b border-neutral-200 px-4">
+          <button
+            type="button"
+            aria-label="Back to questions"
+            onClick={() => {
+              setComposing(false);
+              setPreview(false);
+              setError("");
+            }}
+            className="grid size-10 place-items-center rounded-lg text-xl text-neutral-700 hover:bg-neutral-100"
+          >
+            ×
+          </button>
+          <h2 className="font-semibold">Ask a question</h2>
+          <button
+            type="button"
+            disabled={busy || !text.trim()}
+            onClick={() => void submit()}
+            className="ml-auto rounded-lg bg-orange-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {busy ? "Sending…" : "Send"}
+          </button>
+        </header>
+
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+          {anonymousAllowed && (
+            <div className="rounded-xl border border-neutral-200 bg-surface px-3 py-2">
+              <Toggle
+                label="Ask anonymously"
+                description={anonymous ? "Your name will not be shown" : `Asking as ${nickname}`}
+                checked={anonymous}
+                onCheckedChange={setAnonymous}
+              />
+            </div>
+          )}
+
+          <div>
+            <label htmlFor="question-text" className="mb-2 block text-sm font-semibold">
+              Question
+            </label>
+            {preview ? (
+              <div className="min-h-36 rounded-xl border border-orange-600 bg-white p-3 text-sm">
+                {text.trim() ? (
+                  <RichText source={text} />
+                ) : (
+                  <span className="text-muted">Nothing to preview yet.</span>
+                )}
+              </div>
+            ) : (
+              <textarea
+                id="question-text"
+                aria-label="Question"
+                maxLength={280}
+                value={text}
+                onChange={(event) => setText(event.target.value)}
+                placeholder="What do you want to ask?"
+                className="min-h-36 w-full resize-y rounded-xl border border-orange-600 bg-white p-3 text-sm focus:outline-2 focus:outline-orange-200"
+              />
+            )}
+            <div className="mt-1 flex items-center justify-between text-xs text-muted">
+              <span>Use `code`, fenced code blocks and $math$.</span>
+              <span>{text.length}/280</span>
+            </div>
+          </div>
+
+          <div className="flex rounded-lg bg-surface p-1">
+            <button
+              type="button"
+              onClick={() => setPreview(false)}
+              aria-pressed={!preview}
+              className={`flex-1 rounded-md py-2 text-sm ${!preview ? "bg-white font-semibold shadow-sm" : "text-muted"}`}
+            >
+              Write
+            </button>
+            <button
+              type="button"
+              onClick={() => setPreview(true)}
+              aria-pressed={preview}
+              className={`flex-1 rounded-md py-2 text-sm ${preview ? "bg-white font-semibold shadow-sm" : "text-muted"}`}
+            >
+              Preview
+            </button>
+          </div>
+
+          <p className="rounded-xl bg-orange-50 p-3 text-sm text-orange-900">
+            {anonymous
+              ? "Your question will appear as Anonymous to everyone, including the host."
+              : `Your question will appear as ${nickname} to everyone, including the host.`}
+          </p>
+          {error && (
+            <p role="alert" className="text-sm text-red-700">
+              {error}
+            </p>
+          )}
+        </div>
+        <footer className="shrink-0 border-t border-neutral-200 bg-background p-3">
+          <button
+            type="button"
+            disabled={busy || !text.trim()}
+            onClick={() => void submit()}
+            className="w-full rounded-xl border border-slate-200 bg-primary-600 p-3 font-semibold text-white shadow-md disabled:opacity-30"
+          >
+            {busy ? "Sending…" : "Post question"}
+          </button>
+        </footer>
+      </section>
+    );
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-3 p-3">
       <div className="flex rounded-xl bg-slate-200 p-1" aria-label="Sort questions">
         {(["top", "newest"] as const).map((value) => (
           <button
             key={value}
+            type="button"
+            aria-pressed={sort === value}
             onClick={() => setSort(value)}
-            className={`flex-1 rounded-lg p-2 text-sm ${sort === value ? "bg-white font-semibold" : ""}`}
+            className={`flex-1 rounded-lg p-2 text-sm ${sort === value ? "bg-white font-semibold shadow-sm" : "text-muted"}`}
           >
-            {value === "top" ? "Top" : "Newest"}
+            {value === "top" ? "Top questions" : "Newest"}
           </button>
         ))}
       </div>
+
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto" aria-live="polite">
-        {questions.map((q) => (
+        {questions.map((question) => (
           <article
-            key={q.id}
+            key={question.id}
             className="flex gap-2 rounded-xl border border-slate-200 bg-white p-3"
           >
             <div className="min-w-0 flex-1">
-              <RichText source={q.text} className="text-sm" />
+              <RichText source={question.text} className="text-sm" />
               <p className="mt-2 text-xs text-slate-500">
-                {q.author ?? "Anonymous"} · {new Date(q.createdAt).toLocaleTimeString()}
+                {question.anonymous ? "Anonymous" : question.author} ·{" "}
+                {new Date(question.createdAt).toLocaleTimeString()}
               </p>
             </div>
             <button
-              aria-label={`${q.voted ? "Remove upvote" : "Upvote"}: ${q.votes}`}
-              onClick={() => void vote(q)}
-              className={`flex h-14 min-w-11 flex-col items-center justify-center rounded-lg border ${q.voted ? "border-orange-600 text-orange-700" : "border-slate-300"}`}
+              type="button"
+              aria-label={`${question.voted ? "Remove upvote" : "Upvote"}: ${question.votes}`}
+              aria-pressed={question.voted ?? false}
+              onClick={() => void vote(question)}
+              className={`flex h-14 min-w-11 flex-col items-center justify-center rounded-lg border ${question.voted ? "border-orange-600 text-orange-700" : "border-slate-300"}`}
             >
               <span aria-hidden="true">↑</span>
-              <span className="text-xs">{q.votes}</span>
+              <span className="text-xs">{question.votes}</span>
             </button>
           </article>
         ))}
@@ -107,45 +237,23 @@ export function QuestionsActivity({
           </p>
         )}
       </div>
-      <div className="rounded-xl border border-slate-200 bg-white p-3">
-        {anonymousAllowed && (
-          <label className="mb-2 flex items-center justify-between text-sm">
-            <span>Ask anonymously</span>
-            <input
-              type="checkbox"
-              checked={anonymous}
-              onChange={(e) => setAnonymous(e.target.checked)}
-            />
-          </label>
-        )}
-        <textarea
-          aria-label="Question"
-          maxLength={280}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="What do you want to ask? Use `code` and $math$."
-          className="min-h-24 w-full resize-y rounded-lg border border-slate-300 p-3 text-sm focus:border-orange-600 focus:outline-none"
-        />
-        <div className="flex items-center justify-between pt-2 text-xs text-slate-500">
-          <span>{anonymous ? "Your name will not be shown" : `Asking as ${nickname}`}</span>
-          <span>{text.length}/280</span>
-        </div>
-        <p className="pt-1 text-xs text-slate-500">
-          Supports `code`, fenced code blocks, $math$ and $$display math$$.
+
+      {error && (
+        <p role="alert" className="text-sm text-red-700">
+          {error}
         </p>
-        {error && (
-          <p role="alert" className="py-1 text-sm text-red-700">
-            {error}
-          </p>
-        )}
-        <button
-          disabled={busy || !text.trim()}
-          onClick={() => void submit()}
-          className="mt-2 w-full rounded-full bg-orange-700 p-3 font-semibold text-white disabled:opacity-50"
-        >
-          {busy ? "Sending…" : "Ask question"}
-        </button>
-      </div>
+      )}
+      <button
+        type="button"
+        onClick={() => {
+          setAnonymous(anonymousAllowed);
+          setComposing(true);
+          setError("");
+        }}
+        className="mt-auto w-full shrink-0 rounded-xl border border-slate-200 bg-primary-600 p-3 font-semibold text-white"
+      >
+        + Ask a question
+      </button>
     </section>
   );
 }

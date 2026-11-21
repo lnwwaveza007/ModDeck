@@ -11,7 +11,6 @@ import {
   type WordResult,
 } from "@moddeck/shared";
 import { LiveShell } from "@/components/shell/LiveShell";
-import { PagePlaceholder } from "@/components/shell/PagePlaceholder";
 import { Banner } from "@/components/ui/Banner";
 import { buttonClass } from "@/components/ui/Button";
 import { ApiError } from "@/lib/api/client";
@@ -22,6 +21,7 @@ import { LiveStatusProvider } from "@/lib/realtime/live-status";
 import { PollActivity, type SendVote } from "./PollActivity";
 import { ReactionBar } from "./ReactionBar";
 import { WordCloudActivity, type SendWord } from "./WordCloudActivity";
+import { QuestionsActivity } from "./QuestionsActivity";
 
 type Stop = "notJoined" | "removed" | "ended" | "full" | "network";
 
@@ -94,6 +94,9 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
             if (event.type === "reactions_toggled") setReactionsEnabled(event.data.enabled);
             setActivity((current) => applyRoomEvent(current, event));
             if (event.type === "session_ended") setStop("ended");
+            if (event.type === "question_update") {
+              window.dispatchEvent(new Event("moddeck-questions-changed"));
+            }
           },
           onError: (error) => {
             if (error.code === "PARTICIPANT_REMOVED") setStop("removed");
@@ -158,6 +161,7 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
       <LiveShell
         title={me.title}
         status={statusText}
+        qaEnabled={me.qaEnabled}
         banner={banner}
         activity={
           showPoll ? (
@@ -195,7 +199,13 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
             </div>
           )
         }
-        qa={<PagePlaceholder page="live" titled={false} />}
+        qa={
+          <QuestionsActivity
+            sessionId={sessionId}
+            nickname={me.nickname}
+            anonymousAllowed={me.anonymousAllowed}
+          />
+        }
         reactions={
           reactionsEnabled && <ReactionBar react={(emoji) => live.current?.react(emoji) ?? false} />
         }
