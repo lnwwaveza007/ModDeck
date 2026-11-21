@@ -3,6 +3,8 @@ import {
   MAX_PARTICIPANTS,
   nicknameProblem,
   normalizeNickname,
+  qaOpen,
+  qaShown,
   type JoinResult,
   type ParticipantMe,
   type PinInfo,
@@ -207,7 +209,7 @@ export class ParticipantsService {
             status: true,
             deckId: true,
             settings: true,
-            deck: { select: { title: true, qaEnabled: true, anonymousAllowed: true } },
+            deck: { select: { title: true, anonymousAllowed: true } },
             currentSlide: { select: { id: true, position: true } },
           },
         },
@@ -252,7 +254,8 @@ export class ParticipantsService {
       currentSlide: session.currentSlide ? { id: session.currentSlide.id, index } : null,
       currentActivity: view && { ...view, myOptionId, myWords },
       reactionsEnabled: reactionsEnabled(session.settings),
-      qaEnabled: session.deck.qaEnabled,
+      qaEnabled: qaShown(session.settings),
+      qaOpen: qaOpen(session.settings),
       anonymousAllowed: session.deck.anonymousAllowed,
     };
   }

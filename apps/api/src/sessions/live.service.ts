@@ -1,6 +1,8 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import {
   nextActivityState,
+  qaOpen,
+  qaShown,
   type ActivityActionBody,
   type ActivityRunDto,
   type ActivityRunState,
@@ -10,6 +12,7 @@ import {
 } from "@moddeck/shared";
 import { z } from "zod";
 import { ApiException } from "../common/api-error";
+import { questionSelect, questionView } from "../participants/question-view";
 import { PrismaService } from "../prisma/prisma.service";
 import { PollFlusherService } from "../realtime/poll-flusher.service";
 import { PollStoreService, runRowSelect, toRunDto } from "../realtime/poll-store.service";
@@ -64,7 +67,7 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
   async view(ownerId: string, sessionId: string): Promise<LiveSessionView> {
     const session = await this.ownedSession(ownerId, sessionId);
     await this.expireDue(sessionId);
-    const [slides, runs, participantCount] = await Promise.all([
+    const [slides, runs, participantCount, questions] = await Promise.all([
       this.prisma.slide.findMany({
         where: { deckId: session.deckId },
         orderBy: { position: "asc" },
@@ -75,6 +78,11 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
         select: { ...runRowSelect, activity: { select: { type: true } } },
       }),
       this.prisma.participant.count({ where: { sessionId, status: "active" } }),
+      this.prisma.question.findMany({
+        where: { sessionId, status: { not: "deleted" } },
+        select: questionSelect,
+        orderBy: { createdAt: "asc" },
+      }),
     ]);
 
     const pollRuns = runs.filter((run) => run.activity.type === "poll");
@@ -111,6 +119,8 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
       hiddenWords: Object.fromEntries(cloudRuns.map((run, i) => [run.id, hidden[i]])),
       showResultsLive: (session.settings as { showResultsLive?: boolean }).showResultsLive === true,
       reactionsEnabled: reactionsEnabled(session.settings),
+      qaOpen: qaOpen(session.settings),
+      questions: questions.map(questionView),
       participantCount,
     };
   }
@@ -159,6 +169,28 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
     await this.reactions.setEnabled(sessionId, enabled);
     await this.events.publish(sessionId, "reactions_toggled", { enabled });
     return { reactionsEnabled: enabled };
+  }
+
+  /**
+   * Opens or closes Q&A for the room. Closed, students keep reading the list but cannot ask or
+   * vote. Once Q&A has been open the phones keep the tab, so a close does not wipe the list.
+   */
+  async setQa(ownerId: string, sessionId: string, open: boolean) {
+    const session = await this.ownedSession(ownerId, sessionId);
+    this.assertOpen(session.status);
+    const current = session.settings as Record<string, unknown>;
+    const settings = {
+      ...current,
+      qaEnabled: open,
+      qaWasOpen: qaShown(current) || open,
+    };
+    await this.prisma.session.update({
+      where: { id: sessionId },
+      data: { settings },
+      select: { id: true },
+    });
+    await this.events.publish(sessionId, "qa_toggled", { open, shown: qaShown(settings) });
+    return { qaOpen: open };
   }
 
   async act(

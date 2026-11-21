@@ -4,6 +4,7 @@ import { RealtimeModule } from "../realtime/realtime.module";
 import { SessionsModule } from "../sessions/sessions.module";
 import { HostParticipantsController } from "./host-participants.controller";
 import { HostParticipantsService } from "./host-participants.service";
+import { HostQuestionsController } from "./host-questions.controller";
 import { ParticipantsController } from "./participants.controller";
 import { ParticipantsService } from "./participants.service";
 import { PinLimiterService } from "./pin-limiter.service";
@@ -11,7 +12,7 @@ import { QuestionsService } from "./questions.service";
 
 @Module({
   imports: [AuthModule, RealtimeModule, SessionsModule],
-  controllers: [ParticipantsController, HostParticipantsController],
+  controllers: [ParticipantsController, HostParticipantsController, HostQuestionsController],
   providers: [ParticipantsService, HostParticipantsService, PinLimiterService, QuestionsService],
 })
 export class ParticipantsModule {}
