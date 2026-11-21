@@ -287,6 +287,8 @@ If Redis loses data, the API rebuilds `ans:` and `votes:` for open runs from `an
 
 Participant token (MD-7, MD-13): the server makes a random token, puts it in the `md_pt` `HttpOnly` cookie and stores only its SHA-256 hash in `participants.token_hash`. `token_expires_at` is 8 h after issue and moves forward when less than half the lifetime is left (MD-13 fix 2). A missing or past expiry fails closed. Removing a participant sets `status = 'removed'`, which blocks the token for that session.
 
+Answers of a removed participant (F13): their `answers` and `word_entries` rows stay. Live results never count them: removal takes them out of Redis (`ans:`, `votes:`, `wc:`), the set `removed:{sid}` refuses an answer already on its way, and every rebuild or count from PostgreSQL filters on `participants.status = 'active'`. The export lists their rows marked "Removed, not counted" and leaves them out of its totals, so the totals match the live results.
+
 Host login (MD-7): after KMUTT SSO the server makes a random token, puts it in the `host_session` `HttpOnly` cookie and stores only its SHA-256 hash in `host_sessions.token_hash`, with the same 8 h sliding expiry. A host signs in before any session exists, so a host login is not a participant. Logout deletes the row; expired rows are deleted on the next login.
 
 ## 7. Deletes

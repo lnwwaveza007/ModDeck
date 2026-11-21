@@ -4,6 +4,7 @@ import Redis, { type Result } from "ioredis";
 import type { ActivityRun } from "../generated/prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { REDIS } from "../redis/redis.module";
+import { removedKey } from "./removed-participants";
 import { liveActivitySelect, toLiveActivity } from "../slides/slide.mapper";
 import { WordStoreService } from "./word-store.service";
 
@@ -19,9 +20,11 @@ export const flushStreamKey = (sid: string) => `flush:{${sid}}`;
 
 // The MD-9 submit: check and count in one atomic step, so two votes can never both pass the check.
 // The run state lives here too: once a close has written it, no vote can still get in.
-// KEYS: run, answers, votes, flush stream, answer ids.
+// A participant the host removed is refused here, in the same step (see removed-participants.ts).
+// KEYS: run, answers, votes, flush stream, answer ids, removed participants.
 // ARGV: participantId, optionId, answer id field, runId, now ms, TTL seconds.
 const SUBMIT_SCRIPT = `
+if redis.call('SISMEMBER', KEYS[6], ARGV[1]) == 1 then return { 'removed' } end
 local seen = redis.call('HGET', KEYS[5], ARGV[3])
 if seen then return { 'duplicate', seen } end
 local state = redis.call('HGET', KEYS[1], 'state')
@@ -72,6 +75,16 @@ for i = 1, 3 do redis.call('EXPIRE', KEYS[i], ARGV[4]) end
 return 1
 `;
 
+// Takes back the vote of a removed participant. Returns 1 when there was one.
+// KEYS: answers, votes. ARGV: participantId.
+const DROP_SCRIPT = `
+local old = redis.call('HGET', KEYS[1], ARGV[1])
+if not old then return 0 end
+redis.call('HDEL', KEYS[1], ARGV[1])
+redis.call('HINCRBY', KEYS[2], old, -1)
+return 1
+`;
+
 declare module "ioredis" {
   interface RedisCommander<Context> {
     submitVote(
@@ -80,6 +93,7 @@ declare module "ioredis" {
       votes: string,
       stream: string,
       answerIds: string,
+      removed: string,
       participantId: string,
       optionId: string,
       answerIdField: string,
@@ -99,12 +113,13 @@ declare module "ioredis" {
       votes: string,
       ...args: (string | number)[]
     ): Result<number, Context>;
+    dropVote(answers: string, votes: string, participantId: string): Result<number, Context>;
   }
 }
 
 export type VoteOutcome =
   | { status: "accepted" | "duplicate"; optionId: string }
-  | { status: "closed" | "bad_option" | "not_found" };
+  | { status: "closed" | "bad_option" | "not_found" | "removed" };
 
 type RunRow = Pick<ActivityRun, "id" | "activityId" | "state" | "endsAt" | "lastReopenedAt">;
 
@@ -135,9 +150,10 @@ export class PollStoreService {
     private readonly prisma: PrismaService,
     private readonly words: WordStoreService,
   ) {
-    this.redis.defineCommand("submitVote", { numberOfKeys: 5, lua: SUBMIT_SCRIPT });
+    this.redis.defineCommand("submitVote", { numberOfKeys: 6, lua: SUBMIT_SCRIPT });
     this.redis.defineCommand("setRunState", { numberOfKeys: 1, lua: SET_STATE_SCRIPT });
     this.redis.defineCommand("loadRun", { numberOfKeys: 3, lua: LOAD_SCRIPT });
+    this.redis.defineCommand("dropVote", { numberOfKeys: 2, lua: DROP_SCRIPT });
   }
 
   /** One answer per participant, and one count per answerId however often it is sent. */
@@ -155,6 +171,7 @@ export class PollStoreService {
         votesKey(sessionId, runId),
         flushStreamKey(sessionId),
         answerIdsKey(sessionId),
+        removedKey(sessionId),
         participantId,
         optionId,
         // With the participant in the field, one student cannot use up the id of another.
@@ -170,6 +187,7 @@ export class PollStoreService {
       [status, stored] = await send();
     }
     if (status === "accepted" || status === "duplicate") return { status, optionId: stored! };
+    if (status === "removed") return { status };
     return { status: status === "bad_option" ? "bad_option" : "closed" };
   }
 
@@ -200,8 +218,9 @@ export class PollStoreService {
     ] as const;
     if (await this.redis.setRunState(runKey(sessionId, runId), ...flags)) return true;
 
+    // A removed participant's answers stay in PostgreSQL (for the export) but never count live.
     const answers = await this.prisma.answer.findMany({
-      where: { activityRunId: runId },
+      where: { activityRunId: runId, participant: { status: "active" } },
       select: { participantId: true, optionId: true },
     });
     await this.redis.loadRun(
@@ -236,11 +255,33 @@ export class PollStoreService {
   private async storedTally(runId: string): Promise<PollTally> {
     const rows = await this.prisma.answer.groupBy({
       by: ["optionId"],
-      where: { activityRunId: runId },
+      where: { activityRunId: runId, participant: { status: "active" } },
       _count: { _all: true },
     });
     const votes = Object.fromEntries(rows.map((row) => [row.optionId, row._count._all]));
     return { votes, answered: rows.reduce((sum, row) => sum + row._count._all, 0) };
+  }
+
+  /**
+   * From now on the session refuses this participant's votes and words. Call it before dropVote()
+   * and dropWords(), so an answer on its way cannot get in after the runs were cleaned.
+   */
+  async markRemoved(sessionId: string, participantId: string): Promise<void> {
+    await this.redis
+      .multi()
+      .sadd(removedKey(sessionId), participantId)
+      .expire(removedKey(sessionId), LIVE_KEY_TTL_SECONDS)
+      .exec();
+  }
+
+  /** Takes a removed participant's vote out of a run's live counts. True when it had one. */
+  async dropVote(sessionId: string, runId: string, participantId: string): Promise<boolean> {
+    const dropped = await this.redis.dropVote(
+      answersKey(sessionId, runId),
+      votesKey(sessionId, runId),
+      participantId,
+    );
+    return dropped === 1;
   }
 
   async answerOf(sessionId: string, runId: string, participantId: string): Promise<string | null> {

@@ -20,6 +20,7 @@ export const ERROR_CODES = [
   "LOGIN_REQUIRED",
   "NICKNAME_TAKEN",
   "NICKNAME_INVALID",
+  "NOT_A_GUEST",
   "TOO_MANY_ATTEMPTS",
   "INTERNAL",
 ] as const;

@@ -12,6 +12,7 @@ import {
 import Redis, { type Result } from "ioredis";
 import { PrismaService } from "../prisma/prisma.service";
 import { REDIS } from "../redis/redis.module";
+import { removedKey } from "./removed-participants";
 
 // Live session keys expire a day after the last entry, as the event log does.
 const LIVE_KEY_TTL_SECONDS = 24 * 60 * 60;
@@ -31,9 +32,11 @@ export const wordFlushStreamKey = (sid: string) => `wflush:{${sid}}`;
 // both pass the limit, and a close that has written the state lets no entry in after it.
 // A student may send a word once: the same word again changes nothing, so a cloud grows with the
 // number of people who sent it, not with how often one person did.
-// KEYS: run, counts, texts, hidden, mine count, mine words, flush stream, answer ids.
+// A participant the host removed is refused here, in the same step (see removed-participants.ts).
+// KEYS: run, counts, texts, hidden, mine count, mine words, flush stream, answer ids, removed.
 // ARGV: participantId, word key, text, answer id field, entry id, run id, now ms, TTL seconds.
 const SUBMIT_SCRIPT = `
+if redis.call('SISMEMBER', KEYS[9], ARGV[1]) == 1 then return { 'removed' } end
 local seen = redis.call('HGET', KEYS[8], ARGV[4])
 if seen then return { 'duplicate', seen, redis.call('HGET', KEYS[5], ARGV[1]) or '0' } end
 local state = redis.call('HGET', KEYS[1], 'state')
@@ -85,6 +88,27 @@ for i = 1, 6 do redis.call('EXPIRE', KEYS[i], ARGV[3]) end
 return 1
 `;
 
+// Takes back every word a removed participant sent to a run. A word nobody else sent leaves the
+// cloud. Returns how many entries were taken back.
+// KEYS: counts, texts, mine count, mine words. ARGV: participantId.
+const DROP_SCRIPT = `
+local prefix = ARGV[1] .. ':'
+local dropped = 0
+for _, field in ipairs(redis.call('HKEYS', KEYS[4])) do
+  if string.sub(field, 1, #prefix) == prefix then
+    local key = string.sub(field, #prefix + 1)
+    redis.call('HDEL', KEYS[4], field)
+    if redis.call('HINCRBY', KEYS[1], key, -1) <= 0 then
+      redis.call('HDEL', KEYS[1], key)
+      redis.call('HDEL', KEYS[2], key)
+    end
+    dropped = dropped + 1
+  end
+end
+redis.call('HDEL', KEYS[3], ARGV[1])
+return dropped
+`;
+
 declare module "ioredis" {
   interface RedisCommander<Context> {
     submitWord(
@@ -96,6 +120,7 @@ declare module "ioredis" {
       mineWords: string,
       stream: string,
       answerIds: string,
+      removed: string,
       participantId: string,
       key: string,
       text: string,
@@ -115,13 +140,20 @@ declare module "ioredis" {
       mineWords: string,
       ...args: (string | number)[]
     ): Result<number, Context>;
+    dropWords(
+      counts: string,
+      texts: string,
+      mineCount: string,
+      mineWords: string,
+      participantId: string,
+    ): Result<number, Context>;
   }
 }
 
 export type WordOutcome =
   | { status: "accepted" | "duplicate"; text: string; sent: number }
   | { status: "invalid"; problem: WordProblem }
-  | { status: "closed" | "limit" | "not_found" };
+  | { status: "closed" | "limit" | "not_found" | "removed" };
 
 interface WordRow extends WordCount {
   hidden: boolean;
@@ -146,9 +178,10 @@ export class WordStoreService {
     @Inject(REDIS) private readonly redis: Redis,
     private readonly prisma: PrismaService,
   ) {
-    this.redis.defineCommand("submitWord", { numberOfKeys: 8, lua: SUBMIT_SCRIPT });
+    this.redis.defineCommand("submitWord", { numberOfKeys: 9, lua: SUBMIT_SCRIPT });
     this.redis.defineCommand("setWordRunState", { numberOfKeys: 1, lua: SET_STATE_SCRIPT });
     this.redis.defineCommand("loadWordRun", { numberOfKeys: 6, lua: LOAD_SCRIPT });
+    this.redis.defineCommand("dropWords", { numberOfKeys: 4, lua: DROP_SCRIPT });
   }
 
   /**
@@ -177,6 +210,7 @@ export class WordStoreService {
         mineWordsKey(sessionId, runId),
         wordFlushStreamKey(sessionId),
         answerIdsKey(sessionId),
+        removedKey(sessionId),
         participantId,
         key,
         text,
@@ -196,6 +230,7 @@ export class WordStoreService {
     if (status === "accepted" || status === "duplicate") {
       return { status, text: stored!, sent: Number(sent) };
     }
+    if (status === "removed") return { status };
     return { status: status === "limit" ? "limit" : "closed" };
   }
 
@@ -213,8 +248,9 @@ export class WordStoreService {
     const limit = run.activity.maxEntriesPerPerson;
     if (await this.redis.setWordRunState(runKey(sessionId, runId), run.state, limit)) return true;
 
+    // A removed participant's entries stay in PostgreSQL (for the export) but never count live.
     const entries = await this.prisma.wordEntry.findMany({
-      where: { activityRunId: runId },
+      where: { activityRunId: runId, participant: { status: "active" } },
       select: { participantId: true, normalizedText: true, text: true, hidden: true },
       orderBy: { createdAt: "asc" },
     });
@@ -281,6 +317,18 @@ export class WordStoreService {
     });
   }
 
+  /** Takes a removed participant's words out of a run's live cloud. True when they had any. */
+  async dropWords(sessionId: string, runId: string, participantId: string): Promise<boolean> {
+    const dropped = await this.redis.dropWords(
+      countsKey(sessionId, runId),
+      textsKey(sessionId, runId),
+      mineCountKey(sessionId, runId),
+      mineWordsKey(sessionId, runId),
+      participantId,
+    );
+    return dropped > 0;
+  }
+
   /** The words this student has sent to the run, as shown. */
   async wordsOf(sessionId: string, runId: string, participantId: string): Promise<string[]> {
     if (await this.redis.exists(runKey(sessionId, runId))) {
@@ -325,7 +373,7 @@ export class WordStoreService {
   /** Counts from PostgreSQL, for a run that Redis no longer holds (an ended session). */
   private async storedRows(runId: string): Promise<WordRow[]> {
     const entries = await this.prisma.wordEntry.findMany({
-      where: { activityRunId: runId },
+      where: { activityRunId: runId, participant: { status: "active" } },
       select: { normalizedText: true, text: true, hidden: true },
       orderBy: { createdAt: "asc" },
     });

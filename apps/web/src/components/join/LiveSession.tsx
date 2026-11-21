@@ -51,13 +51,24 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
   // Run id → the words the server confirmed for this student, in the order they were sent.
   const [words, setWords] = useState<Record<string, string[]>>({});
   const [reactionsEnabled, setReactionsEnabled] = useState(false);
+  // The host renamed this student (MD-5 §6: "The host changed your name to …").
+  const [renamedTo, setRenamedTo] = useState<string | null>(null);
   const live = useRef<LiveConnection | undefined>(undefined);
+  const nickname = useRef<string | null>(null);
 
   useEffect(() => {
     let active = true;
     let connection: LiveConnection | undefined;
+    // A new name from the host: live over the socket, or found after a reconnect.
+    const takeNickname = (next: string) => {
+      if (nickname.current === null || nickname.current === next) return;
+      nickname.current = next;
+      setMe((current) => current && { ...current, nickname: next });
+      setRenamedTo(next);
+    };
     // Re-reads where the class is, for a snapshot after a (re)join.
     const apply = (value: ParticipantMe) => {
+      takeNickname(value.nickname);
       setSlideIndex(value.currentSlide?.index ?? null);
       setActivity(value.currentActivity);
       setReactionsEnabled(value.reactionsEnabled);
@@ -79,6 +90,7 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
         if (!active) return;
         // The cookie belongs to another session: this browser has not joined this one.
         if (value.sessionId !== sessionId) return setStop("notJoined");
+        nickname.current = value.nickname;
         setMe(value);
         apply(value);
         connection = new LiveConnection({
@@ -95,6 +107,7 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
             setActivity((current) => applyRoomEvent(current, event));
             if (event.type === "session_ended") setStop("ended");
           },
+          onNickname: takeNickname,
           onError: (error) => {
             if (error.code === "PARTICIPANT_REMOVED") setStop("removed");
             if (error.code === "SESSION_ENDED") setStop("ended");
@@ -150,6 +163,17 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
     status === "reconnecting" || status === "offline" ? (
       <Banner tone="warning" aria-live="polite">
         {t(status === "offline" ? "banner.offline" : "banner.reconnecting")}
+      </Banner>
+    ) : renamedTo ? (
+      <Banner tone="info" aria-live="polite">
+        <span className="flex-1">{t("renamed", { name: renamedTo })}</span>
+        <button
+          type="button"
+          onClick={() => setRenamedTo(null)}
+          className="rounded px-2 py-1 font-semibold underline focus-visible:outline-2 focus-visible:outline-ring"
+        >
+          {t("renamedOk")}
+        </button>
       </Banner>
     ) : null;
 

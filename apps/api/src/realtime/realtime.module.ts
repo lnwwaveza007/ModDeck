@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { AuthModule } from "../auth/auth.module";
 import { AnswerLedgerService } from "./answer-ledger.service";
+import { ParticipantChannelService } from "./participant-channel.service";
 import { PollFlusherService } from "./poll-flusher.service";
 import { PollStoreService } from "./poll-store.service";
 import { PresenceService } from "./presence.service";
@@ -28,6 +29,7 @@ import { WordStoreService } from "./word-store.service";
     WordStoreService,
     WordBatcherService,
     ReactionService,
+    ParticipantChannelService,
   ],
   exports: [
     RoomEventsService,
@@ -39,6 +41,7 @@ import { WordStoreService } from "./word-store.service";
     WordStoreService,
     WordBatcherService,
     ReactionService,
+    ParticipantChannelService,
   ],
 })
 export class RealtimeModule {}
