@@ -191,11 +191,13 @@ export class QuestionsService {
       const batch = this.pending.get(sessionId);
       this.pending.delete(sessionId);
       if (batch?.size) {
-        this.events.publish(sessionId, "question_update", {
-          updates: [...batch.values()],
-        }).catch(() => {
-          // Polling provides recovery if a live broadcast is temporarily unavailable.
-        });
+        this.events
+          .publish(sessionId, "question_update", {
+            updates: [...batch.values()],
+          })
+          .catch(() => {
+            // Polling provides recovery if a live broadcast is temporarily unavailable.
+          });
       }
     }, VOTE_BATCH_MS);
     timer.unref();

@@ -28,7 +28,6 @@ export function QuestionsActivity({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-
   const refresh = useCallback(
     () =>
       getQuestions(sessionId, sort)
@@ -68,9 +67,7 @@ export function QuestionsActivity({
       const result = await toggleQuestionVote(sessionId, question.id);
       setQuestions((items) =>
         items.map((item) =>
-          item.id === question.id
-            ? { ...item, votes: result.votes, voted: result.voted }
-            : item,
+          item.id === question.id ? { ...item, votes: result.votes, voted: result.voted } : item,
         ),
       );
     } catch {
