@@ -333,6 +333,20 @@ describe("host participant management (e2e)", () => {
       expect(me.body.nickname).toBe("Guest Seven");
     });
 
+    it("gives a phone that was away during the rename its new name when it connects", async () => {
+      const { sessionId } = await liveSession();
+      const { token, participantId } = await participant(sessionId, { nickname: "Away" });
+      await rename(sessionId, participantId, "Back Again").expect(200);
+
+      // No event waits for it: the join ack carries the name as it is now.
+      const socket = socketOf(b.url, { token });
+      await connected(socket);
+      const ack = await new Promise<JoinAck>((resolve) =>
+        socket.emit("join", { sessionId }, resolve),
+      );
+      expect(ack).toMatchObject({ ok: true, nickname: "Back Again" });
+    });
+
     it("keeps the join rules for the new name", async () => {
       const { sessionId } = await liveSession();
       const { participantId } = await participant(sessionId, { nickname: "Fern" });

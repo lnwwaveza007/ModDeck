@@ -185,12 +185,27 @@ describe("People drawer", () => {
     expect(screen.queryByRole("dialog", { name: "Remove Ploy?" })).toBeNull();
   });
 
-  it("loads the list again after the host socket comes back", async () => {
+  it("loads the list again each time the host socket is online", async () => {
     await openPeople();
     expect(api.list).toHaveBeenCalledTimes(1);
-    act(() => live.options!.onStatus!("online"));
-    act(() => live.options!.onStatus!("reconnecting"));
+    // Online for the first time: changes from before the socket joined the host room count.
     act(() => live.options!.onStatus!("online"));
     await waitFor(() => expect(api.list).toHaveBeenCalledTimes(2));
+    act(() => live.options!.onStatus!("reconnecting"));
+    act(() => live.options!.onStatus!("online"));
+    await waitFor(() => expect(api.list).toHaveBeenCalledTimes(3));
+  });
+
+  it("keeps an event that comes while the list is loading", async () => {
+    const drawer = await openPeople();
+    let answer!: (rows: ParticipantRow[]) => void;
+    api.list.mockImplementation(() => new Promise((resolve) => (answer = resolve)));
+    act(() => live.options!.onStatus!("online"));
+    await waitFor(() => expect(api.list).toHaveBeenCalledTimes(2));
+
+    // Somchai comes online after the server read the list, before its answer arrives.
+    act(() => live.options!.onPeople!({ type: "update", row: { ...somchai, online: true } }));
+    await act(async () => answer([ploy, somchai]));
+    expect(within(drawer).getByText("2 online · 2 joined")).toBeVisible();
   });
 });

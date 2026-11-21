@@ -71,7 +71,7 @@ export class ParticipantChannelService {
 
   /**
    * Sends the participant's row, as it is now, to the host's screens. Call after a socket came or
-   * went, or a rename. A removed participant is not sent: they left the list.
+   * went. A removed participant is not sent: they left the list.
    */
   async announce(sessionId: string, participantId: string): Promise<void> {
     const participant = await this.prisma.participant.findFirst({

@@ -183,7 +183,13 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     if (identity.role === "host") await client.join(hostRoomName(sessionId));
     const state = await this.roomEvents.sync(sessionId, parsed.data.lastSeq);
     client.emit("state", state);
-    return { ok: true, ...state };
+    // A participant's name as of this connect: a rename while the phone was away is not in the
+    // replay of room events, so the phone learns it here.
+    return {
+      ok: true,
+      ...state,
+      ...(identity.role === "participant" && { nickname: identity.nickname }),
+    };
   }
 
   // A student's vote. The ack is what lets the phone say "Answer sent" (MD-5 rule 6). The session

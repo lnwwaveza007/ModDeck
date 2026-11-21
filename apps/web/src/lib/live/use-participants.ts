@@ -1,8 +1,9 @@
 "use client";
 
 // The host's participant list (F13): loaded over REST, then kept current by the host socket's
-// participant events. Those events are not numbered or replayed, so the list loads again every
-// time the socket comes back online after a drop.
+// participant events. Those events are not numbered or replayed, and they only reach this window
+// once its socket is in the session's host room. So the list loads again each time the socket
+// comes online, the first time included: nothing that changed before that point is missed.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ParticipantRow } from "@moddeck/shared";
@@ -46,52 +47,51 @@ export function useParticipants(
 ): [ParticipantsState, ParticipantsControls] {
   const [rows, setRows] = useState<Rows | null>(null);
   const [failed, setFailed] = useState(false);
-  // While a load is on its way, events wait here and are applied on top of its answer.
-  const pending = useRef<PeopleEvent[] | null>(null);
+  // Only the newest load sets the list. While it is on its way, events wait in its queue and are
+  // applied on top of its answer, so an older answer can never undo a newer event.
+  const generation = useRef(0);
+  const queue = useRef<PeopleEvent[] | null>(null);
 
   const load = useCallback(async () => {
-    pending.current = [];
+    const mine = ++generation.current;
+    const waiting: PeopleEvent[] = [];
+    queue.current = waiting;
     try {
-      let loaded: Rows = new Map((await listParticipants(sessionId)).map((row) => [row.id, row]));
-      for (const event of pending.current ?? []) loaded = applyEvent(loaded, event);
+      const list = await listParticipants(sessionId);
+      if (mine !== generation.current) return;
+      let loaded: Rows = new Map(list.map((row) => [row.id, row]));
+      for (const event of waiting) loaded = applyEvent(loaded, event);
       setRows(loaded);
       setFailed(false);
     } catch {
-      setFailed(true);
+      if (mine === generation.current) setFailed(true);
     } finally {
-      pending.current = null;
+      if (mine === generation.current) queue.current = null;
     }
   }, [sessionId]);
 
   useEffect(
     () =>
       subscribe((event) => {
-        if (pending.current) pending.current.push(event);
+        if (queue.current) queue.current.push(event);
         else setRows((current) => current && applyEvent(current, event));
       }),
     [subscribe],
   );
 
-  // Outside the effect body: load() sets state.
+  // At once, for a window whose socket never comes online (an ended session), then every time the
+  // socket is online again. Outside the effect body: load() sets state.
   useEffect(() => {
     const timer = setTimeout(() => void load(), 0);
     return () => clearTimeout(timer);
   }, [load]);
 
-  // Back online after a drop: what changed meanwhile was not replayed, so load it again.
-  const seenOnline = useRef(false);
-  const dropped = useRef(false);
+  const online = connection === "online";
   useEffect(() => {
-    if (connection !== "online") {
-      if (seenOnline.current) dropped.current = true;
-      return;
-    }
-    seenOnline.current = true;
-    if (!dropped.current) return;
-    dropped.current = false;
+    if (!online) return;
     const timer = setTimeout(() => void load(), 0);
     return () => clearTimeout(timer);
-  }, [connection, load]);
+  }, [online, load]);
 
   const rename = useCallback(
     async (participantId: string, nickname: string) => {

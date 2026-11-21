@@ -104,7 +104,10 @@ export interface ErrorEvent extends ErrorBody {
   seq: number;
 }
 
-export type JoinAck = ({ ok: true } & StatePayload) | { ok: false; error: ErrorBody };
+// `nickname`: a participant's current name, so a phone that was away during a rename catches up.
+// Host sockets get none.
+export type JoinAck =
+  ({ ok: true; nickname?: string } & StatePayload) | { ok: false; error: ErrorBody };
 
 // ---- Typed maps for socket.io / socket.io-client ---------------------------
 
@@ -117,7 +120,8 @@ export type ServerToClientEvents = {
   // host loads the list again. `participant_update` is a new or changed row (online, nickname).
   participant_update: (row: ParticipantRow) => void;
   participant_removed: (payload: { participantId: string }) => void;
-  // To the renamed participant's own phones and tabs only.
+  // To the renamed participant's own phones and tabs only. A phone that was away during a rename
+  // gets the name in its next join ack instead.
   renamed: (payload: { nickname: string }) => void;
 } & { [K in RoomEventType]: (event: RoomEvent<K>) => void };
 

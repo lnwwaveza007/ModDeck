@@ -255,7 +255,7 @@ describe("LiveSession", () => {
     await screen.findByText("INT365 Software Engineering");
     act(() => live.options!.onStatus!("online"));
 
-    act(() => live.options!.onRenamed!("Guest Seven"));
+    act(() => live.options!.onNickname!("Guest Seven"));
     expect(screen.getByText("The host changed your name to Guest Seven.")).toBeVisible();
     expect(screen.getByText("Connected · Guest Seven")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "OK" }));

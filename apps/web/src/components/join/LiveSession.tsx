@@ -107,7 +107,7 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
             setActivity((current) => applyRoomEvent(current, event));
             if (event.type === "session_ended") setStop("ended");
           },
-          onRenamed: takeNickname,
+          onNickname: takeNickname,
           onError: (error) => {
             if (error.code === "PARTICIPANT_REMOVED") setStop("removed");
             if (error.code === "SESSION_ENDED") setStop("ended");

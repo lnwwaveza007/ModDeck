@@ -43,8 +43,11 @@ export interface LiveConnectionOptions {
   onReactionBurst?: (burst: ReactionBurst) => void;
   /** Host screens only: the participant list changed. Not numbered: reload the list after a rejoin. */
   onPeople?: (event: PeopleEvent) => void;
-  /** Students only: the host changed this participant's nickname. */
-  onRenamed?: (nickname: string) => void;
+  /**
+   * Students only: the participant's current name, on every join and when the host renames them.
+   * It may be the name the phone already shows.
+   */
+  onNickname?: (nickname: string) => void;
   /** "host" for presenter control and the audience screen. */
   role?: SocketRole;
   /** Injected in tests. */
@@ -125,7 +128,7 @@ export class LiveConnection {
     this.socket.on("participant_removed", ({ participantId }) =>
       this.options.onPeople?.({ type: "removed", participantId }),
     );
-    this.socket.on("renamed", ({ nickname }) => this.options.onRenamed?.(nickname));
+    this.socket.on("renamed", ({ nickname }) => this.options.onNickname?.(nickname));
     const onRoomEvent = (event: RoomEvent) => this.receive(event);
     for (const type of ROOM_EVENT_TYPES) {
       (this.socket.on as (type: string, listener: (event: RoomEvent) => void) => void)(
@@ -258,6 +261,8 @@ export class LiveConnection {
           return FINAL_ERRORS.includes(ack.error.code) ? this.end() : this.retryJoin();
         }
         this.applyState(ack);
+        // A rename while we were away is not in the replay: the ack carries the name as it is now.
+        if (ack.nickname) this.options.onNickname?.(ack.nickname);
         this.joined = true;
         this.setStatus("online");
       });
