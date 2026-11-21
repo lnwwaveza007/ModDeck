@@ -10,6 +10,7 @@ import { runLiveCommand } from "@/lib/live/commands";
 import { useScreenLayers } from "@/lib/live/screen-channel";
 import { useShortcuts } from "@/lib/live/shortcuts";
 import { runOf, useLiveSession } from "@/lib/live/use-live-session";
+import { useParticipants } from "@/lib/live/use-participants";
 import { Button, buttonClass } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { Toggle } from "@/components/ui/Toggle";
@@ -17,6 +18,7 @@ import { ActivityControls } from "./ActivityControls";
 import { EndSessionButton, useSessionEnd } from "./EndSession";
 import { Kbd } from "./Kbd";
 import { LiveStage } from "./LiveStage";
+import { PeopleDrawer } from "./PeopleDrawer";
 import { ReactionLayer } from "./ReactionLayer";
 import { ShortcutHelp } from "./ShortcutHelp";
 import { SlideStrip } from "./SlideStrip";
@@ -66,6 +68,12 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
   );
   const [help, setHelp] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [people, setPeople] = useState(false);
+  const [participantList, participantControls] = useParticipants(
+    sessionId,
+    controls.subscribePeople,
+    state.connection,
+  );
   const durationRef = useRef<number | undefined | null>(undefined);
   const now = useServerNow(state.clockOffset);
 
@@ -93,7 +101,8 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
   const cloud = run ? (clouds[run.activityRunId] ?? NO_WORDS) : undefined;
   const pin = view.pin?.replace(/(\d{3})(\d{3})/, "$1 $2");
   const elapsed = Math.max(0, (now - Date.parse(view.startedAt)) / 1000);
-  const participants = end.session?.participantCount ?? view.participantCount;
+  const participants =
+    participantList.rows?.length ?? end.session?.participantCount ?? view.participantCount;
   const [screen, setScreen] = layers;
 
   return (
@@ -113,9 +122,11 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
           <span className="sr-only">{t("elapsed")} </span>
           {formatDuration(elapsed)}
         </span>
-        <span className="rounded-md bg-neutral-100 px-2.5 py-1 text-sm font-semibold">
-          {t("participants", { count: participants })}
-        </span>
+        <Button variant="secondary" aria-haspopup="dialog" onClick={() => setPeople(true)}>
+          {participantList.rows
+            ? t("people.button", { online: participantList.online, total: participants })
+            : t("participants", { count: participants })}
+        </Button>
         <span
           role="status"
           className={cn(
@@ -309,6 +320,14 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
       </div>
 
       {help && <ShortcutHelp onClose={() => setHelp(false)} />}
+      {people && (
+        <PeopleDrawer
+          state={participantList}
+          controls={participantControls}
+          ended={state.ended}
+          onClose={() => setPeople(false)}
+        />
+      )}
       {editing && activity && current && (
         <WordingDialog
           activity={activity}

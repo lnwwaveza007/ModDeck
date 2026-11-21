@@ -194,7 +194,9 @@
       "laugh": "Laugh",
       "wow": "Wow",
       "party": "Celebrate"
-    }
+    },
+    "renamed": "The host changed your name to {name}.",
+    "renamedOk": "OK"
   },
   "host": {
     "live": "LIVE",
@@ -708,6 +710,40 @@
       "title": "Reactions",
       "toggle": "Live reactions",
       "description": "Students tap an emoji and it floats up on the screen."
+    },
+    "people": {
+      "button": "People · {online} online / {total}",
+      "title": "People",
+      "summary": "{online} online · {total} joined",
+      "search": "Find a participant",
+      "listLabel": "Participants",
+      "loading": "Loading participants…",
+      "loadFailed": "Could not load the participant list.",
+      "retry": "Try again",
+      "empty": "No one has joined yet.",
+      "noMatch": "No one is called “{query}”.",
+      "online": "Online",
+      "offline": "Offline",
+      "kmutt": "KMUTT",
+      "guest": "Guest",
+      "rename": "Rename",
+      "renameLabel": "Rename {name}",
+      "newName": "New name for {name}",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "renameErrors": {
+        "generic": "Could not rename. Try again.",
+        "NOT_A_GUEST": "A KMUTT student shows their KMUTT name and can't be renamed."
+      },
+      "remove": "Remove",
+      "removeLabel": "Remove {name}",
+      "removeTitle": "Remove {name}?",
+      "removeBody": "They are disconnected now and can't join this session again from the same device.",
+      "removeAnswers": "Their answers leave the live results. The export keeps them, marked Removed.",
+      "removeFailed": "Could not remove. Try again.",
+      "removeConfirm": "Remove",
+      "removing": "Removing…"
     }
   },
   "screen": {
