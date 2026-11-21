@@ -5,7 +5,9 @@ import {
   HttpException,
   Inject,
   Param,
+  Patch,
   Post,
+  Query,
   Req,
   Res,
 } from "@nestjs/common";
@@ -27,6 +29,7 @@ import { randomToken } from "../auth/crypto.util";
 import { ApiException, ZodBody } from "../common/api-error";
 import { PinLimiterService } from "./pin-limiter.service";
 import { ParticipantsService } from "./participants.service";
+import { QuestionsService } from "./questions.service";
 
 // Anonymous id of this browser for the wrong-PIN limit (MD-5 §6.4). It is not
 // a login: it only says "the same phone tried again".
@@ -37,6 +40,7 @@ const DEVICE_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000;
 export class ParticipantsController {
   constructor(
     private readonly participants: ParticipantsService,
+    private readonly questions: QuestionsService,
     private readonly limiter: PinLimiterService,
     private readonly auth: AuthService,
     @Inject(AUTH_CONFIG) private readonly cfg: AuthConfig,
@@ -84,6 +88,49 @@ export class ParticipantsController {
   @Get("participants/me")
   me(@Req() req: Request): Promise<ParticipantMe> {
     return this.participants.me(parseCookies(req.headers.cookie)[PARTICIPANT_COOKIE]);
+  }
+
+  @Get("sessions/:sessionId/questions")
+  questionsList(
+    @Param("sessionId") sessionId: string,
+    @Query("sort") sort: string,
+    @Req() req: Request,
+  ) {
+    return this.questions.list(
+      sessionId,
+      parseCookies(req.headers.cookie)[PARTICIPANT_COOKIE],
+      sort === "newest" ? "newest" : "top",
+    );
+  }
+
+  @Post("sessions/:sessionId/questions")
+  askQuestion(
+    @Param("sessionId") sessionId: string,
+    @Body() body: { text?: unknown; anonymous?: unknown },
+    @Req() req: Request,
+  ) {
+    if (typeof body?.text !== "string" || typeof body.anonymous !== "boolean") {
+      throw new ApiException(422, "INVALID_PAYLOAD", "Invalid question payload");
+    }
+    return this.questions.ask(
+      sessionId,
+      parseCookies(req.headers.cookie)[PARTICIPANT_COOKIE],
+      body.text,
+      body.anonymous,
+    );
+  }
+
+  @Patch("sessions/:sessionId/questions/:questionId/vote")
+  toggleQuestionVote(
+    @Param("sessionId") sessionId: string,
+    @Param("questionId") questionId: string,
+    @Req() req: Request,
+  ) {
+    return this.questions.toggleVote(
+      sessionId,
+      questionId,
+      parseCookies(req.headers.cookie)[PARTICIPANT_COOKIE],
+    );
   }
 
   /** The KMUTT login of this browser, if any. A student who logs in gets one too. */

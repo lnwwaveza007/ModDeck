@@ -5,8 +5,8 @@
 
 import { z } from "zod";
 import type { ErrorBody } from "./errors";
+import type { LiveQuestion, ParticipantRow } from "./participants";
 import type { PollTally, SlideActivityView } from "./live";
-import type { ParticipantRow } from "./participants";
 import type { ReactionBurst, ReactionPayload } from "./reactions";
 import { WORD_TEXT_INPUT_MAX, type WordCloudTally, type WordResult } from "./words";
 
@@ -53,6 +53,13 @@ export interface RoomEventData {
   // The most sent visible words of a word cloud. Hidden words never travel in it: a phone or the
   // projector that gets it has no way to read what the host hid. Batched like vote_update.
   word_update: { activityRunId: string } & WordCloudTally;
+  // Q&A mutations are batched; anonymous questions never include an author key or value.
+  question_update: {
+    updates: (
+      | { action: "created"; question: LiveQuestion }
+      | { action: "votes"; questionId: string; votes: number }
+    )[];
+  };
   participant_count: { online: number; total: number };
   // The host turned live reactions on or off. Numbered and replayed, so a phone that was offline
   // when it happened shows or hides its reaction bar after the reconnect.
@@ -68,6 +75,7 @@ export const ROOM_EVENT_TYPES = [
   "activity_edited",
   "vote_update",
   "word_update",
+  "question_update",
   "participant_count",
   "reactions_toggled",
   "session_ended",

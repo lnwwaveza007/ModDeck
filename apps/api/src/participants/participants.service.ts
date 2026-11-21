@@ -207,7 +207,7 @@ export class ParticipantsService {
             status: true,
             deckId: true,
             settings: true,
-            deck: { select: { title: true } },
+            deck: { select: { title: true, qaEnabled: true, anonymousAllowed: true } },
             currentSlide: { select: { id: true, position: true } },
           },
         },
@@ -252,6 +252,8 @@ export class ParticipantsService {
       currentSlide: session.currentSlide ? { id: session.currentSlide.id, index } : null,
       currentActivity: view && { ...view, myOptionId, myWords },
       reactionsEnabled: reactionsEnabled(session.settings),
+      qaEnabled: session.deck.qaEnabled,
+      anonymousAllowed: session.deck.anonymousAllowed,
     };
   }
 

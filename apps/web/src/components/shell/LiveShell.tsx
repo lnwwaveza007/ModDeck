@@ -19,6 +19,7 @@ export function LiveShell({
   activity,
   qa,
   reactions,
+  qaEnabled = true,
 }: {
   title: string;
   status?: string;
@@ -28,13 +29,14 @@ export function LiveShell({
   qa: ReactNode;
   /** The live reaction bar, above the tabs on both of them. Absent while reactions are off. */
   reactions?: ReactNode;
+  qaEnabled?: boolean;
 }) {
   const t = useTranslations("live");
   const [tab, setTab] = useState<LiveTab>("activity");
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <header className="relative flex min-h-16 items-center gap-1 border-b border-neutral-200 bg-background py-2 pr-1 pl-4">
         <div className="flex min-w-0 flex-1 flex-col">
           <p className="truncate text-base font-semibold">{title}</p>
@@ -78,7 +80,9 @@ export function LiveShell({
 
       {banner}
 
-      <div className="flex flex-1 flex-col bg-surface">{tab === "activity" ? activity : qa}</div>
+      <div className="flex min-h-0 flex-1 flex-col bg-surface">
+        {tab === "activity" || !qaEnabled ? activity : qa}
+      </div>
 
       {reactions}
 
@@ -86,7 +90,7 @@ export function LiveShell({
         aria-label={t("tabs")}
         className="flex border-t border-neutral-200 bg-background px-2 pb-3"
       >
-        {(["activity", "qa"] as const).map((key) => (
+        {(["activity", ...(qaEnabled ? (["qa"] as const) : [])] as LiveTab[]).map((key) => (
           <button
             key={key}
             type="button"
