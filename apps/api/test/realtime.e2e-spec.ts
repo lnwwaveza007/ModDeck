@@ -95,6 +95,7 @@ describe("realtime gateway across two instances (e2e)", () => {
   }
 
   function connected(socket: ClientSocket): Promise<void> {
+    if (socket.connected) return Promise.resolve();
     return new Promise((resolve, reject) => {
       socket.once("connect", () => resolve());
       socket.once("connect_error", (err) => reject(err));
@@ -167,7 +168,7 @@ describe("realtime gateway across two instances (e2e)", () => {
     const socket = connect(b.url, await createParticipant(session.id));
     await connected(socket);
     const state = new Promise((resolve) => socket.once("state", resolve));
-    const ack = await join(socket, session.id, 1);
+    const ack: JoinAck = await join(socket, session.id, 1);
     expect(ack).toMatchObject({ ok: true, mode: "replay", seq: 3 });
     expect(ack.ok && ack.mode === "replay" && ack.events.map((e) => e.seq)).toEqual([2, 3]);
     await expect(state).resolves.toMatchObject({ mode: "replay", seq: 3 });
@@ -263,6 +264,6 @@ describe("realtime gateway across two instances (e2e)", () => {
     ]) {
       expect(res.text).toContain(name);
     }
-    expect(res.text).toMatch(/moddeck_ws_messages_received_total\{event="join"[^}]*\} [1-9]/);
+    expect(res.text).toMatch(/moddeck_ws_messages_received_total\{event="join"[^}]*} [1-9]/);
   });
 });

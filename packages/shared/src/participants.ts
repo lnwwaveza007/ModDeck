@@ -90,6 +90,8 @@ export interface LiveQuestion {
   votes: number;
   /** Absent for anonymous questions, not even null. */
   author?: string;
+  /** Included only in this participant's API response; never in room broadcasts. */
+  ownQuestion?: boolean;
   voted?: boolean;
 }
 

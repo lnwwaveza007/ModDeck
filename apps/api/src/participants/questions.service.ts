@@ -84,7 +84,14 @@ export class QuestionsService {
     const { participantId } = await this.identity(token, sessionId);
     const rows = await this.prisma.question.findMany({
       where: { sessionId, status: { notIn: ["hidden", "deleted"] } },
-      include: {
+      select: {
+        id: true,
+        sessionId: true,
+        participantId: true,
+        text: true,
+        anonymous: true,
+        status: true,
+        createdAt: true,
         _count: { select: { votes: true } },
         participant: { select: { nickname: true } },
         votes: { where: { participantId }, select: { participantId: true } },
@@ -94,7 +101,12 @@ export class QuestionsService {
           ? { createdAt: "desc" }
           : [{ votes: { _count: "desc" } }, { createdAt: "desc" }],
     });
-    return { questions: rows.map(questionView) };
+    return {
+      questions: rows.map((row) => ({
+        ...questionView(row),
+        ownQuestion: row.participantId === participantId,
+      })),
+    };
   }
 
   async ask(sessionId: string, token: string | undefined, text: string, anonymous: boolean) {
@@ -119,16 +131,18 @@ export class QuestionsService {
     });
     const result = questionView(q);
     this.enqueue(sessionId, `created:${result.id}`, { action: "created", question: result });
-    return result;
+    return { ...result, ownQuestion: true };
   }
 
   async toggleVote(sessionId: string, questionId: string, token?: string) {
     const { participantId } = await this.identity(token, sessionId);
     const question = await this.prisma.question.findFirst({
       where: { id: questionId, sessionId, status: { notIn: ["hidden", "deleted"] } },
-      select: { id: true },
+      select: { id: true, participantId: true },
     });
     if (!question) throw new ApiException(404, "NOT_FOUND", "Question not found");
+    if (question.participantId === participantId)
+      throw new ApiException(403, "ROOM_FORBIDDEN", "You cannot upvote your own question");
     const voteKey = `qa-votes:{${questionId}}`;
     const readyKey = `qa-votes-ready:{${questionId}}`;
     let outcome: { voted: boolean; votes: number };
