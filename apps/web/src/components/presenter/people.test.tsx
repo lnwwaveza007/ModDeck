@@ -67,6 +67,8 @@ const view: LiveSessionView = {
   hiddenWords: {},
   showResultsLive: false,
   reactionsEnabled: true,
+  qaOpen: true,
+  questions: [],
   participantCount: 2,
 };
 

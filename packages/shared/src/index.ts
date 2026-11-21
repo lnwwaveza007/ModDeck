@@ -5,6 +5,7 @@ export * from "./imports";
 export * from "./limits";
 export * from "./live";
 export * from "./participants";
+export * from "./questions";
 export * from "./reactions";
 export * from "./slides";
 export * from "./words";

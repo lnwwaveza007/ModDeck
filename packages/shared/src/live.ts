@@ -3,6 +3,7 @@
 
 import { z } from "zod";
 import type { ActivityRunState, SessionStatus } from "./events";
+import type { LiveQuestion } from "./participants";
 import type { ActivitySlideKind, SlideDto } from "./slides";
 import { WORD_ENTRIES_MAX, WORD_ENTRIES_MIN, type WordCloudTally, type WordCount } from "./words";
 
@@ -190,5 +191,12 @@ export interface LiveSessionView {
   showResultsLive: boolean;
   /** Students can send live reactions. The host turns it on or off during the session. */
   reactionsEnabled: boolean;
+  /** Students can ask and vote. The host opens or closes Q&A during the session. */
+  qaOpen: boolean;
+  /**
+   * Every question of the session, hidden ones included, so the host can show one again. The
+   * projector draws only the pinned (`highlighted`) one. Anonymous questions carry no author.
+   */
+  questions: LiveQuestion[];
   participantCount: number;
 }

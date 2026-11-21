@@ -5,7 +5,20 @@ import { PrismaService } from "../prisma/prisma.service";
 import { REDIS } from "../redis/redis.module";
 import { RoomEventsService } from "../realtime/room-events.service";
 import { hashToken } from "../realtime/participant-token";
-import { VOTE_BATCH_MS, type LiveQuestion, type RoomEventData } from "@moddeck/shared";
+import {
+  QUESTION_ACTION_STATUS,
+  VOTE_BATCH_MS,
+  qaOpen,
+  qaShown,
+  type LiveQuestion,
+  type QuestionAction,
+  type RoomEventData,
+} from "@moddeck/shared";
+import { z } from "zod";
+import { questionSelect, questionView, statusUpdate } from "./question-view";
+
+const uuid = z.uuid();
+const questionNotFound = () => new ApiException(404, "NOT_FOUND", "Question not found");
 
 const QUESTION_RATE_SCRIPT = `
 local count = redis.call('INCR', KEYS[1])
@@ -24,26 +37,6 @@ redis.call('EXPIRE', KEYS[2], ARGV[2])
 return { 1 - voted, redis.call('SCARD', KEYS[1]) }
 `;
 
-const questionView = (q: {
-  id: string;
-  text: string;
-  anonymous: boolean;
-  status: string;
-  createdAt: Date;
-  _count: { votes: number };
-  votes?: { participantId: string }[];
-  participant: { nickname: string };
-}): LiveQuestion => ({
-  id: q.id,
-  text: q.text,
-  anonymous: q.anonymous,
-  status: q.status,
-  createdAt: q.createdAt.toISOString(),
-  votes: q._count.votes,
-  ...(!q.anonymous ? { author: q.participant.nickname } : {}),
-  ...(q.votes ? { voted: q.votes.length > 0 } : {}),
-});
-
 @Injectable()
 export class QuestionsService {
   private readonly pending = new Map<
@@ -58,7 +51,11 @@ export class QuestionsService {
     @Inject(REDIS) private readonly redis: Redis,
   ) {}
 
-  private async identity(token: string | undefined, sessionId: string) {
+  /**
+   * The participant behind the cookie. `write`: asking and voting, which need Q&A open. Reading
+   * needs only the tab, which stays after the host closes Q&A.
+   */
+  private async identity(token: string | undefined, sessionId: string, write = false) {
     if (!token) throw new ApiException(401, "UNAUTHORIZED", "Join the session first");
     const p = await this.prisma.participant.findUnique({
       where: { tokenHash: hashToken(token) },
@@ -71,12 +68,15 @@ export class QuestionsService {
       select: {
         status: true,
         settings: true,
-        deck: { select: { qaEnabled: true, anonymousAllowed: true } },
+        deck: { select: { anonymousAllowed: true } },
       },
     });
     if (!session || session.status === "ended")
       throw new ApiException(410, "SESSION_ENDED", "Session ended");
-    if (!session.deck.qaEnabled) throw new ApiException(403, "ROOM_FORBIDDEN", "Q&A is disabled");
+    if (!qaShown(session.settings))
+      throw new ApiException(403, "ROOM_FORBIDDEN", "Q&A is disabled");
+    if (write && !qaOpen(session.settings))
+      throw new ApiException(403, "QA_CLOSED", "The host has closed Q&A");
     return { participantId: p.id, session, anonymousAllowed: session.deck.anonymousAllowed };
   }
 
@@ -85,15 +85,8 @@ export class QuestionsService {
     const rows = await this.prisma.question.findMany({
       where: { sessionId, status: { notIn: ["hidden", "deleted"] } },
       select: {
-        id: true,
-        sessionId: true,
+        ...questionSelect,
         participantId: true,
-        text: true,
-        anonymous: true,
-        status: true,
-        createdAt: true,
-        _count: { select: { votes: true } },
-        participant: { select: { nickname: true } },
         votes: { where: { participantId }, select: { participantId: true } },
       },
       orderBy:
@@ -110,7 +103,7 @@ export class QuestionsService {
   }
 
   async ask(sessionId: string, token: string | undefined, text: string, anonymous: boolean) {
-    const { participantId, anonymousAllowed } = await this.identity(token, sessionId);
+    const { participantId, anonymousAllowed } = await this.identity(token, sessionId, true);
     const value = text.trim();
     if (!value || value.length > 280)
       throw new ApiException(422, "INVALID_PAYLOAD", "Question must be 1–280 characters");
@@ -127,7 +120,7 @@ export class QuestionsService {
       );
     const q = await this.prisma.question.create({
       data: { sessionId, participantId, text: value, anonymous },
-      include: { _count: { select: { votes: true } }, participant: { select: { nickname: true } } },
+      select: questionSelect,
     });
     const result = questionView(q);
     this.enqueue(sessionId, `created:${result.id}`, { action: "created", question: result });
@@ -135,7 +128,7 @@ export class QuestionsService {
   }
 
   async toggleVote(sessionId: string, questionId: string, token?: string) {
-    const { participantId } = await this.identity(token, sessionId);
+    const { participantId } = await this.identity(token, sessionId, true);
     const question = await this.prisma.question.findFirst({
       where: { id: questionId, sessionId, status: { notIn: ["hidden", "deleted"] } },
       select: { id: true, participantId: true },
@@ -189,6 +182,77 @@ export class QuestionsService {
       votes: outcome.votes,
     });
     return outcome;
+  }
+
+  /**
+   * The host marks a question answered, hides it, pins it to the projector, or puts it back
+   * (MD-5 F6). One pin per session: pinning moves the old pin back to visible. Answering or hiding
+   * the pinned question takes it off the projector, as each question has one status.
+   *
+   * Every change of a session runs under one lock and goes to the room before the lock is freed,
+   * so the room hears the changes in the order the database made them: two host windows pinning
+   * at once cannot leave two pins on the screens.
+   */
+  async setStatus(
+    ownerId: string,
+    sessionId: string,
+    questionId: string,
+    action: QuestionAction,
+  ): Promise<LiveQuestion> {
+    if (!uuid.safeParse(sessionId).success)
+      throw new ApiException(404, "NOT_FOUND", "Session not found");
+    const session = await this.prisma.session.findFirst({
+      where: { id: sessionId, ownerId },
+      select: { status: true },
+    });
+    if (!session) throw new ApiException(404, "NOT_FOUND", "Session not found");
+    if (session.status === "ended")
+      throw new ApiException(409, "SESSION_ENDED", "The session has ended");
+    if (!uuid.safeParse(questionId).success) throw questionNotFound();
+    const status = QUESTION_ACTION_STATUS[action];
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`qa-status:${sessionId}`}))`;
+      const question = await tx.question.findFirst({
+        where: { id: questionId, sessionId, status: { not: "deleted" } },
+        select: { id: true, status: true },
+      });
+      if (!question) throw questionNotFound();
+
+      const changed: string[] = [];
+      if (status === "highlighted") {
+        const pinned = await tx.question.findMany({
+          where: { sessionId, status: "highlighted", id: { not: questionId } },
+          select: { id: true },
+        });
+        if (pinned.length) {
+          await tx.question.updateMany({
+            where: { id: { in: pinned.map((q) => q.id) } },
+            data: { status: "visible" },
+          });
+          changed.push(...pinned.map((q) => q.id));
+        }
+      }
+      if (question.status !== status) {
+        await tx.question.update({
+          where: { id: questionId },
+          data: { status },
+          select: { id: true },
+        });
+        changed.push(questionId);
+      }
+
+      const rows = await tx.question.findMany({
+        where: { id: { in: [...changed, questionId] } },
+        select: questionSelect,
+      });
+      const views = new Map(rows.map((row) => [row.id, questionView(row)]));
+      // In the order of the writes: the old pin goes back before the new one shows.
+      const updates = changed.map((id) => statusUpdate(views.get(id)!));
+      // A press that changes nothing (a second click on "answered") sends nothing.
+      if (updates.length) await this.events.publish(sessionId, "question_update", { updates });
+      return views.get(questionId)!;
+    });
   }
 
   private enqueue(

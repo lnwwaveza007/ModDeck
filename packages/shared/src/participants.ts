@@ -3,6 +3,7 @@
 
 import { z } from "zod";
 import type { SlideActivityView } from "./live";
+import type { QuestionStatus } from "./questions";
 
 export const NICKNAME_MIN = 2;
 export const NICKNAME_MAX = 20;
@@ -85,7 +86,7 @@ export interface LiveQuestion {
   id: string;
   text: string;
   anonymous: boolean;
-  status: string;
+  status: QuestionStatus;
   createdAt: string;
   votes: number;
   /** Absent for anonymous questions, not even null. */
@@ -108,7 +109,10 @@ export interface ParticipantMe extends JoinResult {
   currentActivity: (SlideActivityView & { myOptionId: string | null; myWords: string[] }) | null;
   /** The reaction bar shows. The room's reactions_toggled events keep it current. */
   reactionsEnabled: boolean;
+  /** The Q&A tab shows. The room's qa_toggled events keep it current. */
   qaEnabled: boolean;
+  /** Students can ask and vote. Closed, the tab shows the list read-only. */
+  qaOpen: boolean;
   anonymousAllowed: boolean;
 }
 

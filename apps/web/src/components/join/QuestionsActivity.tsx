@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import { ApiError } from "@/lib/api/client";
 import { RichText } from "@/components/content/RichText";
 import { Toggle } from "@/components/ui/Toggle";
 import {
@@ -14,11 +16,15 @@ export function QuestionsActivity({
   sessionId,
   nickname,
   anonymousAllowed = true,
+  open = true,
 }: {
   sessionId: string;
   nickname: string;
   anonymousAllowed?: boolean;
+  /** Closed by the host: the list stays readable, asking and voting stop. */
+  open?: boolean;
 }) {
+  const t = useTranslations("live.qaPanel");
   const [questions, setQuestions] = useState<LiveQuestion[]>([]);
   const [sort, setSort] = useState<"top" | "newest">("top");
   const [text, setText] = useState("");
@@ -55,8 +61,12 @@ export function QuestionsActivity({
       setPreview(false);
       setComposing(false);
       await refresh();
-    } catch {
-      setError("Please wait before asking another question, or check your connection.");
+    } catch (caught) {
+      setError(
+        caught instanceof ApiError && caught.code === "QA_CLOSED"
+          ? t("closedError")
+          : "Please wait before asking another question, or check your connection.",
+      );
     } finally {
       setBusy(false);
     }
@@ -70,12 +80,16 @@ export function QuestionsActivity({
           item.id === question.id ? { ...item, votes: result.votes, voted: result.voted } : item,
         ),
       );
-    } catch {
-      setError("Could not update your vote.");
+    } catch (caught) {
+      setError(
+        caught instanceof ApiError && caught.code === "QA_CLOSED"
+          ? t("closedError")
+          : "Could not update your vote.",
+      );
     }
   };
 
-  if (composing) {
+  if (composing && open) {
     return (
       <section className="flex min-h-0 flex-1 flex-col bg-background">
         <header className="flex h-14 items-center gap-3 border-b border-neutral-200 px-4">
@@ -209,6 +223,13 @@ export function QuestionsActivity({
             className="flex gap-2 rounded-xl border border-neutral-200 bg-white p-3"
           >
             <div className="min-w-0 flex-1">
+              {(question.status === "highlighted" || question.status === "answered") && (
+                <span
+                  className={`mb-1 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${question.status === "highlighted" ? "bg-primary-50 text-primary-700" : "bg-success-50 text-success-700"}`}
+                >
+                  {t(question.status === "highlighted" ? "onScreen" : "answered")}
+                </span>
+              )}
               <RichText source={question.text} className="text-sm" />
               <p className="mt-2 text-xs text-slate-500">
                 {question.anonymous ? "Anonymous" : question.author} ·{" "}
@@ -220,7 +241,7 @@ export function QuestionsActivity({
               aria-label={`${question.ownQuestion ? "Your question" : question.voted ? "Remove upvote" : "Upvote"}: ${question.votes}`}
               aria-pressed={question.voted ?? false}
               title={question.ownQuestion ? "You cannot upvote your own question" : undefined}
-              disabled={question.ownQuestion}
+              disabled={question.ownQuestion || !open}
               onClick={() => void vote(question)}
               className={`group flex h-14 min-w-12 flex-col items-center justify-center gap-0.5 rounded-xl border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600 disabled:opacity-50 ${question.voted ? "border-primary-400 bg-primary-400 text-white" : "border-neutral-200 text-neutral-500 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700"}`}
             >
@@ -255,17 +276,26 @@ export function QuestionsActivity({
           {error}
         </p>
       )}
-      <button
-        type="button"
-        onClick={() => {
-          setAnonymous(anonymousAllowed);
-          setComposing(true);
-          setError("");
-        }}
-        className="mt-auto w-full shrink-0 rounded-xl border border-slate-200 bg-primary-600 p-3 font-semibold text-white"
-      >
-        Post a question
-      </button>
+      {open ? (
+        <button
+          type="button"
+          onClick={() => {
+            setAnonymous(anonymousAllowed);
+            setComposing(true);
+            setError("");
+          }}
+          className="mt-auto w-full shrink-0 rounded-xl border border-slate-200 bg-primary-600 p-3 font-semibold text-white"
+        >
+          Post a question
+        </button>
+      ) : (
+        <p
+          role="status"
+          className="mt-auto rounded-xl bg-neutral-100 p-3 text-center text-sm text-neutral-700"
+        >
+          {t("closed")}
+        </p>
+      )}
     </section>
   );
 }

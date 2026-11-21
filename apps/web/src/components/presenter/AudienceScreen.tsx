@@ -8,11 +8,13 @@ import { cn } from "@/lib/cn";
 import { getSession } from "@/lib/api/sessions";
 import { formatDuration, secondsLeft, useServerNow } from "@/lib/live/clock";
 import { runLiveCommand } from "@/lib/live/commands";
+import { pinnedQuestion } from "@/lib/live/questions";
 import { useScreenLayers } from "@/lib/live/screen-channel";
 import { SHORTCUT_LIST, useShortcuts } from "@/lib/live/shortcuts";
 import { runOf, useLiveSession, type LiveSessionState } from "@/lib/live/use-live-session";
 import { Kbd } from "./Kbd";
 import { LiveStage } from "./LiveStage";
+import { PinnedQuestion } from "./PinnedQuestion";
 import { ReactionLayer } from "./ReactionLayer";
 import { ShortcutHelp } from "./ShortcutHelp";
 
@@ -77,6 +79,7 @@ export function AudienceScreen({ sessionId }: { sessionId: string }) {
   const current = slides[currentIndex];
   const activity = current?.activity;
   const run = activity ? runOf(runs, activity.id) : undefined;
+  const pinned = pinnedQuestion(state.questions);
   const connectionLost =
     state.connection === "reconnecting" ||
     state.connection === "offline" ||
@@ -118,6 +121,8 @@ export function AudienceScreen({ sessionId }: { sessionId: string }) {
               </div>
             )
           )}
+          {/* Not over the join panel either: the room needs the QR code to join. */}
+          {pinned && !screen.join && <PinnedQuestion question={pinned} />}
           {/* Not over the join panel: an emoji rising across the QR code can spoil a scan. */}
           {state.reactionsEnabled && !screen.join && (
             <ReactionLayer subscribe={controls.subscribeReactions} />

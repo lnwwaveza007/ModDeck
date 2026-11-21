@@ -6,6 +6,7 @@
 import { z } from "zod";
 import type { ErrorBody } from "./errors";
 import type { LiveQuestion, ParticipantRow } from "./participants";
+import type { QuestionStatus } from "./questions";
 import type { PollTally, SlideActivityView } from "./live";
 import type { ReactionBurst, ReactionPayload } from "./reactions";
 import { WORD_TEXT_INPUT_MAX, type WordCloudTally, type WordResult } from "./words";
@@ -53,13 +54,25 @@ export interface RoomEventData {
   // The most sent visible words of a word cloud. Hidden words never travel in it: a phone or the
   // projector that gets it has no way to read what the host hid. Batched like vote_update.
   word_update: { activityRunId: string } & WordCloudTally;
-  // Q&A mutations are batched; anonymous questions never include an author key or value.
+  // Q&A mutations. New questions and votes are batched; the host's status changes go out at once.
+  // Anonymous questions never include an author key or value. A `status` update carries the
+  // question, so a screen can show one the host unhid, except when it is hidden: then only the id
+  // travels, and no phone can read what the host hid.
   question_update: {
     updates: (
       | { action: "created"; question: LiveQuestion }
       | { action: "votes"; questionId: string; votes: number }
+      | { action: "status"; questionId: string; status: "hidden" }
+      | {
+          action: "status";
+          questionId: string;
+          status: Exclude<QuestionStatus, "hidden" | "deleted">;
+          question: LiveQuestion;
+        }
     )[];
   };
+  // The host opened or closed Q&A. `shown`: the Q&A tab shows on the phones (see qaShown).
+  qa_toggled: { open: boolean; shown: boolean };
   participant_count: { online: number; total: number };
   // The host turned live reactions on or off. Numbered and replayed, so a phone that was offline
   // when it happened shows or hides its reaction bar after the reconnect.
@@ -76,6 +89,7 @@ export const ROOM_EVENT_TYPES = [
   "vote_update",
   "word_update",
   "question_update",
+  "qa_toggled",
   "participant_count",
   "reactions_toggled",
   "session_ended",
