@@ -167,7 +167,8 @@ Where the student sees this:
 - The owner invites a co-host from presenter control by link, or by KMUTT account. The co-host must log in with SSO. One co-host per session in R1.
 - **Take over:** if the owner's connection has been lost for 2 min, the co-host sees "Take over this session". After take-over the original owner becomes a co-host when they return.
 - **Remove sender (abuse):** on any question, the host or co-host can choose "Remove sender". The server removes that participant from the session, hides their questions, and blocks their device token for this session. The moderator never sees the name. Nobody gets a name through the app. If the course needs a real-name lookup for a serious case, the department requests it from the ModDeck admin (outside the R1 screens).
-- **Rename or remove a participant:** in the participant list the host can rename (to "Guest N") or remove any participant. Removed participants see "You were removed from this session."
+- **Rename or remove a participant:** in the participant list (online or offline, Guest or KMUTT) the host can rename a guest to a name they type, which passes the same rules as a guest nickname (2.6). A KMUTT student shows their KMUTT name and cannot be renamed. The host can remove any participant. Removed participants see "You were removed from this session" and cannot rejoin with the same device token.
+- **Answers of a removed participant:** they leave every live result of the session at once (polls and word clouds, closed ones too). The rows stay in the database. The export lists them marked "Removed, not counted", and its totals leave them out, so the totals match what the class saw.
 - **Duplicate questions:** the host can mark a question "Duplicate of …" and pick the original. The duplicate collapses under the original, and its upvotes are added to the original. This is manual in R1. AI clustering stays in R2.
 
 ### 2.6 Nickname and text rules (Q23)
@@ -592,7 +593,7 @@ flowchart TD
 | SSO login fails or student cancels                     | Back to the identity screen with an error and the guest option (unless the session requires KMUTT login).                                               |
 | Host starts a second session from the same deck        | Allowed. Each session has its own PIN. My decks shows "2 live".                                                                                          |
 | Host opens presenter control in two tabs               | Both work and stay in sync. Last action wins. A co-host (2.5) cannot change slides, so a TA cannot fight the host for the slide.                       |
-| Rude or impersonating nickname                         | The host removes or renames the participant (2.5, 2.6). The student sees "The host changed your name to Guest 17."                                       |
+| Rude or impersonating nickname                         | The host removes or renames the participant (2.5, 2.6). The student sees "The host changed your name to <new name>."                                       |
 | Mirror mode (host has one display)                     | See 2.2: the presenter overlay.                                                                                                                          |
 | PDF import fails (bad file, password, too large)       | Error in the import dialog with the reason. No slides added. Partial failure: good pages are added, failed pages listed with retry.                     |
 | Host tries to delete an activity slide while live      | Blocked. Delete button disabled with "End the live session to delete this activity." (Q3, see 4.3)                                                     |
@@ -734,7 +735,7 @@ Most likely to change after user feedback: Q14 (reactions default), Q16 (hold 2 
 | Q18 | Anonymity versus scores by student ID?                            | Anonymous questions never show a name. Poll answers are exported with the student ID of SSO users, and the join screen says so (2.4).                  |
 | Q19 | Host with one display (mirror mode)?                              | Keyboard shortcuts plus a presenter overlay (`O`, changed from `Tab` on 2026-10-12) with next slide, "N answered of M online", Q&A count. Overlay and Q&A panel are visible on the projector in mirror mode; accepted for R1 (2.2). |
 | Q20 | Retry queue for answers sent while offline?                       | Not in R1. Typed text is kept and "Answer sent" confirms every vote. MD-13 decides if a queue is worth it (6.2).                                       |
-| Q21 | Find an anonymous author? Rename or remove people?                | No name lookup in the app. Moderators can "Remove sender" without seeing the name. Host can rename or remove any participant (2.5).                    |
+| Q21 | Find an anonymous author? Rename or remove people?                | No name lookup in the app. Moderators can "Remove sender" without seeing the name. Host can rename a guest (to a name the host types) or remove any participant (2.5).                    |
 | Q22 | Free seats of offline people when the session is full?            | Free after 15 min offline (6.5). MD-8 checks the load impact.                                                                                           |
 | Q23 | Thai and English UI, nickname rules, accessibility?               | Both languages in R1. Rules for nicknames, Thai text length, contrast, touch size, motion (2.6, 2.7).                                                   |
 
