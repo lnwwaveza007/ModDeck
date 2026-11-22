@@ -1,3 +1,4 @@
+import type { SessionResults, SessionSummary } from "@moddeck/shared";
 import { apiFetch, HOST_API_BASE_URL } from "./client";
 
 export interface SessionInfo {
@@ -26,3 +27,12 @@ export const endSession = (id: string) =>
     method: "PATCH",
     body: { status: "ended" },
   });
+
+// Session history (F10). Results exist once the session has ended: 409 SESSION_LIVE before.
+export const listSessions = () =>
+  apiFetch<SessionSummary[]>("/sessions", { baseUrl: HOST_API_BASE_URL });
+export const getSessionResults = (id: string) =>
+  apiFetch<SessionResults>(`/sessions/${id}/results`, { baseUrl: HOST_API_BASE_URL });
+/** Deletes an ended session for good, with its answers and questions. */
+export const deleteSession = (id: string) =>
+  apiFetch<void>(`/sessions/${id}`, { baseUrl: HOST_API_BASE_URL, method: "DELETE" });

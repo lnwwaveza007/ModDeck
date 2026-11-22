@@ -224,7 +224,18 @@ export function DeckEditor({ deckId }: { deckId: string }) {
   const recover = useCallback(
     (error: unknown) => {
       const locked = error instanceof ApiError && error.code === "ACTIVITY_LOCKED";
-      toast(t(locked ? "errors.ACTIVITY_LOCKED" : "errors.generic"), { tone: "error" });
+      // A slide whose activity ran in a past session keeps its results in Session history.
+      const hasResults = locked && error.details?.reason === "HAS_RESULTS";
+      toast(
+        t(
+          hasResults
+            ? "errors.ACTIVITY_HAS_RESULTS"
+            : locked
+              ? "errors.ACTIVITY_LOCKED"
+              : "errors.generic",
+        ),
+        { tone: "error" },
+      );
       getDeck(deckId).then(apply, handleLoadError);
     },
     [apply, deckId, handleLoadError, t, toast],

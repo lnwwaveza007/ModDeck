@@ -769,6 +769,21 @@ describe("DeckEditor: slides", () => {
     expect(screen.getAllByRole("button", { name: /^Slide \d,/ })).toHaveLength(3);
   });
 
+  it("keeps an activity slide with past results and points to Session history", async () => {
+    await renderEditor();
+    fireEvent.click(slideButton(3));
+    api.remove.mockRejectedValue(
+      new ApiError(409, "ACTIVITY_LOCKED", "results", { reason: "HAS_RESULTS" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Delete slide" }));
+
+    expect(
+      await screen.findByText(/Delete that session in Session history first/),
+    ).toBeInTheDocument();
+    await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2));
+    expect(screen.getAllByRole("button", { name: /^Slide \d,/ })).toHaveLength(3);
+  });
+
   it("reorders with Move down and sends the full list of ids", async () => {
     await renderEditor();
     api.reorder.mockResolvedValue([]);
