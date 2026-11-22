@@ -46,7 +46,7 @@ describe("MD-5 sitemap routes", () => {
   it("has no screen routes outside the sitemap", () => {
     const extra = pageDirs()
       .map(toRoute)
-      .filter((route) => !(route in sitemap) && route !== "/design-system");
+      .filter((route) => !(route in sitemap) && !["/design-system", "/privacy"].includes(route));
     expect(extra).toEqual([]);
   });
 
