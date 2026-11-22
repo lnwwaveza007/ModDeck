@@ -1,12 +1,6 @@
-import { useTranslations } from "next-intl";
-import { HostPage } from "@/components/shell/HostPage";
-import { PagePlaceholder } from "@/components/shell/PagePlaceholder";
+import { SessionList } from "@/components/sessions/SessionList";
 
+// F10 Session history. The list loads in the browser, where the host_session cookie is.
 export default function SessionsPage() {
-  const t = useTranslations("pages");
-  return (
-    <HostPage title={t("sessions.title")}>
-      <PagePlaceholder page="sessions" titled={false} />
-    </HostPage>
-  );
+  return <SessionList />;
 }

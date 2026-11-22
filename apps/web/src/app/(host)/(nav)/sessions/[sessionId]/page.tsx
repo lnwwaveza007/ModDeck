@@ -1,22 +1,7 @@
-import Link from "next/link";
-import { useTranslations } from "next-intl";
-import { HostPage } from "@/components/shell/HostPage";
-import { PagePlaceholder } from "@/components/shell/PagePlaceholder";
-import { buttonClass } from "@/components/ui/Button";
+import { SessionResultsView } from "@/components/sessions/SessionResultsView";
 
-export default function SessionResultsPage() {
-  const t = useTranslations();
-  return (
-    <HostPage
-      title={t("pages.sessionResults.title")}
-      // An ended session lands here, so the way back to the decks sits next to the title.
-      actions={
-        <Link href="/decks" className={buttonClass({ variant: "secondary" })}>
-          {t("host.backToDecks")}
-        </Link>
-      }
-    >
-      <PagePlaceholder page="sessionResults" titled={false} />
-    </HostPage>
-  );
+// F10 Session results. Ending a session lands here from presenter control.
+export default async function SessionResultsPage({ params }: PageProps<"/sessions/[sessionId]">) {
+  const { sessionId } = await params;
+  return <SessionResultsView sessionId={sessionId} />;
 }

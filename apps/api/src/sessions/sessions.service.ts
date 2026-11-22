@@ -92,26 +92,6 @@ export class SessionsService {
     throw new ApiException(503, "INTERNAL", "Could not allocate a session PIN");
   }
 
-  async list(ownerId: string) {
-    const sessions = await this.prisma.session.findMany({
-      where: { ownerId },
-      orderBy: { startedAt: "desc" },
-      select: {
-        id: true,
-        pin: true,
-        status: true,
-        startedAt: true,
-        endedAt: true,
-        deck: { select: { title: true } },
-        _count: { select: { participants: true } },
-      },
-    });
-    return sessions.map(({ _count, ...session }) => ({
-      ...session,
-      participantCount: _count.participants,
-    }));
-  }
-
   async get(ownerId: string, sessionId: string) {
     const session = await this.prisma.session.findFirst({
       where: { id: sessionId, ownerId },

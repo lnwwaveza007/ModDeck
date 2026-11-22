@@ -23,6 +23,7 @@ export const ERROR_CODES = [
   "NOT_A_GUEST",
   "TOO_MANY_ATTEMPTS",
   "QA_CLOSED",
+  "SESSION_LIVE",
   "INTERNAL",
 ] as const;
 

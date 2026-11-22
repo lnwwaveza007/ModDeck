@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from "@nestjs/common";
 import {
   activityActionBodySchema,
   currentSlideBodySchema,
@@ -13,6 +23,7 @@ import { AuthGuard } from "../auth/auth.guard";
 import { CurrentUser } from "../auth/current-user.decorator";
 import type { AuthUser } from "../auth/auth.types";
 import { ZodBody } from "../common/api-error";
+import { HistoryService } from "./history.service";
 import { LiveService } from "./live.service";
 import { SessionsService } from "./sessions.service";
 
@@ -30,6 +41,7 @@ export class SessionsController {
   constructor(
     private readonly sessions: SessionsService,
     private readonly live: LiveService,
+    private readonly history: HistoryService,
   ) {}
 
   @Post("decks/:deckId/sessions")
@@ -38,10 +50,26 @@ export class SessionsController {
     return this.sessions.create(user.id, deckId);
   }
 
+  // Session history (F10): every session of the host's decks, newest first.
   @Get("sessions")
   @UseGuards(AuthGuard)
   list(@CurrentUser() user: AuthUser) {
-    return this.sessions.list(user.id);
+    return this.history.list(user.id);
+  }
+
+  // Results of an ended session, from PostgreSQL only. 409 SESSION_LIVE while it is open.
+  @Get("sessions/:sessionId/results")
+  @UseGuards(AuthGuard)
+  results(@CurrentUser() user: AuthUser, @Param("sessionId") id: string) {
+    return this.history.results(user.id, id);
+  }
+
+  // Deletes an ended session and everything it left behind. No undo: the page confirms first.
+  @Delete("sessions/:sessionId")
+  @HttpCode(204)
+  @UseGuards(AuthGuard)
+  remove(@CurrentUser() user: AuthUser, @Param("sessionId") id: string) {
+    return this.history.remove(user.id, id);
   }
 
   @Get("sessions/:sessionId")

@@ -279,6 +279,66 @@
       "deleted": "Deck deleted"
     }
   },
+  "history": {
+    "empty": {
+      "title": "No sessions yet",
+      "description": "Start a session from My decks. Its results show here after class."
+    },
+    "deckDeleted": "Deck deleted",
+    "live": "Live",
+    "participants": "{count, plural, one {# participant} other {# participants}}",
+    "minutes": "{count} min",
+    "hoursMinutes": "{hours} h {minutes} min",
+    "viewResults": "View results",
+    "openPresenter": "Open presenter control",
+    "delete": "Delete",
+    "deleteLabel": "Delete the session of {title} on {date}",
+    "deleteDialog": {
+      "title": "Delete this session?",
+      "description": "The results of “{title}” on {date} are deleted for good: answers, words, questions and the participant list. This cannot be undone. The deck stays in My decks.",
+      "confirm": "Delete session"
+    },
+    "errors": {
+      "SESSION_LIVE": "This session is still live. End it before deleting.",
+      "NOT_FOUND": "This session no longer exists.",
+      "generic": "Could not delete. Please try again."
+    },
+    "toasts": {
+      "deleted": "Session deleted"
+    },
+    "results": {
+      "back": "Back to Session history",
+      "slide": "Slide {number}",
+      "poll": "Poll",
+      "wordCloud": "Word cloud",
+      "notRun": "Not run in this session",
+      "answers": "{count, plural, one {# answer} other {# answers}}",
+      "entries": "{count, plural, one {# word sent} other {# words sent}}",
+      "noAnswers": "Nobody answered.",
+      "noWords": "No words were sent.",
+      "hiddenNote": "Words you hid are left out, as on the projector.",
+      "noActivities": "This deck has no polls or word clouds.",
+      "qa": {
+        "title": "Q&A",
+        "count": "{count, plural, one {# question} other {# questions}}",
+        "empty": "No questions were asked.",
+        "off": "Q&A was off in this session.",
+        "open": "Not answered",
+        "answered": "Answered",
+        "hidden": "Hidden",
+        "votes": "{count, plural, one {# vote} other {# votes}}",
+        "anonymous": "Anonymous"
+      },
+      "live": {
+        "title": "This session is still live",
+        "description": "Its results show here once the session ends."
+      },
+      "notFound": {
+        "title": "Session not found",
+        "description": "It may have been deleted."
+      }
+    }
+  },
   "content": {
     "mathError": "LaTeX error",
     "imageAlt": "Slide image",
@@ -467,7 +527,8 @@
       "imageSize": "This image is larger than {size} MB.",
       "generic": "Could not complete that. The editor reloaded.",
       "DECK_INCOMPLETE": "Finish every activity before starting the session.",
-      "IMPORT_RUNNING": "The PDF import is still running. Try again when it finishes."
+      "IMPORT_RUNNING": "The PDF import is still running. Try again when it finishes.",
+      "ACTIVITY_HAS_RESULTS": "This activity has results from a past session. Delete that session in Session history first."
     },
     "poll": {
       "title": "Live Poll",
