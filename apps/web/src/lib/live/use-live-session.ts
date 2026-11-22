@@ -10,9 +10,11 @@ import type {
   ActivityRunDto,
   ActivityWordingBody,
   LiveActivity,
+  LiveQuestion,
   LiveSessionView,
   LiveSlide,
   PollTally,
+  QuestionAction,
   ReactionBurst,
   RoomEvent,
   WordCloudTally,
@@ -24,9 +26,12 @@ import {
   editActivityWording,
   getLiveSession,
   moveToSlide,
+  setQaOpen,
+  setQuestionStatus,
   setReactionsEnabled,
   setWordHidden,
 } from "@/lib/api/live";
+import { applyQuestionAction, applyQuestionUpdates } from "@/lib/live/questions";
 import {
   LiveConnection,
   type ConnectionStatus,
@@ -49,6 +54,10 @@ export interface LiveSessionState {
   hiddenWords: Record<string, WordCount[]>;
   /** Students can send live reactions. */
   reactionsEnabled: boolean;
+  /** Students can ask and vote. */
+  qaOpen: boolean;
+  /** Every question of the session, hidden ones included. Anonymous ones carry no author. */
+  questions: LiveQuestion[];
   connection: ConnectionStatus;
   ended: boolean;
   loadError: LiveLoadError | null;
@@ -66,6 +75,10 @@ export interface LiveSessionControls {
   setWordHidden: (activityId: string, key: string, hidden: boolean) => Promise<void>;
   /** Turns live reactions on or off for the room. */
   setReactions: (enabled: boolean) => Promise<void>;
+  /** Opens or closes Q&A for the room. */
+  setQa: (open: boolean) => Promise<void>;
+  /** Answers, hides, pins or restores a question on every screen. */
+  moderate: (questionId: string, action: QuestionAction) => Promise<void>;
   /**
    * Calls `listener` with every batch of reactions. A subscription, not state: bursts come up to
    * four times a second and only the reaction layer needs to redraw. Returns the unsubscribe.
@@ -101,6 +114,8 @@ export function useLiveSession(
   const [clouds, setClouds] = useState<Record<string, WordCloudTally>>({});
   const [hiddenWords, setHiddenWords] = useState<Record<string, WordCount[]>>({});
   const [reactionsEnabled, setReactionsOn] = useState(true);
+  const [qaOpen, setQaOn] = useState(true);
+  const [questions, setQuestions] = useState<LiveQuestion[]>([]);
   const reactionListeners = useRef(new Set<(burst: ReactionBurst) => void>());
   const peopleListeners = useRef(new Set<(event: PeopleEvent) => void>());
   const [connection, setConnection] = useState<ConnectionStatus>("connecting");
@@ -137,6 +152,8 @@ export function useLiveSession(
       setClouds(value.clouds);
       setHiddenWords(value.hiddenWords);
       setReactionsOn(value.reactionsEnabled);
+      setQaOn(value.qaOpen);
+      setQuestions(value.questions);
       // A refresh after the end: the socket would refuse to join, so read it from here too.
       if (value.status === "ended") setEnded(true);
       if (!sending.current) setCurrentId(value.currentSlideId ?? value.slides[0]?.id ?? null);
@@ -177,6 +194,12 @@ export function useLiveSession(
           break;
         case "reactions_toggled":
           setReactionsOn(event.data.enabled);
+          break;
+        case "question_update":
+          setQuestions((current) => applyQuestionUpdates(current, event.data.updates));
+          break;
+        case "qa_toggled":
+          setQaOn(event.data.open);
           break;
         case "session_ended":
           setEnded(true);
@@ -300,6 +323,35 @@ export function useLiveSession(
     [load, sessionId],
   );
 
+  // Like the reactions switch: the screen moves at once and the room's events settle it.
+  const setQa = useCallback(
+    async (open: boolean) => {
+      setQaOn(open);
+      try {
+        await setQaOpen(sessionId, open);
+      } catch (error) {
+        onErrorRef.current?.(error);
+        void load();
+      }
+    },
+    [load, sessionId],
+  );
+
+  // The press shows at once. The reply is not applied: the room's question_update events come in
+  // the order the server made the changes, so they settle two quick presses either way.
+  const moderate = useCallback(
+    async (questionId: string, action: QuestionAction) => {
+      setQuestions((current) => applyQuestionAction(current, questionId, action));
+      try {
+        await setQuestionStatus(sessionId, questionId, action);
+      } catch (error) {
+        onErrorRef.current?.(error);
+        void load();
+      }
+    },
+    [load, sessionId],
+  );
+
   const subscribeReactions = useCallback((listener: (burst: ReactionBurst) => void) => {
     const listeners = reactionListeners.current;
     listeners.add(listener);
@@ -337,6 +389,8 @@ export function useLiveSession(
       clouds,
       hiddenWords,
       reactionsEnabled,
+      qaOpen,
+      questions,
       connection,
       ended,
       loadError,
@@ -350,6 +404,8 @@ export function useLiveSession(
       editWording,
       setWordHidden: hideWord,
       setReactions,
+      setQa,
+      moderate,
       subscribeReactions,
       subscribePeople,
     },

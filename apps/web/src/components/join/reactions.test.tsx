@@ -36,6 +36,7 @@ const me = (overrides: Partial<ParticipantMe> = {}): ParticipantMe => ({
   currentActivity: null,
   reactionsEnabled: true,
   qaEnabled: true,
+  qaOpen: true,
   anonymousAllowed: true,
   ...overrides,
 });

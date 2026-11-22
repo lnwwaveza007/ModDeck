@@ -388,6 +388,7 @@ describe("student join (e2e)", () => {
         currentActivity: null,
         reactionsEnabled: true,
         qaEnabled: true,
+        qaOpen: true,
         anonymousAllowed: true,
       });
 

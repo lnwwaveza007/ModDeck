@@ -216,6 +216,7 @@ describe("LiveSession", () => {
     currentActivity: null,
     reactionsEnabled: true,
     qaEnabled: true,
+    qaOpen: true,
     anonymousAllowed: true,
     ...overrides,
   });

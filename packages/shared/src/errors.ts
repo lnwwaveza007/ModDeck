@@ -22,6 +22,7 @@ export const ERROR_CODES = [
   "NICKNAME_INVALID",
   "NOT_A_GUEST",
   "TOO_MANY_ATTEMPTS",
+  "QA_CLOSED",
   "INTERNAL",
 ] as const;
 

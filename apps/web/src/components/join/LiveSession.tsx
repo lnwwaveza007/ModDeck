@@ -51,6 +51,8 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
   // Run id → the words the server confirmed for this student, in the order they were sent.
   const [words, setWords] = useState<Record<string, string[]>>({});
   const [reactionsEnabled, setReactionsEnabled] = useState(false);
+  // The Q&A tab shows, and students can ask and vote. The host opens or closes it live.
+  const [qa, setQa] = useState({ shown: false, open: false });
   // The host renamed this student (MD-5 §6: "The host changed your name to …").
   const [renamedTo, setRenamedTo] = useState<string | null>(null);
   const live = useRef<LiveConnection | undefined>(undefined);
@@ -72,6 +74,7 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
       setSlideIndex(value.currentSlide?.index ?? null);
       setActivity(value.currentActivity);
       setReactionsEnabled(value.reactionsEnabled);
+      setQa({ shown: value.qaEnabled, open: value.qaOpen });
       const runId = value.currentActivity?.run?.activityRunId;
       const answer = value.currentActivity?.myOptionId;
       if (runId && answer) setAnswers((current) => ({ ...current, [runId]: answer }));
@@ -104,6 +107,7 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
           onEvent: (event) => {
             if (event.type === "slide_changed") setSlideIndex(event.data.index);
             if (event.type === "reactions_toggled") setReactionsEnabled(event.data.enabled);
+            if (event.type === "qa_toggled") setQa(event.data);
             setActivity((current) => applyRoomEvent(current, event));
             if (event.type === "session_ended") setStop("ended");
             if (event.type === "question_update") {
@@ -185,7 +189,7 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
       <LiveShell
         title={me.title}
         status={statusText}
-        qaEnabled={me.qaEnabled}
+        qaEnabled={qa.shown}
         banner={banner}
         activity={
           showPoll ? (
@@ -228,6 +232,7 @@ export function LiveSession({ sessionId }: { sessionId: string }) {
             sessionId={sessionId}
             nickname={me.nickname}
             anonymousAllowed={me.anonymousAllowed}
+            open={qa.open}
           />
         }
         reactions={
