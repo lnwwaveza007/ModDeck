@@ -279,6 +279,11 @@ export class WordStoreService {
     return toTally(await this.rows(sessionId, runId));
   }
 
+  /** The cloud from PostgreSQL only, for session results after the final flush. */
+  async storedTally(runId: string): Promise<WordCloudTally> {
+    return toTally(await this.storedRows(runId));
+  }
+
   /** Words the host hid in this run, most sent first. */
   async hiddenWords(sessionId: string, runId: string): Promise<WordCount[]> {
     const rows = await this.rows(sessionId, runId);

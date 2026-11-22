@@ -7,5 +7,6 @@ export * from "./live";
 export * from "./participants";
 export * from "./questions";
 export * from "./reactions";
+export * from "./sessions";
 export * from "./slides";
 export * from "./words";

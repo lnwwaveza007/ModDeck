@@ -370,6 +370,32 @@ describe("slides (e2e)", () => {
       where: { id: session.id },
       data: { status: "ended", endedAt: new Date() },
     });
+    // Ended, but the activity ran: its results belong to Session history.
+    const kept = await as(hostA, api().delete(`/decks/${deck.id}/slides/${poll.id}`)).expect(409);
+    expect(kept.body.error.code).toBe("ACTIVITY_LOCKED");
+    expect(kept.body.error.details).toEqual({ reason: "HAS_RESULTS" });
+
+    // Deleting that session in Session history frees the slide.
+    await as(hostA, api().delete(`/sessions/${session.id}`)).expect(204);
+    await as(hostA, api().delete(`/decks/${deck.id}/slides/${poll.id}`)).expect(204);
+  });
+
+  it("deletes an activity slide that never ran in an ended session", async () => {
+    const deck = await createDeck();
+    const poll = await addSlide(deck.id, { kind: "poll" });
+    const activity = await prisma.activity.findUniqueOrThrow({ where: { slideId: poll.id } });
+    const session = await prisma.session.create({
+      data: {
+        deckId: deck.id,
+        ownerId: hostA.id,
+        status: "ended",
+        settings: {},
+        endedAt: new Date(),
+      },
+    });
+    await prisma.activityRun.create({
+      data: { sessionId: session.id, activityId: activity.id, state: "draft" },
+    });
     await as(hostA, api().delete(`/decks/${deck.id}/slides/${poll.id}`)).expect(204);
   });
 

@@ -113,7 +113,10 @@ export class SlidesService {
     await this.prisma.$transaction(async (tx) => {
       await this.requireDeck(tx, ownerId, deckId);
       const slide = await this.requireSlide(tx, deckId, slideId);
-      if (isActivityKind(toKind(slide.kind))) await this.requireNoOpenSession(tx, deckId);
+      if (isActivityKind(toKind(slide.kind))) {
+        await this.requireNoOpenSession(tx, deckId);
+        await this.requireNoPastResults(tx, slideId);
+      }
       await tx.slide.delete({ where: { id: slideId } });
       await tx.slide.updateMany({
         where: { deckId, position: { gt: slide.position } },
@@ -342,6 +345,25 @@ export class SlidesService {
         409,
         "ACTIVITY_LOCKED",
         "End the live session before deleting an activity slide",
+      );
+    }
+  }
+
+  /**
+   * Deleting an activity slide deletes its runs, answers and words with it, so an activity that
+   * ran in a past session stays: its results belong to Session history. Deleting that session
+   * in Session history frees the slide.
+   */
+  private async requireNoPastResults(tx: Prisma.TransactionClient, slideId: string) {
+    const ran = await tx.activityRun.count({
+      where: { activity: { slideId }, state: { not: "draft" } },
+    });
+    if (ran > 0) {
+      throw new ApiException(
+        409,
+        "ACTIVITY_LOCKED",
+        "This activity has results from a past session: delete that session first",
+        { reason: "HAS_RESULTS" },
       );
     }
   }

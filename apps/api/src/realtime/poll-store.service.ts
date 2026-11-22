@@ -252,7 +252,7 @@ export class PollStoreService {
   }
 
   /** Counts from PostgreSQL, for a run that Redis no longer holds (an ended session). */
-  private async storedTally(runId: string): Promise<PollTally> {
+  async storedTally(runId: string): Promise<PollTally> {
     const rows = await this.prisma.answer.groupBy({
       by: ["optionId"],
       where: { activityRunId: runId, participant: { status: "active" } },
