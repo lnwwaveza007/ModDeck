@@ -12,13 +12,17 @@ import { useShortcuts } from "@/lib/live/shortcuts";
 import { pinnedQuestion } from "@/lib/live/questions";
 import { runOf, useLiveSession } from "@/lib/live/use-live-session";
 import { useParticipants } from "@/lib/live/use-participants";
+import { useSessionControl } from "@/lib/live/use-session-control";
+import type { ControlUpdate, SessionControlView } from "@moddeck/shared";
 import { Button, buttonClass } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { Toggle } from "@/components/ui/Toggle";
 import { ActivityControls } from "./ActivityControls";
+import { CohostDialog } from "./CohostDialog";
 import { EndSessionButton, useSessionEnd } from "./EndSession";
 import { Kbd } from "./Kbd";
 import { LiveStage } from "./LiveStage";
+import { ModerationView } from "./ModerationView";
 import { PeopleDrawer } from "./PeopleDrawer";
 import { PinnedQuestion } from "./PinnedQuestion";
 import { QaPanel } from "./QaPanel";
@@ -34,6 +38,7 @@ const ERROR_KEYS = [
   "SESSION_ENDED",
   "INVALID_TRANSITION",
   "ACTIVITY_LOCKED",
+  "NOT_CONTROLLER",
   "NETWORK_ERROR",
 ] as const;
 type ErrorKey = (typeof ERROR_KEYS)[number] | "generic";
@@ -56,8 +61,17 @@ function errorKey(error: unknown): ErrorKey {
  * Current and next slide, the slide strip, activity controls, Q&A moderation, the participant
  * count and the clock. The audience screen (/screen/:id) follows the room, in another window on
  * the projector, or full screen on the only display with the O overlay.
+ *
+ * With a co-host (F12) only the one in control gets this screen. The other one, and the co-host
+ * page (`mode="moderation"`), get the Q&A and people view with a take-over or take-back button.
  */
-export function PresenterControl({ sessionId }: { sessionId: string }) {
+export function PresenterControl({
+  sessionId,
+  mode = "presenter",
+}: {
+  sessionId: string;
+  mode?: "presenter" | "moderation";
+}) {
   const t = useTranslations("presenter");
   const toast = useToast();
   const onError = (error: unknown) => toast(t(`errors.${errorKey(error)}`), { tone: "error" });
@@ -77,10 +91,30 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
     controls.subscribePeople,
     state.connection,
   );
+  const [cohostOpen, setCohostOpen] = useState(false);
+  const notify = (update: ControlUpdate, next: SessionControlView) => {
+    const me = next.viewerId;
+    const cohostName = next.cohost?.displayName ?? "";
+    if (update.change === "takeover" && next.controllerId !== me) {
+      toast(t("cohost.notice.takeover", { name: cohostName }), { duration: 8000 });
+    } else if (update.change === "takeback" && next.role === "cohost") {
+      toast(t("cohost.notice.takeback", { name: next.owner.displayName }), { duration: 8000 });
+    } else if (update.change === "accepted" && next.role === "owner") {
+      toast(t("cohost.notice.accepted", { name: cohostName }), { tone: "success" });
+    }
+  };
+  const [control, controlActions] = useSessionControl(
+    sessionId,
+    controls.subscribeControl,
+    state.connection,
+    notify,
+  );
+  const moderating = mode === "moderation" || !control.inControl;
   const durationRef = useRef<number | undefined | null>(undefined);
   const now = useServerNow(state.clockOffset);
 
   useShortcuts((command) => {
+    if (moderating) return false;
     if (command === "help") return setHelp((open) => !open);
     const duration = durationRef.current;
     if (command === "toggleActivity" && duration === null) return; // invalid custom timer
@@ -88,13 +122,38 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
   });
 
   const { view, slides, currentIndex, runs, tallies, clouds, hiddenWords } = state;
-  if (state.loadError || !view) {
+  if (state.loadError || !view || !control.settled) {
     return (
       <main className="grid min-h-[70vh] place-items-center">
         <p role="status">{state.loadError ? t(`loadError.${state.loadError}`) : t("loading")}</p>
       </main>
     );
   }
+  const access = control.view;
+  // The owner removed this co-host: their socket closes and the page has nothing left to show.
+  if (access?.role === "cohost" && access.cohost?.userId !== access.viewerId) {
+    return (
+      <main className="grid min-h-[70vh] place-items-center">
+        <p role="status">{t("cohost.removedYou")}</p>
+      </main>
+    );
+  }
+  if (access && moderating) {
+    return (
+      <ModerationView
+        sessionId={sessionId}
+        state={state}
+        controls={controls}
+        people={participantList}
+        peopleControls={participantControls}
+        control={access}
+        inControl={control.inControl}
+        actions={controlActions}
+        onError={onError}
+      />
+    );
+  }
+  const isOwner = access?.role !== "cohost";
 
   const current = slides[currentIndex];
   const next = slides[currentIndex + 1];
@@ -140,6 +199,13 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
         >
           {t(`connection.${state.connection}`)}
         </span>
+        {isOwner && access && (
+          <Button variant="secondary" aria-haspopup="dialog" onClick={() => setCohostOpen(true)}>
+            {access.cohost
+              ? t("cohost.buttonWith", { name: access.cohost.displayName })
+              : t("cohost.button")}
+          </Button>
+        )}
         <a
           href={`${BASE_PATH}/screen/${sessionId}`}
           target={`moddeck-screen-${sessionId}`}
@@ -157,6 +223,11 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
         {state.ended && (
           <p role="status" className="rounded-xl bg-neutral-200 px-5 py-3 font-semibold">
             {t("ended")}
+          </p>
+        )}
+        {!state.ended && access?.role === "cohost" && (
+          <p role="status" className="rounded-xl bg-warning-50 px-5 py-3 text-sm text-warning-800">
+            {t("cohost.youTookOver", { name: access.owner.displayName })}
           </p>
         )}
 
@@ -277,7 +348,7 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
                 now={now}
                 durationRef={durationRef}
                 onAct={(action, duration) => controls.act(activity.id, action, duration)}
-                onEditWording={() => setEditing(true)}
+                onEditWording={isOwner ? () => setEditing(true) : undefined}
               />
             ) : (
               <p className="rounded-xl border border-dashed border-neutral-300 bg-background px-5 py-4 text-sm text-muted">
@@ -330,6 +401,14 @@ export function PresenterControl({ sessionId }: { sessionId: string }) {
           controls={participantControls}
           ended={state.ended}
           onClose={() => setPeople(false)}
+        />
+      )}
+      {cohostOpen && access && (
+        <CohostDialog
+          control={access}
+          actions={controlActions}
+          ended={state.ended}
+          onClose={() => setCohostOpen(false)}
         />
       )}
       {editing && activity && current && (

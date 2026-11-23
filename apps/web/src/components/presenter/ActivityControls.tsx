@@ -80,7 +80,8 @@ export function ActivityControls({
   onLiveChart: () => void;
   now: number;
   onAct: (action: ActivityAction, durationSeconds?: number) => Promise<void>;
-  onEditWording: () => void;
+  /** Wording edits change the deck: the owner only, so a co-host in control gets none. */
+  onEditWording?: () => void;
   /** Gets the chosen timer, so the A key starts with it too. null: the custom value is invalid. */
   durationRef?: RefObject<number | undefined | null>;
 }) {
@@ -184,9 +185,11 @@ export function ActivityControls({
             {t(`action.${action}`)} <Kbd>{ACTION_KEY[action]}</Kbd>
           </Button>
         ))}
-        <Button variant="ghost" className="ml-auto" onClick={onEditWording}>
-          {t("editWording")}
-        </Button>
+        {onEditWording && (
+          <Button variant="ghost" className="ml-auto" onClick={onEditWording}>
+            {t("editWording")}
+          </Button>
+        )}
       </div>
       {duration === null && startsRun && (
         <p className="text-sm text-error-700">

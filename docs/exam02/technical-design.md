@@ -377,7 +377,7 @@ Every route from the [MD-5 sitemap](../ux/md-5-ia-and-flows.md#3-sitemap) is bui
 | IDs | Opaque string IDs. The PIN is not an ID: it is a lookup key for joining, held only while the session is open. Ending the session releases it for reuse, so nothing kept after a session is stored under the PIN. |
 | Auth: host | Session cookie after OIDC login (`HttpOnly`, `Secure`, `SameSite=Lax`) |
 | Auth: participant | Room-scoped participant token in a cookie (`HttpOnly`, `Secure`), from MD-7. Expiry 8 h, sliding (MD-13 fix 2) |
-| Roles | `owner` (deck owner / session owner), `cohost` (Q&A only), `participant` |
+| Roles | `owner` (deck owner / session owner), `cohost` (Q&A moderation, participant list), `controller` (whoever runs presenter control: the owner, or the co-host after a take-over), `participant`. Every invite, accept, take-over and take-back goes to `session_audit_logs` |
 | Async work | Long jobs (PDF import) return `202 Accepted` + `Location` of a job resource |
 | Rate limits | Wrong PIN: 5 per minute per device, 200 per minute per IP. Questions: 1 per 20 s. Reactions: 1 per s (MD-5 §5.2, §6.4) |
 | Persistence | **Prisma** for schema, migrations (`prisma migrate deploy` in the deploy job) and normal queries. The hot paths stay outside Prisma: Redis Lua scripts for answers, and one raw-SQL batch `INSERT` (`$executeRaw`) for the flush (MD-9) |
@@ -474,14 +474,18 @@ How it runs (R1-14):
 | POST | `/decks/{deckId}/sessions` | Start a session: copy settings, assign PIN | owner | 201 `{ sessionId, pin }` | 422 `DECK_INCOMPLETE` with the slides to fix, 409 import still running |
 | GET | `/sessions` | Session history, newest first | host | 200 | — |
 | GET | `/sessions/{sessionId}` | Session detail and current state | owner, cohost | 200 | 404 |
-| PATCH | `/sessions/{sessionId}` | `status: "ended"` (ends at once and broadcasts `session_ended`; the 2 s hold on End Session is the guard, no undo), `currentSlideId` (move the room, broadcast as `slide_changed`; never starts an activity), live settings (reactions, Q&A open) | owner | 200 | 409 `SESSION_ENDED`, 422 slide not in the deck |
-| GET | `/sessions/{sessionId}/live` | Presenter control and audience screen start state: slides with activities and options, current slide, activity runs (state, `endsAt`), participant count, server clock | owner | 200 | 404 |
-| POST | `/sessions/{sessionId}/cohosts` | Invite one co-host (KMUTT account or link) | owner | 201 | 409 `COHOST_EXISTS` |
-| DELETE | `/sessions/{sessionId}/cohosts/{userId}` | Remove co-host | owner | 204 | — |
-| POST | `/sessions/{sessionId}/takeovers` | Co-host takes over after the owner is away for 2 min | cohost | 201 | 409 `OWNER_ONLINE` |
-| PATCH | `/sessions/{sessionId}/activities/{activityId}` | `{ action, durationSeconds? }`: `start` (draft → live), `stop` (live → closed), `show_results` (live or closed → results_shown), `reopen` (closed or results_shown → live). `durationSeconds` (5–3600, start or reopen only) sets a countdown; at zero the server stops the activity. Broadcast as `activity_state` | owner | 200 | 409 `INVALID_TRANSITION`, 409 `SESSION_ENDED` |
+| PATCH | `/sessions/{sessionId}` | `status: "ended"` (ends at once and broadcasts `session_ended`; the 2 s hold on End Session is the guard, no undo), `currentSlideId` (move the room, broadcast as `slide_changed`; never starts an activity), live settings (reactions, Q&A open) | controller | 200 | 403 `NOT_CONTROLLER`, 409 `SESSION_ENDED`, 422 slide not in the deck |
+| GET | `/sessions/{sessionId}/live` | Presenter control and audience screen start state: slides with activities and options, current slide, activity runs (state, `endsAt`), participant count, server clock | owner, cohost | 200 | 404 |
+| GET | `/sessions/{sessionId}/control` | Owner, co-host, the invite that waits, and the controller (who runs presenter control) | owner, cohost | 200 | 404 |
+| POST | `/sessions/{sessionId}/cohost-invites` | Invite one co-host: `{ email? }`. With a KMUTT email only that account may accept; without, a one-time link. Replaces the invite that waits. Returns the link once | owner | 201 | 409 `COHOST_EXISTS`, 422 not a KMUTT email |
+| DELETE | `/sessions/{sessionId}/cohost-invites` | Cancel the invite that waits | owner | 204 | — |
+| DELETE | `/sessions/{sessionId}/cohost` | Remove the co-host; control returns to the owner and their sockets close | owner | 204 | — |
+| POST | `/sessions/{sessionId}/takeovers` | The caller becomes the controller: the co-host takes over, the owner takes back. Host room gets `control_update` | owner, cohost | 200 | 409 `SESSION_ENDED` |
+| GET | `/cohost-invites` | Invites by email to the logged-in account | host | 200 | — |
+| POST | `/cohost-invites/accept` | `{ token }` (link) or `{ inviteId }` (by email). One use | host | 200 `{ sessionId }` | 404 `INVITE_INVALID`, 403 `INVITE_WRONG_ACCOUNT`, 409 `COHOST_EXISTS` |
+| PATCH | `/sessions/{sessionId}/activities/{activityId}` | `{ action, durationSeconds? }`: `start` (draft → live), `stop` (live → closed), `show_results` (live or closed → results_shown), `reopen` (closed or results_shown → live). `durationSeconds` (5–3600, start or reopen only) sets a countdown; at zero the server stops the activity. Broadcast as `activity_state` | controller | 200 | 409 `INVALID_TRANSITION`, 409 `SESSION_ENDED` |
 | GET | `/sessions/{sessionId}/activities/{activityId}/results` | Counts or word list | owner, cohost | 200 | — |
-| PATCH | `/sessions/{sessionId}/activities/{activityId}/words/{wordKey}` | Hide or show one Word Cloud word | owner | 200 | 404 |
+| PATCH | `/sessions/{sessionId}/activities/{activityId}/words/{wordKey}` | Hide or show one Word Cloud word | controller | 200 | 404 |
 | GET | `/sessions/{sessionId}/export` | ZIP: `responses.csv`, `questions.csv` (UTF-8 with BOM) | owner | 200 `application/zip` | — |
 
 **Join and participants (F2, F13)**

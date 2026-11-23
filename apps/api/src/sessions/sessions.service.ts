@@ -9,6 +9,7 @@ import { ReactionService } from "../realtime/reaction.service";
 import { REDIS } from "../redis/redis.module";
 import { RoomEventsService } from "../realtime/room-events.service";
 import { joinUrl } from "./join-url";
+import { SessionAccessService } from "./session-access.service";
 
 const pinKey = (pin: string) => `session-pin:${pin}`;
 
@@ -23,6 +24,7 @@ export class SessionsService {
     private readonly polls: PollStoreService,
     private readonly flusher: PollFlusherService,
     private readonly reactions: ReactionService,
+    private readonly access: SessionAccessService,
   ) {}
 
   async create(ownerId: string, deckId: string) {
@@ -92,9 +94,10 @@ export class SessionsService {
     throw new ApiException(503, "INTERNAL", "Could not allocate a session PIN");
   }
 
-  async get(ownerId: string, sessionId: string) {
+  async get(userId: string, sessionId: string) {
+    await this.access.check(userId, sessionId, "member");
     const session = await this.prisma.session.findFirst({
-      where: { id: sessionId, ownerId },
+      where: { id: sessionId },
       select: {
         id: true,
         pin: true,
@@ -119,12 +122,8 @@ export class SessionsService {
    * Ends the session now. The 2 s hold on the End Session button is the guard against an
    * accidental end, so there is no undo window. Safe to repeat: a second call changes nothing.
    */
-  async end(ownerId: string, sessionId: string) {
-    const session = await this.prisma.session.findFirst({
-      where: { id: sessionId, ownerId },
-      select: { id: true, pin: true },
-    });
-    if (!session) throw new ApiException(404, "NOT_FOUND", "Session not found");
+  async end(userId: string, sessionId: string) {
+    const session = await this.access.check(userId, sessionId, "control");
     await this.finish(session);
     return { status: "ended" as const };
   }

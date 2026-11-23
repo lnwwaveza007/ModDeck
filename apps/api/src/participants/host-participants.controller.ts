@@ -10,7 +10,8 @@ import { CurrentUser } from "../auth/current-user.decorator";
 import { ZodBody } from "../common/api-error";
 import { HostParticipantsService } from "./host-participants.service";
 
-// The participant list in presenter control (F13). Owner only.
+// The participant list in presenter control (F13). The co-host reads it too; renaming and removing
+// is for whoever runs presenter control.
 @Controller("sessions/:sessionId/participants")
 @UseGuards(AuthGuard)
 export class HostParticipantsController {

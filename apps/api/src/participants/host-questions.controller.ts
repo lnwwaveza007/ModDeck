@@ -10,7 +10,7 @@ import { CurrentUser } from "../auth/current-user.decorator";
 import { ZodBody } from "../common/api-error";
 import { QuestionsService } from "./questions.service";
 
-// Q&A moderation in presenter control (F6). Owner only. The host's list comes with
+// Q&A moderation in presenter control (F6) and on the co-host page (F12): owner and co-host. The host's list comes with
 // GET /sessions/{id}/live and follows the room's question_update events.
 @Controller("sessions/:sessionId/questions")
 @UseGuards(AuthGuard)

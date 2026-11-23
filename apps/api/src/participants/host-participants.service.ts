@@ -12,6 +12,7 @@ import { PollStoreService } from "../realtime/poll-store.service";
 import { VoteBatcherService } from "../realtime/vote-batcher.service";
 import { WordBatcherService } from "../realtime/word-batcher.service";
 import { WordStoreService } from "../realtime/word-store.service";
+import { SessionAccessService } from "../sessions/session-access.service";
 
 const uuid = z.uuid();
 const notFound = () => new ApiException(404, "NOT_FOUND", "Participant not found");
@@ -30,11 +31,12 @@ export class HostParticipantsService {
     private readonly words: WordStoreService,
     private readonly voteBatcher: VoteBatcherService,
     private readonly wordBatcher: WordBatcherService,
+    private readonly access: SessionAccessService,
   ) {}
 
   /** Everyone still in the session, first joined first. Also works after the end (all offline). */
-  async list(ownerId: string, sessionId: string): Promise<ParticipantRow[]> {
-    await this.ownedSession(ownerId, sessionId);
+  async list(userId: string, sessionId: string): Promise<ParticipantRow[]> {
+    await this.access.check(userId, sessionId, "member");
     const [participants, online] = await Promise.all([
       this.prisma.participant.findMany({
         where: { sessionId, status: "active" },
@@ -51,12 +53,12 @@ export class HostParticipantsService {
    * names and the host's own name, and no other participant of the session may have it.
    */
   async rename(
-    ownerId: string,
+    userId: string,
     sessionId: string,
     participantId: string,
     raw: string,
   ): Promise<ParticipantRow> {
-    const session = await this.ownedSession(ownerId, sessionId, { open: true });
+    const session = await this.openSession(userId, sessionId);
     if (!uuid.safeParse(participantId).success) throw notFound();
     const nickname = normalizeNickname(raw);
     const problem = nicknameProblem(nickname, [session.owner.displayName]);
@@ -109,8 +111,8 @@ export class HostParticipantsService {
    * and an SSO login on another device), their sockets close, and their answers leave the live
    * results. Safe to send again: a second call finds them removed and finishes the clean-up.
    */
-  async remove(ownerId: string, sessionId: string, participantId: string): Promise<void> {
-    await this.ownedSession(ownerId, sessionId, { open: true });
+  async remove(userId: string, sessionId: string, participantId: string): Promise<void> {
+    await this.openSession(userId, sessionId);
     if (!uuid.safeParse(participantId).success) throw notFound();
     const participant = await this.prisma.participant.findFirst({
       where: { id: participantId, sessionId },
@@ -145,15 +147,10 @@ export class HostParticipantsService {
     this.channel.toHosts(sessionId, "participant_removed", { participantId });
   }
 
-  private async ownedSession(ownerId: string, sessionId: string, { open = false } = {}) {
-    const session = uuid.safeParse(sessionId).success
-      ? await this.prisma.session.findFirst({
-          where: { id: sessionId, ownerId },
-          select: { status: true, owner: { select: { displayName: true } } },
-        })
-      : null;
-    if (!session) throw new ApiException(404, "NOT_FOUND", "Session not found");
-    if (open && session.status === "ended") {
+  /** Renaming and removing people is part of running the session: the controller does it. */
+  private async openSession(userId: string, sessionId: string) {
+    const session = await this.access.check(userId, sessionId, "control");
+    if (session.status === "ended") {
       throw new ApiException(409, "SESSION_ENDED", "The session has ended");
     }
     return session;

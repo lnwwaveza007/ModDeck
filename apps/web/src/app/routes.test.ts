@@ -14,6 +14,8 @@ const sitemap: Record<string, string> = {
   "/host/:sessionId": "(host)/host/[sessionId]",
   "/host/:sessionId/qa": "(host)/host/[sessionId]/qa",
   "/screen/:sessionId": "(audience)/screen/[sessionId]",
+  // Co-host invite link (F12): accepts with the KMUTT login, then opens /host/:sessionId/qa.
+  "/cohost/:token": "(host)/cohost/[token]",
 };
 
 const appDir = __dirname;

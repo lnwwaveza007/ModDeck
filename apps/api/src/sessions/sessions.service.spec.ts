@@ -2,20 +2,37 @@ import type Redis from "ioredis";
 import { ApiException } from "../common/api-error";
 import type { PrismaService } from "../prisma/prisma.service";
 import type { RoomEventsService } from "../realtime/room-events.service";
+import { SessionAccessService } from "./session-access.service";
 import { SessionsService } from "./sessions.service";
 import type { PollFlusherService } from "../realtime/poll-flusher.service";
 import type { PollStoreService } from "../realtime/poll-store.service";
 import type { ReactionService } from "../realtime/reaction.service";
 
 const OWNER = "owner-1";
-const SESSION = "session-1";
+const COHOST = "cohost-1";
+const SESSION = "0190d8a1-5a2b-7c3d-8e4f-0123456789ab";
 const PIN = "123456";
 
-type Row = { id: string; ownerId: string; status: string; endedAt: Date | null; pin: string };
+type Row = {
+  id: string;
+  ownerId: string;
+  controllerId: string | null;
+  status: string;
+  endedAt: Date | null;
+  pin: string;
+};
 
 function setup(row: Partial<Row> | null) {
   const current: Row | null = row
-    ? { id: SESSION, ownerId: OWNER, status: "live", endedAt: null, pin: PIN, ...row }
+    ? {
+        id: SESSION,
+        ownerId: OWNER,
+        controllerId: null,
+        status: "live",
+        endedAt: null,
+        pin: PIN,
+        ...row,
+      }
     : null;
   const session = {
     findFirst: jest.fn(async () => current),
@@ -31,13 +48,18 @@ function setup(row: Partial<Row> | null) {
   const polls = { syncRun: jest.fn(async () => true) };
   const flusher = { finalFlush: jest.fn(async () => undefined) };
   const reactions = { setEnabled: jest.fn(async () => undefined) };
+  const prisma = {
+    session,
+    activityRun: { findMany: jest.fn(async () => []) },
+  } as unknown as PrismaService;
   const service = new SessionsService(
-    { session, activityRun: { findMany: jest.fn(async () => []) } } as unknown as PrismaService,
+    prisma,
     redis as unknown as Redis,
     events as unknown as RoomEventsService,
     polls as unknown as PollStoreService,
     flusher as unknown as PollFlusherService,
     reactions as unknown as ReactionService,
+    new SessionAccessService(prisma),
   );
   return { service, session, redis, events, reactions };
 }
@@ -80,6 +102,17 @@ describe("SessionsService.end", () => {
     session.updateMany.mockResolvedValueOnce({ count: 0 });
     await expect(service.end(OWNER, SESSION)).resolves.toEqual({ status: "ended" });
     expect(events.publish).not.toHaveBeenCalled();
+  });
+
+  it("lets a co-host end the session only after a take-over (F12)", async () => {
+    const before = setup({});
+    await expectApiError(before.service.end(COHOST, SESSION), 403, "NOT_CONTROLLER");
+    expect(before.session.updateMany).not.toHaveBeenCalled();
+
+    const after = setup({ controllerId: COHOST });
+    await expect(after.service.end(COHOST, SESSION)).resolves.toEqual({ status: "ended" });
+    // The owner lost control to the co-host: they take it back before they end the session.
+    await expectApiError(after.service.end(OWNER, SESSION), 403, "NOT_CONTROLLER");
   });
 
   it("answers 404 for a session of another host", async () => {
