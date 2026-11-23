@@ -122,9 +122,7 @@ export function QuestionsActivity({
               <Toggle
                 label={t("anonymousMode")}
                 description={
-                  anonymous
-                    ? t("anonymousDescription")
-                    : t("namedDescription", { nickname })
+                  anonymous ? t("anonymousDescription") : t("namedDescription", { nickname })
                 }
                 checked={anonymous}
                 onCheckedChange={setAnonymous}
@@ -265,9 +263,7 @@ export function QuestionsActivity({
           </article>
         ))}
         {questions.length === 0 && (
-          <p className="py-8 text-center text-sm text-slate-500">
-            {t("noQuestions")}
-          </p>
+          <p className="py-8 text-center text-sm text-slate-500">{t("noQuestions")}</p>
         )}
       </div>
 
