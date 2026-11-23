@@ -39,7 +39,7 @@ export function QuestionsActivity({
       getQuestions(sessionId, sort)
         .then((data) => setQuestions(data.questions))
         .catch(() => setError(t("loadError"))),
-    [sessionId, sort],
+    [sessionId, sort, t],
   );
   useEffect(() => {
     void refresh();
