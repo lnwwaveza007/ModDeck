@@ -53,7 +53,7 @@ describe("QuestionsActivity", () => {
       .mocked(askQuestion)
       .mockRejectedValue(new ApiError(403, "QA_CLOSED", "The host has closed Q&A"));
     renderQa(true);
-    fireEvent.click(await screen.findByRole("button", { name: "Post a question" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Post question" }));
     fireEvent.change(screen.getByRole("textbox", { name: "Question" }), {
       target: { value: "Too late?" },
     });
