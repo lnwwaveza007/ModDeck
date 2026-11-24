@@ -215,7 +215,7 @@
       "namedDescription": "ชื่อที่แสดงคือ {nickname}",
       "questionLabel": "คำถาม",
       "emptyPreview": "ยังไม่มีข้อความ",
-      "placeholder": "พิมพ์คำถามของคุณที่นี่?",
+      "placeholder": "พิมพ์คำถามของคุณที่นี่",
       "formatHint": "ใช้ `code`, บล็อกโค้ด และ $math$ ได้",
       "write": "เขียน",
       "preview": "ดูตัวอย่าง",
