@@ -26,6 +26,11 @@ export interface AuthConfig {
    * must include it or the browser will not send the cookie back.
    */
   cookieBasePath?: string;
+  /**
+   * Lowercased emails from ADMIN_EMAILS (comma separated). Only these accounts may impersonate
+   * another user. Empty: nobody can.
+   */
+  adminEmails?: ReadonlySet<string>;
 }
 
 const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -40,7 +45,22 @@ export function loadAuthConfig(env: NodeJS.ProcessEnv = process.env): AuthConfig
     sessionTtlMs: ttlHours * 60 * 60 * 1000,
     cookieSecure: env.AUTH_COOKIE_SECURE !== "false",
     cookieBasePath: basePathOf(env.APP_BASE_URL),
+    adminEmails: parseAdminEmails(env.ADMIN_EMAILS),
   };
+}
+
+/** "A@kmutt.ac.th, b@kmutt.ac.th" -> {"a@kmutt.ac.th", "b@kmutt.ac.th"}. */
+export function parseAdminEmails(value: string | undefined): ReadonlySet<string> {
+  return new Set(
+    (value ?? "")
+      .split(",")
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean),
+  );
+}
+
+export function isAdminEmail(cfg: Pick<AuthConfig, "adminEmails">, email: string): boolean {
+  return cfg.adminEmails?.has(email.trim().toLowerCase()) ?? false;
 }
 
 /** "https://host/capstone26/cp26ssa2/" -> "/capstone26/cp26ssa2"; "" for a bare origin. */

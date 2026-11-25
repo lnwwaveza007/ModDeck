@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { HostNav } from "@/components/shell/HostNav";
+import { ImpersonateControl } from "@/components/shell/ImpersonateControl";
 import { LanguageSwitch } from "@/components/shell/LanguageSwitch";
 import { Logo } from "@/components/shell/Logo";
 
-// MD-15 H01/H12 header: logo, section tabs, language. The account menu comes with login (MD-7).
+// MD-15 H01/H12 header: logo, section tabs, then admin impersonation and language at the right.
+// The account menu comes with login (MD-7).
 export default function HostNavLayout({ children }: LayoutProps<"/">) {
   return (
     <>
@@ -15,7 +17,10 @@ export default function HostNavLayout({ children }: LayoutProps<"/">) {
           <Logo />
         </Link>
         <HostNav />
-        <LanguageSwitch />
+        <div className="flex items-center gap-2">
+          <ImpersonateControl />
+          <LanguageSwitch />
+        </div>
       </header>
       <main className="flex flex-1 flex-col">{children}</main>
     </>

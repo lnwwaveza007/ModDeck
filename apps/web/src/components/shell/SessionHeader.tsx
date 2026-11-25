@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
+import { ImpersonateControl } from "./ImpersonateControl";
 import { LanguageSwitch } from "./LanguageSwitch";
 import { LogoMark } from "./Logo";
 
@@ -48,6 +49,7 @@ export function SessionHeader({
       </div>
       {badge}
       {children}
+      <ImpersonateControl />
       <LanguageSwitch />
     </header>
   );

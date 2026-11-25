@@ -30,6 +30,7 @@ export class AuthGuard implements CanActivate {
     if (!result) throw new UnauthorizedException();
 
     req.user = result.user;
+    req.impersonator = result.impersonator;
     if (result.renewedExpiresAt) {
       res.cookie(SESSION_COOKIE, token, sessionCookieOptions(this.cfg, result.renewedExpiresAt));
     }

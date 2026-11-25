@@ -46,6 +46,7 @@ To use a real certificate instead, put `fullchain.pem` and `privkey.pem` in `/op
 | Secret   | `STAGING_ENTRA_TENANT_ID`   | KMUTT SSO (Entra ID) tenant ID. Optional: SSO stays off (login returns 503) while this is empty. |
 | Secret   | `STAGING_ENTRA_CLIENT_ID`   | Entra app client ID. Required when the tenant ID is set. |
 | Secret   | `STAGING_ENTRA_CLIENT_SECRET` | Entra app client secret. |
+| Variable | `STAGING_ADMIN_EMAILS`      | Optional. Comma-separated KMUTT emails of the admins who may impersonate another user (button at the top right). Empty: nobody can. |
 
 The deploy job writes these three into `/opt/moddeck/.env` as `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID` and `ENTRA_CLIENT_SECRET`. Register `https://bscit.sit.kmutt.ac.th/capstone26/cp26ssa2/api/auth/callback` as a redirect URI in the Entra app (the public URL, see below).
 

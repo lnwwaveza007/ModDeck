@@ -42,6 +42,8 @@ services:
       ENTRA_TENANT_ID: ${ENTRA_TENANT_ID:-}
       ENTRA_CLIENT_ID: ${ENTRA_CLIENT_ID:-}
       ENTRA_CLIENT_SECRET: ${ENTRA_CLIENT_SECRET:-}
+      # Comma-separated emails that may impersonate another user. Empty: nobody.
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
       # Public URL incl. prefix. The Entra redirect URI is this + /api/auth/callback.
       APP_BASE_URL: ${PUBLIC_ORIGIN:-https://${STAGING_HOST}}${BASE_PATH:-}
       SLIDES_DIR: /data/slides

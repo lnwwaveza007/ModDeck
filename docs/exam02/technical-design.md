@@ -429,6 +429,10 @@ Paths are relative to `/api/v1`. "Errors" lists the main non-2xx codes. The comm
 | GET | `/auth/callback` | OIDC redirect URI: check `state` and PKCE, create user session | none | 302 to `returnTo` | 400 invalid state, 502 Entra error |
 | POST | `/auth/logout` | End the host session | host | 204 | — |
 | GET | `/me` | Current user or participant | any | 200 | 401 |
+| GET | `/auth/me` | Who the app acts as, `isAdmin` (the signed-in account is on `ADMIN_EMAILS`) and `impersonator` (the admin behind it while impersonating, else null) | host | 200 | 401 |
+| GET | `/admin/users?q=` | Admin user picker: up to 20 users whose email or name contains `q` | admin | 200 | 403 `ADMIN_ONLY` |
+| POST | `/auth/impersonation` | `{ userId }`. This login acts as that user (REST and host socket) until DELETE. Logged on the api | admin | 200 | 403 `ADMIN_ONLY`, 404 unknown user, 422 own id |
+| DELETE | `/auth/impersonation` | Back to the admin's own account. No-op when not impersonating | host | 204 | — |
 
 **Decks, slides, activities (F4, F5, F7, F8)**
 

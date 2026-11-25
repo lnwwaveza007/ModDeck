@@ -15,4 +15,5 @@ export interface EntraIdentity {
   studentId: string | null;
 }
 
-export type AuthedRequest = Request & { user?: AuthUser };
+/** `user` is who the request acts as; `impersonator` is the admin behind it while impersonating. */
+export type AuthedRequest = Request & { user?: AuthUser; impersonator?: AuthUser };

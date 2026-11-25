@@ -95,6 +95,7 @@ jobs:
           ENTRA_TENANT_ID: ${{ secrets.STAGING_ENTRA_TENANT_ID }}
           ENTRA_CLIENT_ID: ${{ secrets.STAGING_ENTRA_CLIENT_ID }}
           ENTRA_CLIENT_SECRET: ${{ secrets.STAGING_ENTRA_CLIENT_SECRET }}
+          ADMIN_EMAILS: ${{ vars.STAGING_ADMIN_EMAILS }}
         run: |
           image="${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/moddeck"
           umask 077
@@ -106,6 +107,7 @@ jobs:
           ENTRA_TENANT_ID=${ENTRA_TENANT_ID}
           ENTRA_CLIENT_ID=${ENTRA_CLIENT_ID}
           ENTRA_CLIENT_SECRET=${ENTRA_CLIENT_SECRET}
+          ADMIN_EMAILS=${ADMIN_EMAILS}
           API_IMAGE=${image}-api:${GITHUB_SHA}
           WEB_IMAGE=${image}-web:${GITHUB_SHA}
           EOF

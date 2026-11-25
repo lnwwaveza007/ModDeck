@@ -28,6 +28,7 @@ export const ERROR_CODES = [
   "INVITE_INVALID",
   "INVITE_WRONG_ACCOUNT",
   "NOT_CONTROLLER",
+  "ADMIN_ONLY",
   "INTERNAL",
 ] as const;
 
