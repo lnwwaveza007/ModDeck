@@ -423,6 +423,8 @@ describe("student join (e2e)", () => {
         .set("Cookie", cookieFrom(joined, "moddeck_pt")!)
         .expect(410);
       expect(res.body.error.code).toBe("SESSION_ENDED");
+      // A 410 is cacheable by default: the browser must not show it again after a new join.
+      expect(res.headers["cache-control"]).toBe("no-store");
     });
   });
 });

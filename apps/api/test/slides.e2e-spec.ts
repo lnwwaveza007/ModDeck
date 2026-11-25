@@ -11,6 +11,7 @@ import type { DeckDetail, DeckSummary, SlideDto, SlideElement } from "@moddeck/s
 import request from "supertest";
 import { AppModule } from "../src/app.module";
 import { AuthService } from "../src/auth/auth.service";
+import { noStore } from "../src/common/no-store";
 import { PrismaService } from "../src/prisma/prisma.service";
 
 const SUBJECTS = ["e2e-slides-host-a", "e2e-slides-host-b"];
@@ -119,6 +120,8 @@ describe("slides (e2e)", () => {
     app = (
       await Test.createTestingModule({ imports: [AppModule] }).compile()
     ).createNestApplication();
+    // As in app.setup.ts: every reply is no-store unless the route says otherwise.
+    app.use(noStore);
     await app.init();
     prisma = app.get(PrismaService);
     await cleanup();
@@ -414,7 +417,10 @@ describe("slides (e2e)", () => {
 
     const file = await api().get(`/slide-images/${imageRef}`).expect(200);
     expect(file.headers["content-type"]).toBe("image/png");
-    expect(file.headers["cache-control"]).toContain("immutable");
+    expect(file.headers["cache-control"]).toBe("public, max-age=31536000, immutable");
+    // The deck itself still depends on who asks.
+    const deck2 = await as(hostA, api().get(`/decks/${deck.id}`)).expect(200);
+    expect(deck2.headers["cache-control"]).toBe("no-store");
     expect(file.headers["x-content-type-options"]).toBe("nosniff");
     expect(Buffer.compare(file.body, PNG)).toBe(0);
   });

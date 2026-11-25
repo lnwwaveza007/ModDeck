@@ -1,4 +1,5 @@
 import { INestApplication } from "@nestjs/common";
+import { noStore } from "./common/no-store";
 import { RedisIoAdapter } from "./realtime/redis-io.adapter";
 
 // Shared by main.ts and the e2e tests, so tests run the same wiring as prod.
@@ -12,6 +13,7 @@ export async function setupApp(app: INestApplication): Promise<void> {
     "trust proxy",
     "loopback, linklocal, uniquelocal",
   );
+  app.use(noStore);
   app.enableCors({
     origin: process.env.WEB_ORIGIN ?? "http://localhost:3000",
     credentials: true,

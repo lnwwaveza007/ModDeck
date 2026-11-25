@@ -92,6 +92,8 @@ export async function apiFetch<T>(
   try {
     response = await fetch(buildUrl(baseUrl, path, query), {
       credentials: "include",
+      // Replies depend on the cookies, not the URL: never answer from the browser cache.
+      cache: "no-store",
       ...init,
       headers: requestHeaders,
       body: body === undefined ? undefined : isForm ? (body as FormData) : JSON.stringify(body),
