@@ -38,8 +38,8 @@ export function QuestionsActivity({
     () =>
       getQuestions(sessionId, sort)
         .then((data) => setQuestions(data.questions))
-        .catch(() => setError("Could not load questions.")),
-    [sessionId, sort],
+        .catch(() => setError(t("loadError"))),
+    [sessionId, sort, t],
   );
   useEffect(() => {
     void refresh();
@@ -65,7 +65,7 @@ export function QuestionsActivity({
       setError(
         caught instanceof ApiError && caught.code === "QA_CLOSED"
           ? t("closedError")
-          : "Please wait before asking another question, or check your connection.",
+          : t("askError"),
       );
     } finally {
       setBusy(false);
@@ -84,7 +84,7 @@ export function QuestionsActivity({
       setError(
         caught instanceof ApiError && caught.code === "QA_CLOSED"
           ? t("closedError")
-          : "Could not update your vote.",
+          : t("voteError"),
       );
     }
   };
@@ -95,7 +95,7 @@ export function QuestionsActivity({
         <header className="flex h-14 items-center gap-3 border-b border-neutral-200 px-4">
           <button
             type="button"
-            aria-label="Back to questions"
+            aria-label={t("back")}
             onClick={() => {
               setComposing(false);
               setPreview(false);
@@ -105,14 +105,14 @@ export function QuestionsActivity({
           >
             ×
           </button>
-          <h2 className="font-semibold">Ask a question</h2>
+          <h2 className="font-semibold">{t("askTitle")}</h2>
           <button
             type="button"
             disabled={busy || !text.trim()}
             onClick={() => void submit()}
             className="ml-auto rounded-lg bg-orange-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
           >
-            {busy ? "Sending…" : "Send"}
+            {busy ? t("sending") : t("send")}
           </button>
         </header>
 
@@ -120,11 +120,9 @@ export function QuestionsActivity({
           {anonymousAllowed && (
             <div className="rounded-xl border border-neutral-200 bg-surface px-3 py-2">
               <Toggle
-                label="Anonymous Mode"
+                label={t("anonymousMode")}
                 description={
-                  anonymous
-                    ? "Your name will not be shown"
-                    : `Your name will be shown as ${nickname}`
+                  anonymous ? t("anonymousDescription") : t("namedDescription", { nickname })
                 }
                 checked={anonymous}
                 onCheckedChange={setAnonymous}
@@ -134,29 +132,29 @@ export function QuestionsActivity({
 
           <div>
             <label htmlFor="question-text" className="mb-2 block text-sm font-semibold">
-              Question
+              {t("questionLabel")}
             </label>
             {preview ? (
               <div className="min-h-36 rounded-xl border border-orange-600 bg-white p-3 text-sm">
                 {text.trim() ? (
                   <RichText source={text} />
                 ) : (
-                  <span className="text-muted">Nothing to preview yet.</span>
+                  <span className="text-muted">{t("emptyPreview")}</span>
                 )}
               </div>
             ) : (
               <textarea
                 id="question-text"
-                aria-label="Question"
+                aria-label={t("questionLabel")}
                 maxLength={280}
                 value={text}
                 onChange={(event) => setText(event.target.value)}
-                placeholder="What do you want to ask?"
+                placeholder={t("placeholder")}
                 className="min-h-36 w-full resize-y rounded-xl border border-orange-600 bg-white p-3 text-sm focus:outline-2 focus:outline-orange-200"
               />
             )}
             <div className="mt-1 flex items-center justify-between text-xs text-muted">
-              <span>Use `code`, fenced code blocks and $math$.</span>
+              <span>{t("formatHint")}</span>
               <span>{text.length}/280</span>
             </div>
           </div>
@@ -168,7 +166,7 @@ export function QuestionsActivity({
               aria-pressed={!preview}
               className={`flex-1 rounded-md py-2 text-sm ${!preview ? "bg-white font-semibold shadow-sm" : "text-muted"}`}
             >
-              Write
+              {t("write")}
             </button>
             <button
               type="button"
@@ -176,7 +174,7 @@ export function QuestionsActivity({
               aria-pressed={preview}
               className={`flex-1 rounded-md py-2 text-sm ${preview ? "bg-white font-semibold shadow-sm" : "text-muted"}`}
             >
-              Preview
+              {t("preview")}
             </button>
           </div>
 
@@ -193,7 +191,7 @@ export function QuestionsActivity({
             onClick={() => void submit()}
             className="w-full rounded-xl border border-slate-200 bg-primary-600 p-3 font-semibold text-white shadow-md disabled:opacity-30"
           >
-            {busy ? "Sending…" : "Post question"}
+            {busy ? t("sending") : t("postQuestion")}
           </button>
         </footer>
       </section>
@@ -202,7 +200,7 @@ export function QuestionsActivity({
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-3 p-3">
-      <div className="flex rounded-xl bg-slate-200 p-1" aria-label="Sort questions">
+      <div className="flex rounded-xl bg-slate-200 p-1" aria-label={t("sortLabel")}>
         {(["top", "newest"] as const).map((value) => (
           <button
             key={value}
@@ -211,7 +209,7 @@ export function QuestionsActivity({
             onClick={() => setSort(value)}
             className={`flex-1 rounded-lg p-2 text-sm ${sort === value ? "bg-white font-semibold shadow-sm" : "text-muted"}`}
           >
-            {value === "top" ? "Top questions" : "Newest"}
+            {value === "top" ? t("topQuestions") : t("newest")}
           </button>
         ))}
       </div>
@@ -232,15 +230,15 @@ export function QuestionsActivity({
               )}
               <RichText source={question.text} className="text-sm" />
               <p className="mt-2 text-xs text-slate-500">
-                {question.anonymous ? "Anonymous" : question.author} ·{" "}
+                {question.anonymous ? t("anonymous") : question.author} ·{" "}
                 {new Date(question.createdAt).toLocaleTimeString()}
               </p>
             </div>
             <button
               type="button"
-              aria-label={`${question.ownQuestion ? "Your question" : question.voted ? "Remove upvote" : "Upvote"}: ${question.votes}`}
+              aria-label={`${question.ownQuestion ? t("yourQuestion") : question.voted ? t("removeUpvote") : t("upvote")}: ${question.votes}`}
               aria-pressed={question.voted ?? false}
-              title={question.ownQuestion ? "You cannot upvote your own question" : undefined}
+              title={question.ownQuestion ? t("ownVoteTitle") : undefined}
               disabled={question.ownQuestion || !open}
               onClick={() => void vote(question)}
               className={`group flex h-14 min-w-12 flex-col items-center justify-center gap-0.5 rounded-xl border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600 disabled:opacity-50 ${question.voted ? "border-primary-400 bg-primary-400 text-white" : "border-neutral-200 text-neutral-500 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700"}`}
@@ -265,9 +263,7 @@ export function QuestionsActivity({
           </article>
         ))}
         {questions.length === 0 && (
-          <p className="py-8 text-center text-sm text-slate-500">
-            No questions yet. Ask the first one!
-          </p>
+          <p className="py-8 text-center text-sm text-slate-500">{t("noQuestions")}</p>
         )}
       </div>
 
@@ -286,7 +282,7 @@ export function QuestionsActivity({
           }}
           className="mt-auto w-full shrink-0 rounded-xl border border-slate-200 bg-primary-600 p-3 font-semibold text-white"
         >
-          Post a question
+          {t("postQuestion")}
         </button>
       ) : (
         <p
