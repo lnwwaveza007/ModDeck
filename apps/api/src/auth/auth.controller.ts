@@ -1,5 +1,7 @@
 import {
+  Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Inject,
@@ -11,6 +13,9 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import type { Request, Response } from "express";
+import { impersonateBodySchema, type ImpersonateBody, type MeView } from "@moddeck/shared";
+import { ApiException, ZodBody } from "../common/api-error";
+import { AdminGuard } from "./admin.guard";
 import { AUTH_CONFIG, type AuthConfig, requireSso } from "./auth.config";
 import { AuthGuard } from "./auth.guard";
 import { AuthService } from "./auth.service";
@@ -23,7 +28,7 @@ import {
   sessionCookieOptions,
   txCookieOptions,
 } from "./cookies";
-import { CurrentUser } from "./current-user.decorator";
+import { CurrentUser, SignedInUser } from "./current-user.decorator";
 import { OidcService, decodeTx, encodeTx, sanitizeReturnTo } from "./oidc.service";
 import { IdTokenValidationError, TokenValidatorService } from "./token-validator.service";
 
@@ -104,10 +109,53 @@ export class AuthController {
     res.clearCookie(SESSION_COOKIE, sessionCookieOptions(this.cfg));
   }
 
+  // Who the app acts as, and the admin behind it while impersonating.
   @Get("me")
   @UseGuards(AuthGuard)
-  me(@CurrentUser() user: AuthUser): AuthUser {
-    return user;
+  me(@CurrentUser() user: AuthUser, @SignedInUser() signedIn: AuthUser): MeView {
+    return this.meView(user, signedIn);
+  }
+
+  // Admin only. This login acts as another user until DELETE. Starting again switches the user.
+  @Post("impersonation")
+  @HttpCode(200)
+  @UseGuards(AuthGuard, AdminGuard)
+  async impersonate(
+    @SignedInUser() admin: AuthUser,
+    @Body(new ZodBody(impersonateBodySchema)) body: ImpersonateBody,
+    @Req() req: Request,
+  ): Promise<MeView> {
+    const target = await this.auth.startImpersonation(this.tokenOf(req), admin, body.userId);
+    return this.meView(target, admin);
+  }
+
+  // Back to the admin's own account. Works without the admin check: an admin taken off the list
+  // has already stopped.
+  @Delete("impersonation")
+  @HttpCode(204)
+  @UseGuards(AuthGuard)
+  async stopImpersonating(@Req() req: Request): Promise<void> {
+    await this.auth.stopImpersonation(this.tokenOf(req));
+  }
+
+  private tokenOf(req: Request): string {
+    const token = parseCookies(req.headers.cookie)[SESSION_COOKIE];
+    if (!token) throw new ApiException(401, "UNAUTHORIZED", "Missing host login");
+    return token;
+  }
+
+  private meView(user: AuthUser, signedIn: AuthUser): MeView {
+    const impersonating = signedIn.id !== user.id;
+    return {
+      id: user.id,
+      email: user.email,
+      displayName: user.displayName,
+      studentId: user.studentId,
+      isAdmin: this.auth.isAdmin(signedIn),
+      impersonator: impersonating
+        ? { id: signedIn.id, email: signedIn.email, displayName: signedIn.displayName }
+        : null,
+    };
   }
 
   // A student who started on /j/:pin goes back there, where the guest option

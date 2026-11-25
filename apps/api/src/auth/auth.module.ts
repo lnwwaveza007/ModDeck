@@ -1,5 +1,7 @@
 import { Module } from "@nestjs/common";
 import { createRemoteJWKSet } from "jose";
+import { AdminController } from "./admin.controller";
+import { AdminGuard } from "./admin.guard";
 import { AUTH_CONFIG, AuthConfig, loadAuthConfig } from "./auth.config";
 import { AuthController } from "./auth.controller";
 import { AuthGuard } from "./auth.guard";
@@ -8,7 +10,7 @@ import { OidcService } from "./oidc.service";
 import { JWKS, TokenValidatorService } from "./token-validator.service";
 
 @Module({
-  controllers: [AuthController],
+  controllers: [AuthController, AdminController],
   providers: [
     { provide: AUTH_CONFIG, useFactory: () => loadAuthConfig() },
     {
@@ -23,6 +25,7 @@ import { JWKS, TokenValidatorService } from "./token-validator.service";
     OidcService,
     AuthService,
     AuthGuard,
+    AdminGuard,
   ],
   // AuthGuard's dependencies must resolve in any module that uses @UseGuards(AuthGuard).
   exports: [AuthService, AuthGuard, AUTH_CONFIG],

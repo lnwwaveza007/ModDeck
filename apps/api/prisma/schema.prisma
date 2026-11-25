@@ -118,14 +118,15 @@ model User {
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  decks         Deck[]
-  sessions      Session[]         @relation("SessionOwner")
-  controlling   Session[]         @relation("SessionController")
-  cohostOf      SessionCohost[]
-  cohostInvites CohostInvite[]
-  auditEntries  SessionAuditLog[]
-  participants  Participant[]
-  hostSessions  HostSession[]
+  decks          Deck[]
+  sessions       Session[]         @relation("SessionOwner")
+  controlling    Session[]         @relation("SessionController")
+  cohostOf       SessionCohost[]
+  cohostInvites  CohostInvite[]
+  auditEntries   SessionAuditLog[]
+  participants   Participant[]
+  hostSessions   HostSession[]     @relation("HostSessionUser")
+  impersonatedIn HostSession[]     @relation("HostSessionImpersonated")
 
   @@map("users")
 }
@@ -135,14 +136,17 @@ model User {
 // holds a random value and only its SHA-256 hash is stored; it expires after
 // 8 h and slides forward when less than half the lifetime is left.
 model HostSession {
-  id         String   @id @default(uuid(7)) @db.Uuid
-  userId     String   @map("user_id") @db.Uuid
-  tokenHash  String   @unique @map("token_hash")
-  expiresAt  DateTime @map("expires_at") @db.Timestamptz(3)
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  lastSeenAt DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(3)
+  id                 String   @id @default(uuid(7)) @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  tokenHash          String   @unique @map("token_hash")
+  expiresAt          DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  lastSeenAt         DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(3)
+  // Admin impersonation: while set, this login acts as that user. `userId` stays the admin.
+  impersonatedUserId String?  @map("impersonated_user_id") @db.Uuid
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User  @relation("HostSessionUser", fields: [userId], references: [id], onDelete: Cascade)
+  impersonatedUser User? @relation("HostSessionImpersonated", fields: [impersonatedUserId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([expiresAt]) // cleanup of expired logins

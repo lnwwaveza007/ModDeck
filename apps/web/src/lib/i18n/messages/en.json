@@ -14,6 +14,23 @@
     "decks": "My decks",
     "sessions": "Session history"
   },
+  "impersonate": {
+    "open": "Impersonate",
+    "title": "Impersonate a user",
+    "description": "Act as another user to see what they see. Your own account comes back when you stop.",
+    "searchLabel": "Find a user",
+    "searchPlaceholder": "Name or email",
+    "loading": "Loading users…",
+    "noUsers": "No users found.",
+    "results": "Users",
+    "actAs": "Act as",
+    "starting": "Switching…",
+    "searchError": "Could not load users. Try again.",
+    "startError": "Could not switch to this user. Try again.",
+    "viewingAs": "Viewing as <strong>{name}</strong>",
+    "stop": "Stop",
+    "retryStop": "Try again"
+  },
   "states": {
     "loading": "Loading…",
     "errorTitle": "Something went wrong",

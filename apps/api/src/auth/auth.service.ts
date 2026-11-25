@@ -1,6 +1,8 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import { USER_SEARCH_LIMIT, type UserSummary } from "@moddeck/shared";
+import { ApiException } from "../common/api-error";
 import { PrismaService } from "../prisma/prisma.service";
-import { AUTH_CONFIG, type AuthConfig } from "./auth.config";
+import { AUTH_CONFIG, type AuthConfig, isAdminEmail } from "./auth.config";
 import type { AuthUser, EntraIdentity } from "./auth.types";
 import { randomToken, sha256Hex } from "./crypto.util";
 
@@ -11,12 +13,28 @@ const toAuthUser = (u: AuthUser): AuthUser => ({
   studentId: u.studentId,
 });
 
+const toSummary = (u: UserSummary): UserSummary => ({
+  id: u.id,
+  email: u.email,
+  displayName: u.displayName,
+});
+
+export interface AuthResult {
+  /** Who the request acts as: the impersonated user while an admin impersonates. */
+  user: AuthUser;
+  /** The admin who signed in, only while impersonating. */
+  impersonator?: AuthUser;
+  renewedExpiresAt?: Date;
+}
+
 /**
  * Host logins live in `host_sessions`, separate from room participants: a host
  * signs in before any live session exists.
  */
 @Injectable()
 export class AuthService {
+  private readonly log = new Logger(AuthService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     @Inject(AUTH_CONFIG) private readonly cfg: AuthConfig,
@@ -58,10 +76,10 @@ export class AuthService {
    * when less than half the lifetime is left; `renewedExpiresAt` tells the
    * caller to refresh the cookie.
    */
-  async authenticate(token: string): Promise<{ user: AuthUser; renewedExpiresAt?: Date } | null> {
+  async authenticate(token: string): Promise<AuthResult | null> {
     const row = await this.prisma.hostSession.findUnique({
       where: { tokenHash: sha256Hex(token) },
-      include: { user: true },
+      include: { user: true, impersonatedUser: true },
     });
     if (!row) return null;
 
@@ -79,7 +97,79 @@ export class AuthService {
         data: { expiresAt: renewedExpiresAt, lastSeenAt: new Date(now) },
       });
     }
-    return { user: toAuthUser(row.user), renewedExpiresAt };
+
+    const signedIn = toAuthUser(row.user);
+    if (row.impersonatedUserId) {
+      // The list is checked on every request: an admin taken off ADMIN_EMAILS stops at once.
+      if (row.impersonatedUser && isAdminEmail(this.cfg, signedIn.email)) {
+        return { user: toAuthUser(row.impersonatedUser), impersonator: signedIn, renewedExpiresAt };
+      }
+      await this.prisma.hostSession.update({
+        where: { id: row.id },
+        data: { impersonatedUserId: null },
+      });
+    }
+    return { user: signedIn, renewedExpiresAt };
+  }
+
+  isAdmin(user: Pick<AuthUser, "email">): boolean {
+    return isAdminEmail(this.cfg, user.email);
+  }
+
+  /** Admin user picker: email or name contains `query`, case-insensitive. */
+  async searchUsers(query: string): Promise<UserSummary[]> {
+    const q = query.trim();
+    const users = await this.prisma.user.findMany({
+      where: q
+        ? {
+            OR: [
+              { email: { contains: q, mode: "insensitive" } },
+              { displayName: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : undefined,
+      orderBy: [{ displayName: "asc" }, { email: "asc" }],
+      take: USER_SEARCH_LIMIT,
+      select: { id: true, email: true, displayName: true },
+    });
+    return users.map(toSummary);
+  }
+
+  /**
+   * The login of `token` acts as `targetId` from the next request on. The caller checks that
+   * `admin` (the signed-in account, not who it impersonates now) is an admin.
+   */
+  async startImpersonation(token: string, admin: AuthUser, targetId: string): Promise<AuthUser> {
+    if (targetId === admin.id) {
+      throw new ApiException(422, "INVALID_PAYLOAD", "You cannot impersonate yourself");
+    }
+    const target = await this.prisma.user.findUnique({ where: { id: targetId } });
+    if (!target) throw new ApiException(404, "NOT_FOUND", "User not found");
+
+    const { count } = await this.prisma.hostSession.updateMany({
+      where: { tokenHash: sha256Hex(token), userId: admin.id },
+      data: { impersonatedUserId: target.id },
+    });
+    if (count === 0) throw new ApiException(401, "UNAUTHORIZED", "Host login has expired");
+
+    this.log.warn(`Admin ${admin.email} (${admin.id}) impersonates ${target.email} (${target.id})`);
+    return toAuthUser(target);
+  }
+
+  /** Back to the admin's own account. A no-op when the login does not impersonate. */
+  async stopImpersonation(token: string): Promise<void> {
+    const row = await this.prisma.hostSession.findUnique({
+      where: { tokenHash: sha256Hex(token) },
+      include: { user: true },
+    });
+    if (!row?.impersonatedUserId) return;
+    await this.prisma.hostSession.update({
+      where: { id: row.id },
+      data: { impersonatedUserId: null },
+    });
+    this.log.warn(
+      `Admin ${row.user.email} (${row.userId}) stops impersonating ${row.impersonatedUserId}`,
+    );
   }
 
   async revoke(token: string): Promise<void> {
