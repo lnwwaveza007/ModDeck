@@ -32,6 +32,7 @@ describe("apiFetch", () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("http://api.test/sessions/ses_1/participants");
     expect(init.credentials).toBe("include");
+    expect(init.cache).toBe("no-store");
     expect(init.body).toBe(JSON.stringify({ nickname: "ปลา" }));
     expect(new Headers(init.headers).get("Content-Type")).toBe("application/json");
   });
