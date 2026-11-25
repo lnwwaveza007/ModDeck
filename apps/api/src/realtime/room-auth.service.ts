@@ -7,8 +7,8 @@ import { PresenceService } from "./presence.service";
 
 // Who a socket is. Set once in the handshake and never taken from a payload.
 // A participant can only ever join the room of its own token's session. A host
-// (presenter control, audience screen) can join the rooms of sessions they own,
-// checked at join time.
+// (presenter control, audience screen, co-host page) can join the rooms of sessions they own or
+// co-host, checked at join time.
 export type SocketIdentity =
   | { role: "participant"; participantId: string; sessionId: string; nickname: string }
   | { role: "host"; userId: string };
@@ -75,13 +75,13 @@ export class RoomAuthService {
     return { role: "host", userId: result.user.id };
   }
 
-  /** A host may join the room of a session they own while it is open. */
+  /** A host may join the room of a session they own or co-host while it is open (F12). */
   async assertHostCanJoin(userId: string, sessionId: string): Promise<void> {
     const session = await this.prisma.session.findUnique({
       where: { id: sessionId },
-      select: { ownerId: true, endedAt: true },
+      select: { ownerId: true, endedAt: true, cohost: { select: { userId: true } } },
     });
-    if (!session || session.ownerId !== userId) {
+    if (!session || (session.ownerId !== userId && session.cohost?.userId !== userId)) {
       throw new RoomAuthError("ROOM_FORBIDDEN", "This session belongs to another host");
     }
     if (session.endedAt) throw new RoomAuthError("SESSION_ENDED", "Session has ended");

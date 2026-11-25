@@ -10,7 +10,12 @@ export function joinUrl(pin: string): string;
 export function joinUrl(pin: string | null): string | null;
 export function joinUrl(pin: string | null): string | null {
   if (pin === null) return null;
+  return appUrl(`/j/${pin}`);
+}
+
+/** A page of the web app, under the same base as the join URL. `path` starts with "/". */
+export function appUrl(path: string): string {
   const base =
     process.env.APP_BASE_URL?.trim() || process.env.WEB_ORIGIN || "http://localhost:3000";
-  return `${base.replace(/\/+$/, "")}/j/${pin}`;
+  return `${base.replace(/\/+$/, "")}${path}`;
 }

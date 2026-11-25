@@ -30,7 +30,7 @@ export const toParticipantRow = (
   joinedAt: p.joinedAt.toISOString(),
 });
 
-type HostEvent = "participant_update" | "participant_removed";
+type HostEvent = "participant_update" | "participant_removed" | "control_update";
 
 /**
  * Reaches one participant, or the host's screens, about participants (F13). The rooms live in the
@@ -92,6 +92,25 @@ export class ParticipantChannelService {
       emit: (event: string, ...args: unknown[]) => boolean;
     };
     room.emit(event, ...payload);
+  }
+
+  /**
+   * Closes the host sockets of one user in the session's rooms: a co-host the owner removed. Their
+   * page reconnects, and the join refuses it, so it shows the session is no longer theirs.
+   */
+  async kickHost(sessionId: string, userId: string): Promise<void> {
+    const seq = await this.roomEvents.currentSeq(sessionId);
+    const sockets = await this.io().in(hostRoomName(sessionId)).fetchSockets();
+    for (const socket of sockets) {
+      const { identity } = socket.data;
+      if (identity?.role !== "host" || identity.userId !== userId) continue;
+      socket.emit("error", {
+        code: "ROOM_FORBIDDEN",
+        message: "You are no longer a co-host of this session",
+        seq,
+      });
+      socket.disconnect(true);
+    }
   }
 
   /** Tells the participant's phones their new name. */

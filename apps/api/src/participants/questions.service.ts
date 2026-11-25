@@ -15,6 +15,7 @@ import {
   type RoomEventData,
 } from "@moddeck/shared";
 import { z } from "zod";
+import { SessionAccessService } from "../sessions/session-access.service";
 import { questionSelect, questionView, statusUpdate } from "./question-view";
 
 const uuid = z.uuid();
@@ -49,6 +50,7 @@ export class QuestionsService {
     private readonly prisma: PrismaService,
     private readonly events: RoomEventsService,
     @Inject(REDIS) private readonly redis: Redis,
+    private readonly access: SessionAccessService,
   ) {}
 
   /**
@@ -194,18 +196,13 @@ export class QuestionsService {
    * at once cannot leave two pins on the screens.
    */
   async setStatus(
-    ownerId: string,
+    userId: string,
     sessionId: string,
     questionId: string,
     action: QuestionAction,
   ): Promise<LiveQuestion> {
-    if (!uuid.safeParse(sessionId).success)
-      throw new ApiException(404, "NOT_FOUND", "Session not found");
-    const session = await this.prisma.session.findFirst({
-      where: { id: sessionId, ownerId },
-      select: { status: true },
-    });
-    if (!session) throw new ApiException(404, "NOT_FOUND", "Session not found");
+    // The owner and the co-host moderate, whoever runs presenter control (F12).
+    const session = await this.access.check(userId, sessionId, "member");
     if (session.status === "ended")
       throw new ApiException(409, "SESSION_ENDED", "The session has ended");
     if (!uuid.safeParse(questionId).success) throw questionNotFound();

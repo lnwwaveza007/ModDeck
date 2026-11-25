@@ -23,9 +23,9 @@ import { WordBatcherService } from "../realtime/word-batcher.service";
 import { WordStoreService } from "../realtime/word-store.service";
 import { liveActivitySelect, toLiveActivity, toSlideDto } from "../slides/slide.mapper";
 import { joinUrl } from "./join-url";
+import { SessionAccessService } from "./session-access.service";
 
 const uuid = z.uuid();
-const sessionNotFound = () => new ApiException(404, "NOT_FOUND", "Session not found");
 
 /**
  * Running a live session from presenter control: which slide the room is on, and the state of
@@ -48,6 +48,7 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
     private readonly words: WordStoreService,
     private readonly wordBatcher: WordBatcherService,
     private readonly reactions: ReactionService,
+    private readonly access: SessionAccessService,
   ) {}
 
   // After a restart, arm the countdowns that are still running.
@@ -64,8 +65,8 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
     this.timers.clear();
   }
 
-  async view(ownerId: string, sessionId: string): Promise<LiveSessionView> {
-    const session = await this.ownedSession(ownerId, sessionId);
+  async view(userId: string, sessionId: string): Promise<LiveSessionView> {
+    const session = await this.access.check(userId, sessionId, "member");
     await this.expireDue(sessionId);
     const [slides, runs, participantCount, questions] = await Promise.all([
       this.prisma.slide.findMany({
@@ -126,8 +127,8 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
   }
 
   /** Moves the room to a slide of the session's deck. Showing an activity never starts it. */
-  async moveTo(ownerId: string, sessionId: string, slideId: string) {
-    const session = await this.ownedSession(ownerId, sessionId);
+  async moveTo(userId: string, sessionId: string, slideId: string) {
+    const session = await this.access.check(userId, sessionId, "control");
     this.assertOpen(session.status);
     const slide = uuid.safeParse(slideId).success
       ? await this.prisma.slide.findFirst({
@@ -154,8 +155,8 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
   }
 
   /** Turns live reactions on or off for the whole room. The phones show or hide their bar. */
-  async setReactions(ownerId: string, sessionId: string, enabled: boolean) {
-    const session = await this.ownedSession(ownerId, sessionId);
+  async setReactions(userId: string, sessionId: string, enabled: boolean) {
+    const session = await this.access.check(userId, sessionId, "control");
     this.assertOpen(session.status);
     const settings = {
       ...(session.settings as Record<string, unknown>),
@@ -175,8 +176,8 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
    * Opens or closes Q&A for the room. Closed, students keep reading the list but cannot ask or
    * vote. Once Q&A has been open the phones keep the tab, so a close does not wipe the list.
    */
-  async setQa(ownerId: string, sessionId: string, open: boolean) {
-    const session = await this.ownedSession(ownerId, sessionId);
+  async setQa(userId: string, sessionId: string, open: boolean) {
+    const session = await this.access.check(userId, sessionId, "control");
     this.assertOpen(session.status);
     const current = session.settings as Record<string, unknown>;
     const settings = {
@@ -194,12 +195,12 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
   }
 
   async act(
-    ownerId: string,
+    userId: string,
     sessionId: string,
     activityId: string,
     { action, durationSeconds }: ActivityActionBody,
   ): Promise<ActivityRunDto> {
-    const session = await this.ownedSession(ownerId, sessionId);
+    const session = await this.access.check(userId, sessionId, "control");
     this.assertOpen(session.status);
     const activity = uuid.safeParse(activityId).success
       ? await this.prisma.activity.findFirst({
@@ -281,13 +282,13 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
    * returns. The host gets every hidden word back, to show one again.
    */
   async setWordHidden(
-    ownerId: string,
+    userId: string,
     sessionId: string,
     activityId: string,
     key: string,
     hidden: boolean,
   ): Promise<WordVisibilityResult> {
-    const session = await this.ownedSession(ownerId, sessionId);
+    const session = await this.access.check(userId, sessionId, "control");
     this.assertOpen(session.status);
     const run = uuid.safeParse(activityId).success
       ? await this.prisma.activityRun.findFirst({
@@ -383,25 +384,6 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
   }
 
   // ----- guards -----
-
-  private async ownedSession(ownerId: string, sessionId: string) {
-    if (!uuid.safeParse(sessionId).success) throw sessionNotFound();
-    const session = await this.prisma.session.findFirst({
-      where: { id: sessionId, ownerId },
-      select: {
-        id: true,
-        pin: true,
-        status: true,
-        deckId: true,
-        startedAt: true,
-        settings: true,
-        currentSlideId: true,
-        deck: { select: { title: true } },
-      },
-    });
-    if (!session) throw sessionNotFound();
-    return session;
-  }
 
   private assertOpen(status: string) {
     if (status === "ended") throw new ApiException(409, "SESSION_ENDED", "The session has ended");

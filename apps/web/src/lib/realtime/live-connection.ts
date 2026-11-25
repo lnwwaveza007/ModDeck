@@ -17,6 +17,7 @@ import {
   type ReactionBurst,
   type ReactionEmoji,
   type RoomEvent,
+  type ControlUpdate,
   type SessionSnapshot,
   type StatePayload,
 } from "@moddeck/shared";
@@ -43,6 +44,8 @@ export interface LiveConnectionOptions {
   onReactionBurst?: (burst: ReactionBurst) => void;
   /** Host screens only: the participant list changed. Not numbered: reload the list after a rejoin. */
   onPeople?: (event: PeopleEvent) => void;
+  /** Host screens only: the co-host or presenter control changed. Reload it after a rejoin. */
+  onControl?: (update: ControlUpdate) => void;
   /**
    * Students only: the participant's current name, on every join and when the host renames them.
    * It may be the name the phone already shows.
@@ -129,6 +132,7 @@ export class LiveConnection {
       this.options.onPeople?.({ type: "removed", participantId }),
     );
     this.socket.on("renamed", ({ nickname }) => this.options.onNickname?.(nickname));
+    this.socket.on("control_update", (update) => this.options.onControl?.(update));
     const onRoomEvent = (event: RoomEvent) => this.receive(event);
     for (const type of ROOM_EVENT_TYPES) {
       (this.socket.on as (type: string, listener: (event: RoomEvent) => void) => void)(

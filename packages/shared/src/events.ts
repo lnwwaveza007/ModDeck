@@ -4,6 +4,7 @@
 // Every server event carries `seq`: the per-session sequence number (MD-13).
 
 import { z } from "zod";
+import type { ControlUpdate } from "./cohost";
 import type { ErrorBody } from "./errors";
 import type { LiveQuestion, ParticipantRow } from "./participants";
 import type { QuestionStatus } from "./questions";
@@ -16,7 +17,7 @@ import { WORD_TEXT_INPUT_MAX, type WordCloudTally, type WordResult } from "./wor
 // First message after every (re)connect. The token comes from the handshake
 // (cookie or `auth.token`), not from this payload. The host's presenter and
 // audience screen connect with `auth: { role: "host" }` and the host login
-// cookie instead, and may join only a session they own. `lastSeq` is the last
+// cookie instead, and may join only a session they own or co-host. `lastSeq` is the last
 // event the client applied; the server replays everything after it.
 export const joinPayloadSchema = z.object({
   sessionId: z.uuid(),
@@ -145,6 +146,9 @@ export type ServerToClientEvents = {
   // To the renamed participant's own phones and tabs only. A phone that was away during a rename
   // gets the name in its next join ack instead.
   renamed: (payload: { nickname: string }) => void;
+  // Co-host and presenter control changes, to the host room only (owner and co-host screens).
+  // Not numbered: a screen loads GET /sessions/{id}/control again after each reconnect.
+  control_update: (update: ControlUpdate) => void;
 } & { [K in RoomEventType]: (event: RoomEvent<K>) => void };
 
 export interface ClientToServerEvents {

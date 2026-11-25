@@ -9,6 +9,7 @@ import type {
   ActivityAction,
   ActivityRunDto,
   ActivityWordingBody,
+  ControlUpdate,
   LiveActivity,
   LiveQuestion,
   LiveSessionView,
@@ -86,6 +87,8 @@ export interface LiveSessionControls {
   subscribeReactions: (listener: (burst: ReactionBurst) => void) => () => void;
   /** Calls `listener` with every change to the participant list. Returns the unsubscribe. */
   subscribePeople: (listener: (event: PeopleEvent) => void) => () => void;
+  /** Calls `listener` with every co-host or presenter control change. Returns the unsubscribe. */
+  subscribeControl: (listener: (update: ControlUpdate) => void) => () => void;
 }
 
 const runsById = (runs: ActivityRunDto[]) =>
@@ -118,6 +121,7 @@ export function useLiveSession(
   const [questions, setQuestions] = useState<LiveQuestion[]>([]);
   const reactionListeners = useRef(new Set<(burst: ReactionBurst) => void>());
   const peopleListeners = useRef(new Set<(event: PeopleEvent) => void>());
+  const controlListeners = useRef(new Set<(update: ControlUpdate) => void>());
   const [connection, setConnection] = useState<ConnectionStatus>("connecting");
   const [ended, setEnded] = useState(false);
   const [loadError, setLoadError] = useState<LiveLoadError | null>(null);
@@ -208,6 +212,7 @@ export function useLiveSession(
     };
     const listeners = reactionListeners.current;
     const people = peopleListeners.current;
+    const control = controlListeners.current;
 
     // Outside the effect body: load() sets state.
     const initial = setTimeout(() => void load().then(start), 0);
@@ -228,6 +233,9 @@ export function useLiveSession(
         },
         onPeople: (event) => {
           for (const listener of people) listener(event);
+        },
+        onControl: (update) => {
+          for (const listener of control) listener(update);
         },
       });
       connection.connect();
@@ -364,6 +372,12 @@ export function useLiveSession(
     return () => void listeners.delete(listener);
   }, []);
 
+  const subscribeControl = useCallback((listener: (update: ControlUpdate) => void) => {
+    const listeners = controlListeners.current;
+    listeners.add(listener);
+    return () => void listeners.delete(listener);
+  }, []);
+
   const editWording = useCallback(
     async (slideId: string, body: ActivityWordingBody) => {
       if (!view) return;
@@ -408,6 +422,7 @@ export function useLiveSession(
       moderate,
       subscribeReactions,
       subscribePeople,
+      subscribeControl,
     },
   ];
 }

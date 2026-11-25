@@ -795,7 +795,8 @@
       "SESSION_ENDED": "The session has ended.",
       "INVALID_TRANSITION": "The activity changed in the meantime. The screen now shows its state.",
       "ACTIVITY_LOCKED": "This activity has started: only the wording can change.",
-      "NETWORK_ERROR": "No connection to ModDeck. Check your internet."
+      "NETWORK_ERROR": "No connection to ModDeck. Check your internet.",
+      "NOT_CONTROLLER": "Another host runs presenter control now."
     },
     "reactions": {
       "title": "Reactions",
@@ -835,6 +836,54 @@
       "removeFailed": "Could not remove. Try again.",
       "removeConfirm": "Remove",
       "removing": "Removing…"
+    },
+    "cohost": {
+      "button": "Invite co-host",
+      "buttonWith": "Co-host · {name}",
+      "badge": "Co-host · Q&A moderation",
+      "ownerBadge": "Owner",
+      "title": "Co-host",
+      "intro": "Invite one TA. They moderate Q&A and see the people list on their own device, and can take over presenter control if your laptop fails. They cannot edit slides.",
+      "emailLabel": "KMUTT email",
+      "emailHint": "Only this account can accept. They also see the invite in My decks.",
+      "inviteEmail": "Invite by email",
+      "or": "or",
+      "createLink": "Create invite link",
+      "replaceNote": "A new invite replaces the one that waits.",
+      "waitingEmail": "Waiting for {email} to accept.",
+      "waitingLink": "Invite link waiting to be used.",
+      "linkLabel": "Invite link",
+      "copy": "Copy",
+      "copied": "Copied",
+      "linkOnce": "Send this link to your TA. It works once, and it is shown only now.",
+      "cancelInvite": "Cancel invite",
+      "cohostJoined": "Joined as co-host. They moderate Q&A.",
+      "cohostInControl": "Runs presenter control now. Take it back from the co-host page.",
+      "remove": "Remove co-host",
+      "errors": {
+        "email": "Enter a KMUTT email (…@kmutt.ac.th or …@mail.kmutt.ac.th).",
+        "self": "You cannot invite yourself.",
+        "COHOST_EXISTS": "This session already has a co-host.",
+        "SESSION_ENDED": "The session has ended.",
+        "generic": "That did not work. Try again."
+      },
+      "controlledBy": "{name} runs presenter control.",
+      "youControl": "You run presenter control.",
+      "openPresenter": "Open presenter control",
+      "youTookOver": "You took over presenter control from {name}. They can take it back from their device.",
+      "takeOver": "Take over",
+      "takeBack": "Take back",
+      "takeOverTitle": "Take over presenter control?",
+      "takeOverBody": "You will move the slides and run the activities. {name}'s laptop stops controlling the session until they take it back.",
+      "takeBackTitle": "Take back presenter control?",
+      "takeBackBody": "{name} stops controlling the session and goes back to Q&A moderation.",
+      "cancel": "Cancel",
+      "removedYou": "You are no longer a co-host of this session.",
+      "notice": {
+        "takeover": "{name} took over presenter control. You can take it back.",
+        "takeback": "{name} took back presenter control.",
+        "accepted": "{name} joined as co-host."
+      }
     }
   },
   "screen": {
@@ -865,6 +914,23 @@
       "label": "Audience question",
       "anonymous": "Anonymous",
       "votes": "{count, plural, one {# vote} other {# votes}}"
+    }
+  },
+  "cohostInvite": {
+    "title": "Co-host invite",
+    "joining": "Joining as co-host…",
+    "loginFirst": "Log in with your KMUTT account to accept the invite.",
+    "login": "Log in with KMUTT",
+    "listTitle": "Co-host invites",
+    "pending": "{owner} invited you to co-host “{deck}”.",
+    "accept": "Join as co-host",
+    "failed": "This invite no longer works.",
+    "errors": {
+      "INVITE_INVALID": "This invite was used, cancelled, or has expired. Ask the host for a new one.",
+      "INVITE_WRONG_ACCOUNT": "This invite is for another KMUTT account. Log in with the invited account.",
+      "COHOST_EXISTS": "This session already has a co-host.",
+      "SESSION_ENDED": "This session has ended.",
+      "generic": "Could not accept the invite. Try again."
     }
   }
 }

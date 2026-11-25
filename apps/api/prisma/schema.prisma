@@ -97,6 +97,17 @@ enum QuestionStatus {
   @@map("question_status")
 }
 
+enum AuditAction {
+  cohost_invited
+  cohost_invite_cancelled
+  cohost_accepted
+  cohost_removed
+  takeover
+  takeback
+
+  @@map("audit_action")
+}
+
 // Host or SSO student. Created on first KMUTT SSO login (MD-7).
 model User {
   id          String   @id @default(uuid(7)) @db.Uuid
@@ -107,11 +118,14 @@ model User {
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  decks        Deck[]
-  sessions     Session[]       @relation("SessionOwner")
-  cohostOf     SessionCohost[]
-  participants Participant[]
-  hostSessions HostSession[]
+  decks         Deck[]
+  sessions      Session[]         @relation("SessionOwner")
+  controlling   Session[]         @relation("SessionController")
+  cohostOf      SessionCohost[]
+  cohostInvites CohostInvite[]
+  auditEntries  SessionAuditLog[]
+  participants  Participant[]
+  hostSessions  HostSession[]
 
   @@map("users")
 }
@@ -274,11 +288,17 @@ model Session {
   startedAt      DateTime          @default(now()) @map("started_at") @db.Timestamptz(3)
   endedAt        DateTime?         @map("ended_at") @db.Timestamptz(3)
   endReason      SessionEndReason? @map("end_reason")
+  // Who runs presenter control (moves slides, runs activities). Empty: the owner. Set to the
+  // co-host by a take-over, and cleared again when the owner takes back (F12).
+  controllerId   String?           @map("controller_id") @db.Uuid
 
-  deck           Deck            @relation(fields: [deckId], references: [id], onDelete: Cascade)
-  owner          User            @relation("SessionOwner", fields: [ownerId], references: [id], onDelete: Restrict)
-  currentSlide   Slide?          @relation("SessionCurrentSlide", fields: [currentSlideId], references: [id], onDelete: SetNull)
+  deck           Deck              @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  owner          User              @relation("SessionOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  controller     User?             @relation("SessionController", fields: [controllerId], references: [id], onDelete: SetNull)
+  currentSlide   Slide?            @relation("SessionCurrentSlide", fields: [currentSlideId], references: [id], onDelete: SetNull)
   cohost         SessionCohost?
+  cohostInvite   CohostInvite?
+  auditLog       SessionAuditLog[]
   participants   Participant[]
   activityRuns   ActivityRun[]
   questions      Question[]
@@ -301,6 +321,44 @@ model SessionCohost {
   @@id([sessionId, userId])
   @@index([userId])
   @@map("session_cohosts")
+}
+
+// The co-host invite that waits to be accepted, one per session: a new invite replaces it.
+// Like the login cookies, the link holds a random token and only its SHA-256 hash is stored.
+// With an email, only that KMUTT account may accept, and it also sees the invite after login.
+model CohostInvite {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  sessionId String   @unique @map("session_id") @db.Uuid
+  email     String? // lower case
+  tokenHash String   @unique @map("token_hash")
+  invitedBy String   @map("invited_by") @db.Uuid
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  inviter User    @relation(fields: [invitedBy], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([invitedBy])
+  @@map("cohost_invites")
+}
+
+// Who did what to the co-host role and presenter control of a session (invite, accept,
+// take-over). Rows are only added, never changed.
+model SessionAuditLog {
+  id        String      @id @default(uuid(7)) @db.Uuid
+  sessionId String      @map("session_id") @db.Uuid
+  actorId   String?     @map("actor_id") @db.Uuid // empty once the user is deleted
+  action    AuditAction
+  details   Json        @default("{}")
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  actor   User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId, createdAt])
+  @@index([actorId])
+  @@map("session_audit_logs")
 }
 
 // Room-scoped identity. The participant token (MD-7, MD-13) is a random value

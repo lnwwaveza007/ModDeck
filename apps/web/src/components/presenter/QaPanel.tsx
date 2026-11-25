@@ -25,12 +25,15 @@ export function QaPanel({
   questions,
   open,
   ended,
+  canToggle = true,
   onSetOpen,
   onModerate,
 }: {
   questions: LiveQuestion[];
   open: boolean;
   ended: boolean;
+  /** Opening and closing Q&A is part of presenter control: a co-host without it only moderates. */
+  canToggle?: boolean;
   onSetOpen: (open: boolean) => void;
   onModerate: (questionId: string, action: QuestionAction) => Promise<void>;
 }) {
@@ -140,7 +143,7 @@ export function QaPanel({
         label={t("open")}
         description={open ? t("openOn") : t("openOff")}
         checked={open}
-        disabled={ended}
+        disabled={ended || !canToggle}
         onCheckedChange={onSetOpen}
       />
 
