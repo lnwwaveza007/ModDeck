@@ -635,6 +635,7 @@
         "file_expired": "The PDF is no longer kept. Upload it again.",
         "nothing_to_retry": "No page failed.",
         "running": "A PDF import is already running on this deck.",
+        "engine_unavailable": "PDF import does not work on this server right now. Tell the system admin.",
         "generic": "Could not import the PDF. Try again."
       }
     }

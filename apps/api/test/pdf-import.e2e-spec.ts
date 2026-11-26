@@ -1,5 +1,5 @@
 // PDF import end to end against the real database (F9, MD-14). The first block uses the real worker
-// thread: upload, pages that fill in, and the errors a host can meet. The second block replaces the
+// process: upload, pages that fill in, and the errors a host can meet. The second block replaces the
 // worker with a script, to see what the runner does when it crashes or hangs. One file, because
 // every app in a test process polls the same queue.
 
@@ -257,6 +257,24 @@ describe("pdf import (e2e)", () => {
       const deck = await createDeck();
       const res = await upload(deck.id, protectedPdf()).expect(422);
       expect(res.body.error.details).toMatchObject({ reason: "protected" });
+    });
+
+    it("answers 503 and stays up when the PDF reader crashes", async () => {
+      const deck = await createDeck();
+      const before = process.env.NODE_OPTIONS;
+      // The worker process inherits this and dies as soon as it loads the native renderer.
+      process.env.NODE_OPTIONS = `--require ${join(__dirname, "fixtures", "crash-on-canvas.js")}`;
+      try {
+        const res = await upload(deck.id, textPdf(["x"])).expect(503);
+        expect(res.body.error.details).toMatchObject({ reason: "engine_unavailable" });
+      } finally {
+        if (before === undefined) delete process.env.NODE_OPTIONS;
+        else process.env.NODE_OPTIONS = before;
+      }
+      expect(await prisma.slide.count({ where: { deckId: deck.id } })).toBe(1);
+      // The api itself is still up, and the next upload works.
+      const { body } = await upload(deck.id, textPdf(["x"])).expect(202);
+      expect((await waitFor(body.id, finished)).status).toBe("done");
     });
 
     it("answers 422 when no file is sent", async () => {

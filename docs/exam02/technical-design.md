@@ -35,7 +35,7 @@ The design builds on the spike results in [`spikes/`](../../spikes) and the UX d
 
 ### 1.2 Architecture diagram
 
-**Style: modular monolith.** One NestJS `api` holds all business modules (§3.2). PDF import also runs inside `api`, as a background job in a Node worker thread so the Socket.IO event loop is not blocked. The host uploads the PDF from the browser (frontend); there is no separate worker container. This is not a microservice system.
+**Style: modular monolith.** One NestJS `api` holds all business modules (§3.2). PDF import also runs inside `api`, as a background job in a Node child process so the Socket.IO event loop is not blocked, and a native crash in the PDF renderer ends only the import. The host uploads the PDF from the browser (frontend); there is no separate worker container. This is not a microservice system.
 
 R1 runs **one** `api` instance: MD-8 showed one instance serves a 300-student room at p95 ≤ 73.5 ms with the API under 26% of one core. The Socket.IO Redis adapter (MD-2) lets us add `api` instances later without code changes.
 
@@ -168,7 +168,7 @@ Notes:
 | Database backup | None | Losing the VM disk or the `pgdata` volume loses all decks, sessions and results | Accepted for R1. Add a backup plan before real classes depend on the data |
 | Monitoring | Not deployed | No early warning for connection count, fan-out or event-loop lag | Prometheus and Grafana are drawn as future containers (§1.2); MD-8 has a working setup |
 | Single host | One VM, one `api` | A VM or Docker failure stops every session | Redis AOF + reconnect protocol (MD-9, MD-13) limit data loss on a restart |
-| PDF import inside `api` | Same container as live rooms | A large import uses CPU and can slow a live class | Run import in a worker thread, allow one import at a time, keep the 150-page and 50 MB limits |
+| PDF import inside `api` | Same container as live rooms | A large import uses CPU and can slow a live class | Run import in a child process, allow one import at a time, keep the 150-page and 50 MB limits |
 | Dev and production share the VM | Both stacks on 4 vCPU, 7.2 GiB RAM | A heavy dev task (load test, large PDF import, image build) slows a live class | Set `cpus` and `mem_limit` on dev containers. Do not run load tests on dev during class hours. Image builds also run on this VM |
 
 ---
@@ -466,7 +466,7 @@ Paths are relative to `/api/v1`. "Errors" lists the main non-2xx codes. The comm
 How it runs (R1-14):
 
 - **The queue is Postgres.** `pdf_imports.status` is the queue. One runner in `api` takes the oldest `queued` row (`FOR UPDATE SKIP LOCKED`, and only when none is `running`), so one import runs at a time. No Redis queue and no extra container.
-- **The work is a worker thread** (`pdfjs-dist` + `@napi-rs/canvas`). Each page is drawn as WebP, 1920 px wide, quality 80, written to the `slides` volume, and its text gets the Thai repair of MD-14. The thread sends one message per finished page, and the runner saves it at once: the slide gets one full-canvas image element and `slides.source_text` (kept for Release 2).
+- **The work is a child process** (`pdfjs-dist` + `@napi-rs/canvas`). A child process, not a worker thread, because `@napi-rs/canvas` is native code: on a CPU without AVX it stops with SIGILL, which would end the whole `api` process. Each page is drawn as WebP, 1920 px wide, quality 80, written to the `slides` volume, and its text gets the Thai repair of MD-14. The child sends one message per finished page, and the runner saves it at once: the slide gets one full-canvas image element and `slides.source_text` (kept for Release 2).
 - **Slides come first.** The upload creates the slides with an empty canvas and `pdf_import_pages` rows. A slide whose page is not done shows as `importStatus: pending` (`failed` when it gave up). Editing a pending slide answers 409 `IMPORT_RUNNING`. The host can edit every other slide, and the session cannot start while an import runs.
 - **Progress is polled, not pushed.** The editor reads `GET /imports/{id}` once a second while the import runs, and reloads the deck when a page has come in. This replaces the `import_progress` socket event: the editor has no socket, and rooms belong to live sessions.
 - **Failures.** A bad page fails alone (`PAGE_RENDER_FAILED`). A page that takes over 20 s is dropped (`PAGE_TIMEOUT`). If the thread crashes, the page is tried once more, then fails (`WORKER_CRASH`). The import is `failed` only when no page came out; otherwise it is `done` with failed pages, and the PDF stays for 24 h so `retries` can run them again. After an api restart, a `running` import goes back to `queued`, and pages that are done stay done.
@@ -934,7 +934,7 @@ On "Close activity", the UI shows the closed state only after the final flush re
 | Images | Built directly on the VM. No registry |
 | TLS and access | Self-signed certificate for now. The server is reachable from the internet (risks in §1.6) |
 | Slide images | Docker volume on the VM |
-| PDF import | Runs inside `api` as a background job (worker thread). No separate worker container. The host uploads the PDF from the frontend. Revisit in R2 if embedding jobs are heavy |
+| PDF import | Runs inside `api` as a background job (child process). No separate worker container. The host uploads the PDF from the frontend. Revisit in R2 if embedding jobs are heavy |
 | Monitoring | Not deployed in R1. Prometheus and Grafana stay in the diagram as future containers |
 | Backup | No backup plan in R1 (risk in §1.6) |
 | Frontend state | Zustand |

@@ -1,5 +1,5 @@
 // PDF reading for the import worker (MD-14): one image and the text of each page, with pdf.js and
-// @napi-rs/canvas. Runs inside a worker thread, so a big file never blocks the live channel.
+// @napi-rs/canvas. Runs in a child process, so a big file never blocks the live channel.
 
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
