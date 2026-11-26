@@ -54,7 +54,9 @@ export function ActivityImageField({
           </Button>
         </>
       )}
-      <p className="text-sm text-muted">{t(imageRef && withResults ? "withResultsHelp" : "help")}</p>
+      <p className="text-sm text-muted">
+        {t(imageRef && withResults ? "withResultsHelp" : "help")}
+      </p>
     </div>
   );
 }
