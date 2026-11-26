@@ -6,8 +6,9 @@ import { getImport, listImports, retryImport, uploadPdf } from "@/lib/api/import
 
 export type PdfImportState =
   | { phase: "idle" }
-  // The file is on its way to the server, which reads it before it answers.
-  | { phase: "uploading"; fileName: string }
+  // The file is on its way to the server (`sent` of `total` bytes), which reads it before it
+  // answers. All bytes sent: the server is checking the PDF.
+  | { phase: "uploading"; fileName: string; sent: number; total: number }
   // The slides exist; the pages fill in.
   | { phase: "running"; import: ImportDto }
   // Over. Some pages may have failed, or all of them.
@@ -97,9 +98,11 @@ export function usePdfImport({
   /** Uploads the PDF. Rejects with the ApiError when the server refuses it. */
   const start = useCallback(
     async (file: File) => {
-      setState({ phase: "uploading", fileName: file.name });
+      setState({ phase: "uploading", fileName: file.name, sent: 0, total: file.size });
       try {
-        const job = await uploadPdf(deckId, file);
+        const job = await uploadPdf(deckId, file, (sent, total) =>
+          setState({ phase: "uploading", fileName: file.name, sent, total }),
+        );
         watch(job);
         callbacks.current.onSlidesChanged();
       } catch (error) {

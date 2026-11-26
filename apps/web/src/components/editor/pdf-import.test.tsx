@@ -122,7 +122,7 @@ describe("PDF import in the deck editor", () => {
     chooseFile(pdfFile());
     await act(() => jest.advanceTimersByTimeAsync(0));
 
-    expect(api.upload).toHaveBeenCalledWith("d1", expect.any(File));
+    expect(api.upload).toHaveBeenCalledWith("d1", expect.any(File), expect.any(Function));
     // The pages are slides at once, each waiting for its image.
     expect(slideButtons()).toHaveLength(3);
     expect(screen.getByRole("button", { name: "Slide 2, Content, importing" })).toBeInTheDocument();
@@ -156,6 +156,28 @@ describe("PDF import in the deck editor", () => {
     expect(await screen.findByText("Imported 2 pages")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Start session" })).toBeEnabled();
     expect(screen.queryByRole("button", { name: /importing$/ })).toBeNull();
+  });
+
+  it("shows how much of the file is uploaded, then that the server checks it", async () => {
+    await renderEditor();
+    let progress: (sent: number, total: number) => void = () => undefined;
+    api.upload.mockImplementation((_deckId, _file, onProgress) => {
+      progress = onProgress!;
+      return new Promise(() => undefined);
+    });
+
+    chooseFile(pdfFile());
+    await act(() => jest.advanceTimersByTimeAsync(0));
+    const bar = screen.getByRole("progressbar", { name: "PDF upload progress" });
+    expect(bar).toHaveAttribute("aria-valuenow", "0");
+
+    act(() => progress(250, 1000));
+    expect(screen.getByText("Uploading lecture.pdf: 25%")).toBeInTheDocument();
+    expect(bar).toHaveAttribute("aria-valuenow", "25");
+
+    act(() => progress(1000, 1000));
+    expect(screen.queryByRole("progressbar")).toBeNull();
+    expect(screen.getByText("Checking lecture.pdf…")).toBeInTheDocument();
   });
 
   it("does not drop the host's edits to another slide when a page comes in", async () => {
