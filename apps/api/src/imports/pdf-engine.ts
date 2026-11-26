@@ -13,10 +13,12 @@ import {
   tidyText,
 } from "./thai-repair";
 
-// Slide images: WebP, 1920 px wide, quality 80 (MD-14 §6: about 75 to 90 KB per slide).
+// Slide images: WebP, 1920 px wide, quality 92. At 80 thin text on a dark slide got a blurred,
+// blocky edge; 92 looks close to lossless for about half as much again in size (a dark 16:9
+// slide: about 31 KB at 80, 48 KB at 92).
 export const IMAGE_WIDTH = 1920;
 const IMAGE_MAX_HEIGHT = 2560; // a portrait page is scaled down to fit
-const IMAGE_QUALITY = 80;
+const IMAGE_QUALITY = 92;
 
 // A failure the host can understand: a protected or an unreadable file.
 export class PdfError extends Error {
