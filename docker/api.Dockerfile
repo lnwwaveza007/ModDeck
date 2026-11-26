@@ -1,6 +1,8 @@
 # Production image for apps/api. Build from the repo root:
 #   docker build -f docker/api.Dockerfile -t moddeck-api .
-FROM node:22-alpine AS base
+# Debian (glibc), not Alpine: the musl build of @napi-rs/canvas needs a CPU with AVX2, and the
+# staging VM has none (the PDF import died with SIGILL). The glibc build runs without AVX.
+FROM node:22-slim AS base
 RUN corepack enable
 WORKDIR /repo
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -20,7 +22,10 @@ RUN pnpm build
 # Runtime stage: production deps only, plus the compiled app and migrations.
 FROM base AS runtime
 ENV NODE_ENV=production
-RUN apk add --no-cache openssl tini \
+# wget: the compose healthcheck calls it.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl tini wget ca-certificates \
+  && rm -rf /var/lib/apt/lists/* \
   && pnpm install --frozen-lockfile --prod --filter api... \
   && pnpm store prune
 COPY --from=build /repo/packages/shared/dist /repo/packages/shared/dist
@@ -37,6 +42,6 @@ USER node
 EXPOSE 4000
 # tini runs as PID 1, so node handles signals like any other process: a crash keeps its real
 # exit code. exec replaces the shell, so the signals tini forwards reach node.
-ENTRYPOINT ["/sbin/tini", "--"]
+ENTRYPOINT ["/usr/bin/tini", "--"]
 # Apply pending migrations, then start. migrate deploy is a no-op when up to date.
 CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && exec node dist/main"]

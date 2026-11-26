@@ -100,7 +100,7 @@ Arrow = direction of the request. Dashed arrow = not used in R1: a browser redir
 | --- | --- | --- | --- | --- | --- | --- |
 | `nginx` | nginx | Reverse proxy, TLS end (self-signed certificate in R1), WebSocket upgrade | 443, 80 | Internet | HTTPS, WSS | Config draft: [`spikes/md-8-load-test/nginx/nginx.conf`](../../spikes/md-8-load-test/nginx/nginx.conf) |
 | `web` | `node:22-alpine` | Next.js 16 (App Router), React 19, Tailwind 4 | 3000 | `nginx` only | HTTP | [`apps/web`](../../apps/web) |
-| `api` | `node:22-alpine` | NestJS 11 modular monolith: REST API + Socket.IO gateway + `/metrics` | 4000 | `nginx`, `web` | HTTP, WebSocket | [`apps/api`](../../apps/api), MD-2, MD-8 |
+| `api` | `node:22-slim` (Debian: the PDF renderer needs glibc on a CPU without AVX) | NestJS 11 modular monolith: REST API + Socket.IO gateway + `/metrics` | 4000 | `nginx`, `web` | HTTP, WebSocket | [`apps/api`](../../apps/api), MD-2, MD-8 |
 | `postgres` | `pgvector/pgvector:pg17` | Main database. pgvector is installed now for R2 | 5432 | `api` | PostgreSQL wire (TCP) | [`docker/postgres/init.sql`](../../docker/postgres/init.sql) |
 | `redis` | `redis:7-alpine` | Socket.IO adapter (Pub/Sub), live counters, answer dedup, flush stream | 6379 | `api` | RESP (TCP) | MD-2, MD-9. MD-9 §7: production must run `--appendonly yes --appendfsync everysec` |
 | volume `slides` | Docker volume on the VM | Slide images (WebP, 1920 px, about 75–90 KB per slide) | — | `api` (read and write) | file system | MD-14 §6 |
