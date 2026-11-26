@@ -75,6 +75,15 @@ async function readJson(response: Response): Promise<unknown> {
   }
 }
 
+/** The ApiError for a reply that is not ok: the §3.5 body when there is one. */
+export function errorFromReply(status: number, data: unknown): ApiError {
+  if (isErrorBody(data)) {
+    const { code, message, details, requestId } = data.error;
+    return new ApiError(status, code, message, details, requestId);
+  }
+  return new ApiError(status, UNKNOWN_ERROR, `HTTP ${status}`);
+}
+
 /**
  * `const decks = await apiFetch<Deck[]>("/decks")`
  * Sends cookies (host session, participant token). Returns undefined for 204.
@@ -105,13 +114,7 @@ export async function apiFetch<T>(
 
   const data = await readJson(response);
 
-  if (!response.ok) {
-    if (isErrorBody(data)) {
-      const { code, message, details, requestId } = data.error;
-      throw new ApiError(response.status, code, message, details, requestId);
-    }
-    throw new ApiError(response.status, UNKNOWN_ERROR, `HTTP ${response.status}`);
-  }
+  if (!response.ok) throw errorFromReply(response.status, data);
 
   return data as T;
 }

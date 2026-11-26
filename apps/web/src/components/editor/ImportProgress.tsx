@@ -41,14 +41,36 @@ export function ImportProgress({
   if (state.phase === "idle") return null;
 
   if (state.phase === "uploading") {
+    const percent = state.total ? Math.min(100, Math.floor((state.sent / state.total) * 100)) : 0;
+    // Every byte is out: the server reads the PDF before it answers.
+    if (percent >= 100) {
+      return (
+        <Banner tone="info">
+          <span
+            aria-hidden="true"
+            className="size-4 animate-spin rounded-full border-2 border-primary-200 border-t-primary-600 motion-reduce:animate-none"
+          />
+          {t("checking", { name: state.fileName })}
+        </Banner>
+      );
+    }
     return (
-      <Banner tone="info">
-        <span
-          aria-hidden="true"
-          className="size-4 animate-spin rounded-full border-2 border-primary-200 border-t-primary-600 motion-reduce:animate-none"
-        />
-        {t("uploading", { name: state.fileName })}
-      </Banner>
+      <div className="flex flex-col gap-1 bg-primary-50 px-4 py-2 text-sm text-primary-700">
+        <span className="font-medium">{t("uploading", { name: state.fileName, percent })}</span>
+        <div
+          role="progressbar"
+          aria-label={t("uploadLabel")}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={percent}
+          className="h-1.5 overflow-hidden rounded-full bg-primary-100"
+        >
+          <div
+            className="h-full bg-primary-500 transition-[width] motion-reduce:transition-none"
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+      </div>
     );
   }
 

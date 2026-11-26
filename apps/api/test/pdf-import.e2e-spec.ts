@@ -324,6 +324,44 @@ describe("pdf import (e2e)", () => {
       (await readFile(join(process.env.SLIDES_DIR!, text.imageRef ?? ""))).length,
     ).toBeGreaterThan(0);
   });
+
+  it("skips a page that was running twice when the api stopped, and does the others", async () => {
+    const deck = await createDeck();
+    const { body } = await upload(deck.id, textPdf(["a", "b"])).expect(202);
+    await waitFor(body.id, finished);
+    // Page 1 was started twice and took the api down both times. Page 2 never started.
+    const stuck = await prisma.pdfImport.create({
+      data: {
+        deckId: deck.id,
+        fileName: "crashes.pdf",
+        fileRef: "crashes.pdf",
+        pageCount: 2,
+        status: "running",
+      },
+    });
+    const { writeFile, mkdir } = await import("node:fs/promises");
+    await mkdir(process.env.IMPORTS_DIR!, { recursive: true });
+    await writeFile(join(process.env.IMPORTS_DIR!, "crashes.pdf"), textPdf(["a", "b"]));
+    const [first, second] = await Promise.all(
+      [8, 9].map((position) =>
+        prisma.slide.create({ data: { deckId: deck.id, position, kind: "content" } }),
+      ),
+    );
+    await prisma.pdfImportPage.createMany({
+      data: [
+        { importId: stuck.id, page: 1, slideId: first.id, status: "running", attempts: 2 },
+        { importId: stuck.id, page: 2, slideId: second.id, status: "queued" },
+      ],
+    });
+
+    const { ImportRunnerService } = await import("../src/imports/import-runner.service");
+    const runner = app.get(ImportRunnerService) as unknown as { recover(): Promise<void> };
+    await runner.recover();
+    const done = await waitFor(stuck.id, finished);
+    expect(done).toMatchObject({ status: "done", donePages: 1, failedPages: 1 });
+    expect(done.pages[0]).toMatchObject({ page: 1, status: "failed", errorCode: "WORKER_CRASH" });
+    expect(done.pages[1]).toMatchObject({ page: 2, status: "done" });
+  });
 });
 
 const RUNNER_SUBJECT = "e2e-import-runner-host";

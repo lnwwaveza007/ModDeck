@@ -20,7 +20,7 @@ RUN pnpm build
 # Runtime stage: production deps only, plus the compiled app and migrations.
 FROM base AS runtime
 ENV NODE_ENV=production
-RUN apk add --no-cache openssl \
+RUN apk add --no-cache openssl tini \
   && pnpm install --frozen-lockfile --prod --filter api... \
   && pnpm store prune
 COPY --from=build /repo/packages/shared/dist /repo/packages/shared/dist
@@ -35,5 +35,8 @@ RUN ./node_modules/.bin/prisma version
 RUN mkdir -p /data/slides /data/imports && chown node:node /data/slides /data/imports
 USER node
 EXPOSE 4000
+# tini runs as PID 1, so node handles signals like any other process: a crash keeps its real
+# exit code. exec replaces the shell, so the signals tini forwards reach node.
+ENTRYPOINT ["/sbin/tini", "--"]
 # Apply pending migrations, then start. migrate deploy is a no-op when up to date.
-CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/main"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && exec node dist/main"]

@@ -166,7 +166,14 @@ export class ImportRunnerService implements OnModuleInit, OnModuleDestroy {
       include: { pages: { where: { status: "queued" }, orderBy: { page: "asc" } } },
     });
     if (!job) return;
-    const pending = new Set(job.pages.map((p) => p.page));
+    // A page that was started PAGE_TRIES times without an end took the api down with it (a crash
+    // the worker thread could not contain). Trying it again would bring the api down again.
+    const worn = job.pages.filter((p) => p.attempts >= PAGE_TRIES).map((p) => p.page);
+    if (worn.length) {
+      this.logger.warn(`Import ${importId}: pages ${worn.join(", ")} stopped the api; skipped`);
+      await this.failPages(importId, worn, "WORKER_CRASH");
+    }
+    const pending = new Set(job.pages.filter((p) => p.attempts < PAGE_TRIES).map((p) => p.page));
     if (!job.fileRef) {
       await this.failPages(importId, pending, "PDF_INVALID");
       return this.finish(importId);
