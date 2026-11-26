@@ -588,7 +588,9 @@
     "activityImage": {
       "help": "The audience screen shows the picture with the question until you start the activity.",
       "alt": "Activity picture",
-      "remove": "Remove image"
+      "remove": "Remove image",
+      "withResults": "Keep the picture with the results",
+      "withResultsHelp": "The audience screen shows the picture with the question. After you start, the picture stays next to the answers."
     },
     "wordCloud": {
       "title": "Word Cloud",

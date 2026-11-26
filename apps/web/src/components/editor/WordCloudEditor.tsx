@@ -67,11 +67,13 @@ export function WordCloudEditor({
 
       <ActivityImageField
         imageRef={draft.imageRef}
+        withResults={draft.imageWithResults}
         onUpload={async (file) => {
           const imageRef = await onUploadImage(file);
           update({ ...latest.current, imageRef });
         }}
         onRemove={() => update({ ...draft, imageRef: null })}
+        onWithResultsChange={(imageWithResults) => update({ ...draft, imageWithResults })}
       />
 
       <fieldset className="flex flex-col gap-1.5">

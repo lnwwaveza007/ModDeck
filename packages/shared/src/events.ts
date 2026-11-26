@@ -50,6 +50,7 @@ export interface RoomEventData {
     options: { id: string; label: string }[];
     maxEntries: number;
     imageRef: string | null;
+    imageWithResults: boolean;
   };
   // Sent in batches, at most one per VOTE_BATCH_MS for each run.
   vote_update: { activityRunId: string } & PollTally;

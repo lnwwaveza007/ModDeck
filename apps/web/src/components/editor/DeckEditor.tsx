@@ -279,6 +279,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
       prompt: draft.prompt,
       options: draft.rows.map((row) => ({ id: row.id ?? row.key, label: row.label })),
       imageRef: draft.imageRef,
+      imageWithResults: draft.imageWithResults,
     });
     if (!isPollComplete(draft)) return;
     queue.patch(`activity:${slideId}`, {}, async () => {
@@ -303,6 +304,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
       prompt: draft.prompt,
       maxEntries: draft.maxEntries,
       imageRef: draft.imageRef,
+      imageWithResults: draft.imageWithResults,
     });
     if (!isWordCloudComplete(draft)) return;
     queue.patch(`activity:${slideId}`, {}, async () => {
@@ -504,6 +506,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
           prompt: snapshot.activity.prompt,
           options: snapshot.activity.options.map(({ label }) => ({ label })),
           imageRef: snapshot.activity.imageRef,
+          imageWithResults: snapshot.activity.imageWithResults,
           ...(snapshot.kind === "word_cloud" && { maxEntries: snapshot.activity.maxEntries }),
         }
       : null;

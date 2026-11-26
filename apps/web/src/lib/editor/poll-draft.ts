@@ -20,6 +20,8 @@ export interface PollDraft {
   rows: PollRow[];
   /** Shown with the question until the poll starts. */
   imageRef: string | null;
+  /** On: the picture stays next to the answers after the start. */
+  imageWithResults: boolean;
 }
 
 export const newPollRow = (): PollRow => ({ key: crypto.randomUUID(), label: "" });
@@ -31,7 +33,12 @@ export function pollDraftOf(slide: Pick<SlideDto, "activity">): PollDraft {
     label,
   }));
   while (rows.length < POLL_OPTIONS_MIN) rows.push(newPollRow());
-  return { prompt: slide.activity?.prompt ?? "", rows, imageRef: slide.activity?.imageRef ?? null };
+  return {
+    prompt: slide.activity?.prompt ?? "",
+    rows,
+    imageRef: slide.activity?.imageRef ?? null,
+    imageWithResults: slide.activity?.imageWithResults ?? false,
+  };
 }
 
 export function isPollComplete({ prompt, rows }: PollDraft): boolean {
@@ -43,9 +50,15 @@ export function isPollComplete({ prompt, rows }: PollDraft): boolean {
   );
 }
 
-export const pollBody = ({ prompt, rows, imageRef }: PollDraft): ActivityWordingBody => ({
+export const pollBody = ({
+  prompt,
+  rows,
+  imageRef,
+  imageWithResults,
+}: PollDraft): ActivityWordingBody => ({
   prompt,
   imageRef,
+  imageWithResults,
   options: rows.map(({ id, label }) => (id ? { id, label } : { label })),
 });
 

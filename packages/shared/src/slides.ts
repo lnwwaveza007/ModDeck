@@ -164,6 +164,8 @@ export interface SlideDto {
     maxEntries: number;
     // Shown with the question until the activity starts.
     imageRef: string | null;
+    // On: the picture stays next to the answers after the start.
+    imageWithResults: boolean;
   } | null;
   // Set while a PDF import has not filled this slide in yet ("pending"), or could not ("failed").
   importStatus?: SlideImportStatus | null;

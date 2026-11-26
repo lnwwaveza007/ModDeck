@@ -136,6 +136,7 @@ erDiagram
         boolean allow_answer_change "default false"
         int max_entries_per_person "default 1"
         text image_ref "shown until the activity starts"
+        boolean image_with_results "keep the picture next to the answers"
     }
     activity_options {
         uuid id PK

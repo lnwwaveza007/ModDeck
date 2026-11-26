@@ -94,8 +94,26 @@ function ActivityView({
   const state = run?.state ?? "draft";
   const left = state === "live" && run?.endsAt ? secondsLeft(run.endsAt, now) : null;
   // The picture stays with the question until the activity starts. From then on the options,
-  // the chart or the cloud take its place.
-  const image = state === "draft" ? activity.imageRef : null;
+  // the chart or the cloud take its place, unless the host keeps it with the results: then the
+  // picture moves to the left and the answers go on its right.
+  const image = activity.imageRef;
+  const beside = image !== null && state !== "draft" && activity.imageWithResults;
+  const answers =
+    activity.type === "word_cloud" ? (
+      cloud && (state === "results_shown" || (state === "live" && liveChart)) ? (
+        cloud.words.length > 0 ? (
+          <WordCloud words={cloud.words} scale="stage" className="min-h-0 flex-1" />
+        ) : (
+          <p className="m-auto text-center text-[2.4cqw] font-semibold text-neutral-700">
+            {t("noWords")}
+          </p>
+        )
+      ) : null
+    ) : tally && (state === "results_shown" || (state === "live" && liveChart)) ? (
+      <PollChart options={activity.options} tally={tally} scale="stage" />
+    ) : (
+      <PollOptions options={activity.options} oneColumn={beside} />
+    );
 
   return (
     <div className="absolute inset-0 flex flex-col gap-[2.2cqw] p-[5cqw]">
@@ -116,32 +134,15 @@ function ActivityView({
         )}
       </div>
       <RichText source={activity.prompt} className="text-[4cqw] leading-[1.3] font-semibold" />
-      {image ? (
-        <div className="relative min-h-0 flex-1">
-          <Image
-            src={slideImageUrl(image)}
-            alt={t("imageAlt")}
-            fill
-            unoptimized
-            sizes="100vw"
-            className="object-contain"
-            draggable={false}
-          />
+      {image && state === "draft" ? (
+        <StageImage imageRef={image} alt={t("imageAlt")} className="flex-1" />
+      ) : beside ? (
+        <div className="flex min-h-0 flex-1 gap-[3cqw]">
+          <StageImage imageRef={image} alt={t("imageAlt")} className="w-[38%] shrink-0" />
+          <div className="flex min-w-0 flex-1 flex-col justify-center">{answers}</div>
         </div>
-      ) : activity.type === "word_cloud" ? (
-        cloud && (state === "results_shown" || (state === "live" && liveChart)) ? (
-          cloud.words.length > 0 ? (
-            <WordCloud words={cloud.words} scale="stage" className="min-h-0 flex-1" />
-          ) : (
-            <p className="m-auto text-center text-[2.4cqw] font-semibold text-neutral-700">
-              {t("noWords")}
-            </p>
-          )
-        ) : null
-      ) : tally && (state === "results_shown" || (state === "live" && liveChart)) ? (
-        <PollChart options={activity.options} tally={tally} scale="stage" />
       ) : (
-        <PollOptions options={activity.options} />
+        answers
       )}
       {activity.type === "poll" && tally && (state === "live" || state === "closed") && (
         <p className="mt-auto text-center text-[2cqw] font-semibold text-neutral-700 tabular-nums">
@@ -159,10 +160,47 @@ function ActivityView({
   );
 }
 
-function PollOptions({ options }: { options: LiveActivity["options"] }) {
+function StageImage({
+  imageRef,
+  alt,
+  className,
+}: {
+  imageRef: string;
+  alt: string;
+  className: string;
+}) {
+  return (
+    <div className={cn("relative min-h-0", className)}>
+      <Image
+        src={slideImageUrl(imageRef)}
+        alt={alt}
+        fill
+        unoptimized
+        sizes="100vw"
+        className="object-contain"
+        draggable={false}
+      />
+    </div>
+  );
+}
+
+function PollOptions({
+  options,
+  oneColumn = false,
+}: {
+  options: LiveActivity["options"];
+  /** Next to the picture there is room for one column only. */
+  oneColumn?: boolean;
+}) {
   const dense = options.length > DENSE_OPTIONS;
   return (
-    <ol className={cn("grid grid-cols-2", dense ? "gap-[0.8cqw]" : "gap-[1.2cqw]")}>
+    <ol
+      className={cn(
+        "grid",
+        oneColumn ? "grid-cols-1" : "grid-cols-2",
+        dense ? "gap-[0.8cqw]" : "gap-[1.2cqw]",
+      )}
+    >
       {options.map((option, index) => (
         <li
           key={option.id}

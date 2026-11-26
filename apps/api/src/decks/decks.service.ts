@@ -125,6 +125,7 @@ export class DecksService {
                     allowAnswerChange: activity.allowAnswerChange,
                     maxEntriesPerPerson: activity.maxEntriesPerPerson,
                     imageRef: activity.imageRef,
+                    imageWithResults: activity.imageWithResults,
                     options: {
                       create: activity.options.map(({ position, label }) => ({
                         position,

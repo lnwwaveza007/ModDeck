@@ -160,6 +160,7 @@ export class SlidesService {
                 allowAnswerChange: activity.allowAnswerChange,
                 maxEntriesPerPerson: activity.maxEntriesPerPerson,
                 imageRef: activity.imageRef,
+                imageWithResults: activity.imageWithResults,
                 options: {
                   create: activity.options.map(({ position, label }) => ({ position, label })),
                 },
@@ -301,6 +302,7 @@ export class SlidesService {
           prompt: body.prompt,
           ...(maxEntries !== undefined && { maxEntriesPerPerson: maxEntries }),
           ...(body.imageRef !== undefined && { imageRef: body.imageRef }),
+          ...(body.imageWithResults !== undefined && { imageWithResults: body.imageWithResults }),
         },
         select: liveActivitySelect,
       });
@@ -324,6 +326,7 @@ export class SlidesService {
         options: activity.options,
         maxEntries: activity.maxEntries,
         imageRef: activity.imageRef,
+        imageWithResults: activity.imageWithResults,
       });
     }
     return activity;
