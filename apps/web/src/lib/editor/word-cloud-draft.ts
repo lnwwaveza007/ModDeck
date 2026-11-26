@@ -12,12 +12,15 @@ import {
 export interface WordCloudDraft {
   prompt: string;
   maxEntries: number;
+  /** Shown with the prompt until the word cloud starts. */
+  imageRef: string | null;
 }
 
 export function wordCloudDraftOf(slide: Pick<SlideDto, "activity">): WordCloudDraft {
   return {
     prompt: slide.activity?.prompt ?? "",
     maxEntries: slide.activity?.maxEntries ?? WORD_ENTRIES_DEFAULT,
+    imageRef: slide.activity?.imageRef ?? null,
   };
 }
 
@@ -27,7 +30,8 @@ export const isWordCloudComplete = ({ prompt, maxEntries }: WordCloudDraft): boo
   maxEntries >= WORD_ENTRIES_MIN &&
   maxEntries <= WORD_ENTRIES_MAX;
 
-export const wordCloudBody = ({ prompt, maxEntries }: WordCloudDraft): ActivityWordingBody => ({
+export const wordCloudBody = ({
   prompt,
   maxEntries,
-});
+  imageRef,
+}: WordCloudDraft): ActivityWordingBody => ({ prompt, maxEntries, imageRef });

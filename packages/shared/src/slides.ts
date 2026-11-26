@@ -162,6 +162,8 @@ export interface SlideDto {
     prompt: string;
     options: { id: string; label: string }[];
     maxEntries: number;
+    // Shown with the question until the activity starts.
+    imageRef: string | null;
   } | null;
   // Set while a PDF import has not filled this slide in yet ("pending"), or could not ("failed").
   importStatus?: SlideImportStatus | null;

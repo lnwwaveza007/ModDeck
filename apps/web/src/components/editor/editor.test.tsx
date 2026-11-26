@@ -126,12 +126,19 @@ const first = slide("s1", 0, [heading, snippet, formula]);
 const empty = slide("s2", 1, []);
 const poll = slide("s3", 2, [], {
   kind: "poll",
-  activity: { id: "a3", type: "poll", prompt: "Q", options: [], maxEntries: 1 },
+  activity: { id: "a3", type: "poll", prompt: "Q", options: [], maxEntries: 1, imageRef: null },
 });
 
 const cloud = slide("s4", 1, [], {
   kind: "word_cloud",
-  activity: { id: "a4", type: "word_cloud", prompt: "One word?", options: [], maxEntries: 1 },
+  activity: {
+    id: "a4",
+    type: "word_cloud",
+    prompt: "One word?",
+    options: [],
+    maxEntries: 1,
+    imageRef: null,
+  },
 });
 
 function deck(slides: SlideDto[]): DeckDetail {
@@ -630,6 +637,7 @@ describe("DeckEditor: the side panel", () => {
       options: [],
       allowAnswerChange: false,
       maxEntries: 3,
+      imageRef: null,
     });
     await renderEditor([first, cloud]);
     fireEvent.click(slideButton(2));
@@ -643,6 +651,7 @@ describe("DeckEditor: the side panel", () => {
     expect(api.wording).toHaveBeenCalledWith("d1", "s4", {
       prompt: "What did you learn?",
       maxEntries: 3,
+      imageRef: null,
     });
   });
 
@@ -718,7 +727,14 @@ describe("DeckEditor: slides", () => {
     api.create.mockResolvedValue(
       slide("p2", 1, [], {
         kind: "poll",
-        activity: { id: "a2", type: "poll", prompt: "", options: [], maxEntries: 1 },
+        activity: {
+          id: "a2",
+          type: "poll",
+          prompt: "",
+          options: [],
+          maxEntries: 1,
+          imageRef: null,
+        },
       }),
     );
     fireEvent.click(within(dialog).getByRole("button", { name: /^Live Poll/ }));

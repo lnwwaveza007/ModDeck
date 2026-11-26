@@ -4,7 +4,7 @@
 import { z } from "zod";
 import type { ActivityRunState, SessionStatus } from "./events";
 import type { LiveQuestion } from "./participants";
-import type { ActivitySlideKind, SlideDto } from "./slides";
+import { SLIDE_IMAGE_REF_PATTERN, type ActivitySlideKind, type SlideDto } from "./slides";
 import { WORD_ENTRIES_MAX, WORD_ENTRIES_MIN, type WordCloudTally, type WordCount } from "./words";
 
 // ---- Activity controls ------------------------------------------------------
@@ -85,6 +85,8 @@ export const POLL_OPTIONS_MAX = 8;
 export const activityWordingBodySchema = z.object({
   prompt: z.string().trim().min(1).max(ACTIVITY_PROMPT_MAX),
   maxEntries: z.int().min(WORD_ENTRIES_MIN).max(WORD_ENTRIES_MAX).optional(),
+  // Uploaded through POST /decks/{deckId}/slide-images. null removes it; missing keeps it.
+  imageRef: z.string().regex(SLIDE_IMAGE_REF_PATTERN).nullable().optional(),
   options: z
     .array(
       z.object({
@@ -121,6 +123,8 @@ export interface LiveActivity {
   allowAnswerChange: boolean;
   /** Word cloud only: words each student may send (1 to 3). A poll always holds 1. */
   maxEntries: number;
+  /** Shown with the question until the activity starts. */
+  imageRef: string | null;
 }
 
 /** The counts of one poll run. `answered`: how many people have an answer. */

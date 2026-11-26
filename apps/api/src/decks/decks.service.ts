@@ -124,6 +124,7 @@ export class DecksService {
                     multipleChoice: activity.multipleChoice,
                     allowAnswerChange: activity.allowAnswerChange,
                     maxEntriesPerPerson: activity.maxEntriesPerPerson,
+                    imageRef: activity.imageRef,
                     options: {
                       create: activity.options.map(({ position, label }) => ({
                         position,

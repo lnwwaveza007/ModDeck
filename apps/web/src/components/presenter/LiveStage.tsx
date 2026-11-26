@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type {
   ActivityRunDto,
@@ -12,6 +13,7 @@ import { RichText } from "@/components/content/RichText";
 import { SlideRenderer } from "@/components/content/SlideRenderer";
 import { DENSE_OPTIONS, OptionKey, PollChart } from "@/components/poll/PollChart";
 import { WordCloud } from "@/components/wordcloud/WordCloud";
+import { slideImageUrl } from "@/lib/api/slides";
 import { cn } from "@/lib/cn";
 import { formatDuration, secondsLeft } from "@/lib/live/clock";
 
@@ -91,6 +93,9 @@ function ActivityView({
   const activity = slide.activity!;
   const state = run?.state ?? "draft";
   const left = state === "live" && run?.endsAt ? secondsLeft(run.endsAt, now) : null;
+  // The picture stays with the question until the activity starts. From then on the options,
+  // the chart or the cloud take its place.
+  const image = state === "draft" ? activity.imageRef : null;
 
   return (
     <div className="absolute inset-0 flex flex-col gap-[2.2cqw] p-[5cqw]">
@@ -111,7 +116,19 @@ function ActivityView({
         )}
       </div>
       <RichText source={activity.prompt} className="text-[4cqw] leading-[1.3] font-semibold" />
-      {activity.type === "word_cloud" ? (
+      {image ? (
+        <div className="relative min-h-0 flex-1">
+          <Image
+            src={slideImageUrl(image)}
+            alt={t("imageAlt")}
+            fill
+            unoptimized
+            sizes="100vw"
+            className="object-contain"
+            draggable={false}
+          />
+        </div>
+      ) : activity.type === "word_cloud" ? (
         cloud && (state === "results_shown" || (state === "live" && liveChart)) ? (
           cloud.words.length > 0 ? (
             <WordCloud words={cloud.words} scale="stage" className="min-h-0 flex-1" />

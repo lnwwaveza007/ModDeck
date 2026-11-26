@@ -218,6 +218,8 @@ model Activity {
   multipleChoice      Boolean      @default(false) @map("multiple_choice") // poll only
   allowAnswerChange   Boolean      @default(false) @map("allow_answer_change") // poll only
   maxEntriesPerPerson Int          @default(1) @map("max_entries_per_person") // word cloud, 1 to 3
+  // Shown with the question until the activity starts, then the answers take its place.
+  imageRef            String?      @map("image_ref")
 
   slide   Slide            @relation(fields: [slideId], references: [id], onDelete: Cascade)
   options ActivityOption[]

@@ -159,6 +159,7 @@ export class SlidesService {
                 multipleChoice: activity.multipleChoice,
                 allowAnswerChange: activity.allowAnswerChange,
                 maxEntriesPerPerson: activity.maxEntriesPerPerson,
+                imageRef: activity.imageRef,
                 options: {
                   create: activity.options.map(({ position, label }) => ({ position, label })),
                 },
@@ -299,6 +300,7 @@ export class SlidesService {
         data: {
           prompt: body.prompt,
           ...(maxEntries !== undefined && { maxEntriesPerPerson: maxEntries }),
+          ...(body.imageRef !== undefined && { imageRef: body.imageRef }),
         },
         select: liveActivitySelect,
       });
@@ -321,6 +323,7 @@ export class SlidesService {
         prompt: activity.prompt,
         options: activity.options,
         maxEntries: activity.maxEntries,
+        imageRef: activity.imageRef,
       });
     }
     return activity;

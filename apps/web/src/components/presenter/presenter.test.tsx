@@ -14,6 +14,7 @@ import { renderWithIntl } from "@/test/render";
 import { ToastProvider } from "@/components/ui/Toast";
 import { AudienceScreen } from "./AudienceScreen";
 import { EndSessionButton } from "./EndSession";
+import { LiveStage } from "./LiveStage";
 import { PresenterControl } from "./PresenterControl";
 
 const mockRouter = { push: jest.fn(), replace: jest.fn() };
@@ -68,6 +69,7 @@ const poll: LiveSlide = {
     ],
     allowAnswerChange: false,
     maxEntries: 1,
+    imageRef: null,
   },
 };
 
@@ -398,6 +400,7 @@ describe("AudienceScreen", () => {
         prompt: "Fixed?",
         options: poll.activity!.options,
         maxEntries: 1,
+        imageRef: null,
       },
       2,
     );
@@ -634,6 +637,7 @@ const cloudSlide: LiveSlide = {
     options: [],
     allowAnswerChange: false,
     maxEntries: 2,
+    imageRef: null,
   },
 };
 
@@ -817,5 +821,32 @@ describe("word cloud on the audience screen", () => {
       }),
     );
     expect(screen.getByText("No words yet")).toBeInTheDocument();
+  });
+});
+
+describe("LiveStage activity image", () => {
+  const imageRef = "0b9f4c2e-8f3a-4d6b-9c1e-2a7d5e8f1b3c.png";
+  const withImage: LiveSlide = { ...poll, activity: { ...poll.activity!, imageRef } };
+  const run = (state: ActivityRunDto["state"]): ActivityRunDto => ({
+    activityId: "act-poll",
+    activityRunId: "r1",
+    state,
+    endsAt: null,
+    reopened: false,
+  });
+
+  it("shows the picture in place of the options until the activity starts", () => {
+    renderWithIntl(<LiveStage slide={withImage} now={0} />, "en");
+    expect(screen.getByRole("img", { name: "Activity picture" })).toHaveAttribute(
+      "src",
+      expect.stringContaining(imageRef),
+    );
+    expect(screen.queryByText("Alpha")).not.toBeInTheDocument();
+  });
+
+  it("takes the picture away once answers open", () => {
+    renderWithIntl(<LiveStage slide={withImage} run={run("live")} now={0} />, "en");
+    expect(screen.queryByRole("img", { name: "Activity picture" })).not.toBeInTheDocument();
+    expect(screen.getByText("Alpha")).toBeInTheDocument();
   });
 });

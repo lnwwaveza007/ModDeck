@@ -590,7 +590,7 @@ function MathControls({
   );
 }
 
-function ImageControls({
+export function ImageControls({
   hasImage,
   onUpload,
 }: {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import {
   ACTIVITY_PROMPT_MAX,
   WORD_ENTRIES_MAX,
@@ -10,6 +10,7 @@ import {
 } from "@moddeck/shared";
 import { cn } from "@/lib/cn";
 import { isWordCloudComplete, type WordCloudDraft } from "@/lib/editor/word-cloud-draft";
+import { ActivityImageField } from "./ActivityImageField";
 
 const fieldClass =
   "w-full rounded-md border border-border bg-background px-3 text-base text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring";
@@ -27,15 +28,21 @@ const CHOICES = Array.from(
 export function WordCloudEditor({
   initial,
   onChange,
+  onUploadImage,
 }: {
   initial: WordCloudDraft;
   onChange: (draft: WordCloudDraft) => void;
+  /** Stores the file and gives back its name. */
+  onUploadImage: (file: File) => Promise<string>;
 }) {
   const t = useTranslations("editor.wordCloud");
   const [draft, setDraft] = useState(initial);
+  // An upload ends after other edits may have landed, so it builds on the newest draft.
+  const latest = useRef(initial);
   const promptId = useId();
 
   const update = (next: WordCloudDraft) => {
+    latest.current = next;
     setDraft(next);
     onChange(next);
   };
@@ -57,6 +64,15 @@ export function WordCloudEditor({
           className={`${fieldClass} py-2`}
         />
       </div>
+
+      <ActivityImageField
+        imageRef={draft.imageRef}
+        onUpload={async (file) => {
+          const imageRef = await onUploadImage(file);
+          update({ ...latest.current, imageRef });
+        }}
+        onRemove={() => update({ ...draft, imageRef: null })}
+      />
 
       <fieldset className="flex flex-col gap-1.5">
         <legend className="mb-1 text-sm font-semibold">{t("entries")}</legend>

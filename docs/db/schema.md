@@ -135,6 +135,7 @@ erDiagram
         boolean multiple_choice "default false"
         boolean allow_answer_change "default false"
         int max_entries_per_person "default 1"
+        text image_ref "shown until the activity starts"
     }
     activity_options {
         uuid id PK

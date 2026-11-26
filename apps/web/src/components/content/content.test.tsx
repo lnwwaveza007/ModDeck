@@ -237,6 +237,7 @@ describe("SlideRenderer", () => {
             prompt: "Which layer is `TCP`?",
             options: [],
             maxEntries: 1,
+            imageRef: null,
           },
         }}
       />,
