@@ -585,6 +585,11 @@
       "help": "Use `code` and $x^2$ in the question and options.",
       "incomplete": "Write the question and fill in every option, at least {min}. It saves when complete."
     },
+    "activityImage": {
+      "help": "The audience screen shows the picture with the question until you start the activity.",
+      "alt": "Activity picture",
+      "remove": "Remove image"
+    },
     "wordCloud": {
       "title": "Word Cloud",
       "prompt": "Prompt",
@@ -752,6 +757,7 @@
       },
       "noVotes": "No votes yet",
       "noWords": "No words yet",
+      "imageAlt": "Activity picture",
       "answered": "{count, plural, one {# answer} other {# answers}}",
       "votingClosed": "Voting closed",
       "yourAnswer": "You",

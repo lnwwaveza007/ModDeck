@@ -30,6 +30,7 @@ const view = (
     ],
     allowAnswerChange: false,
     maxEntries: 1,
+    imageRef: null,
   },
   run: { activityId: "a1", activityRunId: "r1", state, endsAt: null, reopened: false },
   results: null,
@@ -259,7 +260,13 @@ describe("applyRoomEvent", () => {
     expect(applyRoomEvent(view("live"), other)?.run?.state).toBe("live");
     const edited = applyRoomEvent(
       view("live"),
-      event("activity_edited", { activityId: "a1", prompt: "New?", options: [], maxEntries: 1 }),
+      event("activity_edited", {
+        activityId: "a1",
+        prompt: "New?",
+        options: [],
+        maxEntries: 1,
+        imageRef: null,
+      }),
     );
     expect(edited?.activity.prompt).toBe("New?");
     expect(edited?.run?.state).toBe("live");
@@ -270,11 +277,12 @@ describe("poll drafts", () => {
   const draft = (prompt: string, labels: string[]): PollDraft => ({
     prompt,
     rows: labels.map((label, i) => ({ key: `k${i}`, label })),
+    imageRef: null,
   });
 
   it("starts a new poll with two empty options", () => {
     const { rows, prompt } = pollDraftOf({
-      activity: { id: "a", type: "poll", prompt: "", options: [], maxEntries: 1 },
+      activity: { id: "a", type: "poll", prompt: "", options: [], maxEntries: 1, imageRef: null },
     });
     expect(prompt).toBe("");
     expect(rows.map((row) => row.label)).toEqual(["", ""]);
@@ -297,13 +305,15 @@ describe("poll drafts", () => {
         { key: "o1", id: "o1", label: "a" },
         { key: "k", label: "b" },
       ],
+      imageRef: "0b9f4c2e-8f3a-4d6b-9c1e-2a7d5e8f1b3c.png",
     });
     expect(body.options).toEqual([{ id: "o1", label: "a" }, { label: "b" }]);
+    expect(body.imageRef).toBe("0b9f4c2e-8f3a-4d6b-9c1e-2a7d5e8f1b3c.png");
   });
 
   it("gives saved rows their ids, and leaves a row added since then", () => {
     const sent = draft("Q", ["a", "b"]).rows;
-    const current = { prompt: "Q2", rows: [...sent, { key: "new", label: "c" }] };
+    const current = { prompt: "Q2", rows: [...sent, { key: "new", label: "c" }], imageRef: null };
     const next = withSavedIds(current, sent, [{ id: "id-a" }, { id: "id-b" }]);
     expect(next.rows.map((row) => row.id)).toEqual(["id-a", "id-b", undefined]);
     expect(next.prompt).toBe("Q2");
@@ -315,7 +325,12 @@ describe("PollEditor", () => {
     const onChange = jest.fn();
     renderWithIntl(
       <PollEditor
-        initial={{ prompt: "Q", rows: labels.map((label, i) => ({ key: `k${i}`, label })) }}
+        initial={{
+          prompt: "Q",
+          rows: labels.map((label, i) => ({ key: `k${i}`, label })),
+          imageRef: null,
+        }}
+        onUploadImage={jest.fn()}
         onChange={onChange}
       />,
       "en",

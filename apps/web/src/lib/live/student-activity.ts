@@ -30,6 +30,7 @@ export function applyRoomEvent(
           prompt: event.data.prompt,
           options: event.data.options,
           maxEntries: event.data.maxEntries,
+          imageRef: event.data.imageRef,
         },
       };
     case "word_update": {

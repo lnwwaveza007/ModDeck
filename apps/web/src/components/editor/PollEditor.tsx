@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import {
   ACTIVITY_PROMPT_MAX,
   POLL_OPTION_LABEL_MAX,
@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { optionLetter } from "@/components/poll/PollChart";
 import { isPollComplete, newPollRow, type PollDraft } from "@/lib/editor/poll-draft";
+import { ActivityImageField } from "./ActivityImageField";
 import { IconButton, TrashIcon } from "./ActionIcons";
 
 const fieldClass =
@@ -23,15 +24,21 @@ const fieldClass =
 export function PollEditor({
   initial,
   onChange,
+  onUploadImage,
 }: {
   initial: PollDraft;
   onChange: (draft: PollDraft) => void;
+  /** Stores the file and gives back its name. */
+  onUploadImage: (file: File) => Promise<string>;
 }) {
   const t = useTranslations("editor.poll");
   const [draft, setDraft] = useState(initial);
+  // An upload ends after other edits may have landed, so it builds on the newest draft.
+  const latest = useRef(initial);
   const promptId = useId();
 
   const update = (next: PollDraft) => {
+    latest.current = next;
     setDraft(next);
     onChange(next);
   };
@@ -58,6 +65,15 @@ export function PollEditor({
           className={`${fieldClass} py-2`}
         />
       </div>
+
+      <ActivityImageField
+        imageRef={draft.imageRef}
+        onUpload={async (file) => {
+          const imageRef = await onUploadImage(file);
+          update({ ...latest.current, imageRef });
+        }}
+        onRemove={() => update({ ...draft, imageRef: null })}
+      />
 
       <fieldset className="flex flex-col gap-1.5">
         <legend className="mb-1 text-sm font-semibold">{t("options")}</legend>

@@ -278,6 +278,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
       ...current,
       prompt: draft.prompt,
       options: draft.rows.map((row) => ({ id: row.id ?? row.key, label: row.label })),
+      imageRef: draft.imageRef,
     });
     if (!isPollComplete(draft)) return;
     queue.patch(`activity:${slideId}`, {}, async () => {
@@ -297,7 +298,12 @@ export function DeckEditor({ deckId }: { deckId: string }) {
     cloudDrafts.set(slideId, draft);
     const current = latest.current.find((slide) => slide.id === slideId)?.activity;
     if (!current) return;
-    showActivity(slideId, { ...current, prompt: draft.prompt, maxEntries: draft.maxEntries });
+    showActivity(slideId, {
+      ...current,
+      prompt: draft.prompt,
+      maxEntries: draft.maxEntries,
+      imageRef: draft.imageRef,
+    });
     if (!isWordCloudComplete(draft)) return;
     queue.patch(`activity:${slideId}`, {}, async () => {
       const newest = cloudDrafts.get(slideId);
@@ -449,6 +455,12 @@ export function DeckEditor({ deckId }: { deckId: string }) {
     setEditingId(null);
   }
 
+  /** The picture of a poll or word cloud. The editor saves it with the wording. */
+  async function uploadActivityImage(file: File): Promise<string> {
+    const { imageRef } = await queue.run(() => uploadSlideImage(deckId, file));
+    return imageRef;
+  }
+
   async function replaceImage(file: File) {
     if (!selected || !element || element.type !== "image") return;
     const { id } = element;
@@ -491,6 +503,7 @@ export function DeckEditor({ deckId }: { deckId: string }) {
       ? {
           prompt: snapshot.activity.prompt,
           options: snapshot.activity.options.map(({ label }) => ({ label })),
+          imageRef: snapshot.activity.imageRef,
           ...(snapshot.kind === "word_cloud" && { maxEntries: snapshot.activity.maxEntries }),
         }
       : null;
@@ -944,12 +957,14 @@ export function DeckEditor({ deckId }: { deckId: string }) {
                 key={selected.id}
                 initial={pollDrafts.get(selected.id) ?? pollDraftOf(selected)}
                 onChange={(draft) => changePoll(selected.id, draft)}
+                onUploadImage={uploadActivityImage}
               />
             ) : selected.kind === "word_cloud" ? (
               <WordCloudEditor
                 key={selected.id}
                 initial={cloudDrafts.get(selected.id) ?? wordCloudDraftOf(selected)}
                 onChange={(draft) => changeWordCloud(selected.id, draft)}
+                onUploadImage={uploadActivityImage}
               />
             ) : (
               <ElementPanel

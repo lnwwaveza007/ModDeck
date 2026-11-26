@@ -288,6 +288,7 @@ describe("presenter control (e2e)", () => {
         prompt: "Which one?",
         allowAnswerChange: false,
         maxEntries: 1,
+        imageRef: null,
         options: poll.options.map(({ id, label }) => ({ id, label })),
       });
       expect(view.currentSlideId).toBe(view.slides[0].id);
@@ -395,6 +396,7 @@ describe("presenter control (e2e)", () => {
         prompt: "Which one, really?",
         options: options.map(({ id, label }) => ({ id, label })),
         maxEntries: 1,
+        imageRef: null,
       });
     });
 

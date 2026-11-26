@@ -16,6 +16,7 @@ export const liveActivitySelect = {
   prompt: true,
   allowAnswerChange: true,
   maxEntriesPerPerson: true,
+  imageRef: true,
   options: { orderBy: { position: "asc" }, select: { id: true, label: true } },
 } satisfies Prisma.ActivitySelect;
 
@@ -40,6 +41,7 @@ export const slideArgs = {
         type: true,
         prompt: true,
         maxEntriesPerPerson: true,
+        imageRef: true,
         options: { orderBy: { position: "asc" }, select: { id: true, label: true } },
       },
     },
@@ -85,6 +87,7 @@ export function toSlideDto(slide: SlideRow): SlideDto {
       prompt: slide.activity.prompt,
       options: slide.activity.options,
       maxEntries: slide.activity.maxEntriesPerPerson,
+      imageRef: slide.activity.imageRef,
     },
     importStatus: importStatus(slide.importPage?.status),
     updatedAt: slide.updatedAt.toISOString(),
