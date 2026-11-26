@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { open, stat, unlink } from "node:fs/promises";
 import { join } from "node:path";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import {
   DECK_SLIDES_MAX,
   IMPORT_MAX_BYTES,
@@ -84,6 +84,8 @@ async function looksLikePdf(path: string): Promise<boolean> {
 /** PDF import (F9): the upload, the job's state and the retry. The work itself is the runner's. */
 @Injectable()
 export class ImportsService {
+  private readonly logger = new Logger("Imports");
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly runner: ImportRunnerService,
@@ -110,6 +112,14 @@ export class ImportsService {
 
       const probe = await probePdf(file.path);
       if (!probe.ok) {
+        if (probe.code === "WORKER_CRASH") {
+          // The reader itself died (on a CPU without AVX, for one): no PDF works on this server.
+          this.logger.error(`PDF reader stopped while reading an upload: ${probe.message}`);
+          throw new ApiException(503, "INTERNAL", "PDF import does not work on this server", {
+            field: "file",
+            reason: "engine_unavailable",
+          });
+        }
         throw probe.code === "PDF_PROTECTED"
           ? invalid("protected", "The PDF is password protected")
           : invalid("corrupt", "The PDF cannot be read");

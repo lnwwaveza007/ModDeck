@@ -1,10 +1,10 @@
-// Worker thread of the PDF import. One message per finished page goes back to the runner, so the
-// editor shows pages as they finish. The thread writes the image files itself.
+// Child process of the PDF import (started by worker-host.ts, the job in argv[2]). One message per
+// finished page goes back to the runner, so the editor shows pages as they finish. The child writes
+// the image files itself.
 
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { parentPort, workerData } from "node:worker_threads";
 import type { ImportErrorCode } from "@moddeck/shared";
 import { openPdf, PdfError, renderPage, type OpenPdf, type RenderedPage } from "./pdf-engine";
 
@@ -28,9 +28,13 @@ export type WorkerMessage =
   | { type: "failed"; code: ImportErrorCode; message: string }
   | { type: "done" };
 
-const port = parentPort;
-if (!port) throw new Error("import.worker must run as a worker thread");
-const send = (message: WorkerMessage) => port.postMessage(message);
+const channel = process.send?.bind(process);
+if (!channel) throw new Error("import.worker must run as a child process with an IPC channel");
+// Messages go out in order. The promise settles once this one is written to the channel.
+const send = (message: WorkerMessage) =>
+  new Promise<void>((resolve) => channel(message, () => resolve()));
+// The api went away: nobody reads the pages any more.
+process.on("disconnect", () => process.exit(0));
 
 async function run(job: WorkerJob) {
   let pdf: OpenPdf;
@@ -44,15 +48,15 @@ async function run(job: WorkerJob) {
     if (job.mode === "probe") return send({ type: "probed", pageCount: pdf.pageCount });
     await mkdir(job.slidesDir, { recursive: true });
     for (const page of job.pages) {
-      send({ type: "start", page });
+      void send({ type: "start", page });
       try {
         const rendered = await renderPage(pdf, page);
         const imageRef = `${randomUUID()}.webp`;
         await writeFile(join(job.slidesDir, imageRef), rendered.image, { flag: "wx" });
         const { width, height, text, thai } = rendered;
-        send({ type: "page", page, imageRef, width, height, text, thai });
+        void send({ type: "page", page, imageRef, width, height, text, thai });
       } catch (error) {
-        send({
+        void send({
           type: "page_failed",
           page,
           code: "PAGE_RENDER_FAILED",
@@ -60,16 +64,19 @@ async function run(job: WorkerJob) {
         });
       }
     }
-    send({ type: "done" });
+    await send({ type: "done" });
   } finally {
     await pdf.close().catch(() => undefined);
   }
 }
 
-run(workerData as WorkerJob).catch((error: unknown) => {
-  send({
-    type: "failed",
-    code: "PDF_INVALID",
-    message: error instanceof Error ? error.message : String(error),
-  });
-});
+run(JSON.parse(process.argv[2] ?? "{}") as WorkerJob)
+  .catch((error: unknown) =>
+    send({
+      type: "failed",
+      code: "PDF_INVALID",
+      message: error instanceof Error ? error.message : String(error),
+    }),
+  )
+  // Every message is out: closing the channel lets the child exit.
+  .finally(() => process.disconnect());

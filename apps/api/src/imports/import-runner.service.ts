@@ -53,7 +53,7 @@ export function fullPageImage(imageRef: string, width: number, height: number): 
 
 /**
  * The queue of the PDF import. `pdf_imports` is the queue: the runner takes the oldest queued row,
- * one import at a time, and renders its pages in a worker thread. A page that finishes is written
+ * one import at a time, and renders its pages in a child process. A page that finishes is written
  * at once, so the editor shows pages as they come (technical design §3.3).
  */
 @Injectable()
@@ -166,8 +166,8 @@ export class ImportRunnerService implements OnModuleInit, OnModuleDestroy {
       include: { pages: { where: { status: "queued" }, orderBy: { page: "asc" } } },
     });
     if (!job) return;
-    // A page that was started PAGE_TRIES times without an end took the api down with it (a crash
-    // the worker thread could not contain). Trying it again would bring the api down again.
+    // A page that was started PAGE_TRIES times without an end was running when the api stopped
+    // twice. Trying it again could stop the api again.
     const worn = job.pages.filter((p) => p.attempts >= PAGE_TRIES).map((p) => p.page);
     if (worn.length) {
       this.logger.warn(`Import ${importId}: pages ${worn.join(", ")} stopped the api; skipped`);
@@ -215,7 +215,7 @@ export class ImportRunnerService implements OnModuleInit, OnModuleDestroy {
     await this.finish(importId);
   }
 
-  // Runs one worker thread over the pending pages. Resolves when the thread is done, crashed,
+  // Runs one worker process over the pending pages. Resolves when the worker is done, crashed,
   // timed out on a page or could not open the file. `pending` loses each page as it is saved.
   private runWorker(importId: string, file: string, pending: Set<number>): Promise<Outcome> {
     return new Promise((resolve) => {
