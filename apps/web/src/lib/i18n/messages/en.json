@@ -361,6 +361,13 @@
       "noWords": "No words were sent.",
       "hiddenNote": "Words you hid are left out, as on the projector.",
       "noActivities": "This deck has no polls or word clouds.",
+      "reactions": {
+        "title": "Reactions",
+        "count": "{count, plural, one {# reaction} other {# reactions}}",
+        "empty": "No reactions were sent.",
+        "bySlide": "By slide",
+        "emoji": "{name}: {count}"
+      },
       "qa": {
         "title": "Q&A",
         "count": "{count, plural, one {# question} other {# questions}}",

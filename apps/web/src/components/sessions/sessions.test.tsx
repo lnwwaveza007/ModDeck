@@ -104,6 +104,7 @@ const results: SessionResults = {
     question({ id: "q2", text: "Signed ask", author: "Mint", status: "answered", votes: 3 }),
     question({ id: "q3", text: "Rude one", author: "Bot", status: "hidden" }),
   ],
+  reactions: [],
 };
 
 const withToast = (ui: React.ReactElement) => (
@@ -230,6 +231,41 @@ describe("SessionResultsView", () => {
 
     const hidden = screen.getByRole("region", { name: "Hidden" });
     expect(within(hidden).getByText("Rude one")).toBeInTheDocument();
+  });
+
+  it("shows reaction totals for the session and for each slide", async () => {
+    api.results.mockResolvedValue({
+      ...results,
+      reactions: [
+        { slidePosition: 0, counts: { "👏": 12, "❤️": 3 } },
+        { slidePosition: 2, counts: { "👏": 5, "🎉": 1 } },
+      ],
+    });
+    renderWithIntl(withToast(<SessionResultsView sessionId="s1" />), "en");
+
+    expect(await screen.findByRole("heading", { name: "Reactions" })).toBeInTheDocument();
+    expect(screen.getByText("21 reactions")).toBeInTheDocument();
+    expect(screen.getAllByRole("img", { name: "Clap: 17" })).toHaveLength(1);
+    expect(screen.getByRole("img", { name: "Laugh: 0" })).toBeInTheDocument();
+
+    const bySlide = screen.getByRole("region", { name: "By slide" });
+    const rows = within(bySlide)
+      .getAllByRole("listitem")
+      .filter((li) => li.parentElement?.parentElement === bySlide);
+    expect(rows.map((row) => within(row).getByText(/^Slide/).textContent)).toEqual([
+      "Slide 1",
+      "Slide 3",
+    ]);
+    expect(within(rows[0]!).getByRole("img", { name: "Clap: 12" })).toBeInTheDocument();
+    expect(within(rows[0]!).getByRole("img", { name: "Love it: 3" })).toBeInTheDocument();
+    expect(within(rows[1]!).getByRole("img", { name: "Celebrate: 1" })).toBeInTheDocument();
+    expect(within(rows[1]!).queryByRole("img", { name: /Love it/ })).not.toBeInTheDocument();
+  });
+
+  it("says when nobody sent a reaction", async () => {
+    api.results.mockResolvedValue(results);
+    renderWithIntl(withToast(<SessionResultsView sessionId="s1" />), "en");
+    expect(await screen.findByText("No reactions were sent.")).toBeInTheDocument();
   });
 
   it("says when Q&A was off", async () => {

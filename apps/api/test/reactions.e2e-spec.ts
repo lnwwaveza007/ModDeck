@@ -17,6 +17,7 @@ import {
   type ReactionBurst,
   type RoomEvent,
   type ServerToClientEvents,
+  type SessionResults,
 } from "@moddeck/shared";
 import { io, type Socket } from "socket.io-client";
 import request from "supertest";
@@ -279,6 +280,51 @@ describe("live reactions (e2e)", () => {
     expect(last - sentAt).toBeLessThan(DELIVERY_BUDGET_MS);
     // The phones get nothing back from 300 taps.
     expect(phoneMessages).toBe(0);
+  });
+
+  it("keeps a total per slide for the session history, never on the live screens", async () => {
+    const deck = await prisma.deck.create({
+      data: {
+        ownerId: host.id,
+        title: "Reactions history deck",
+        slides: {
+          create: [
+            { position: 0, kind: "content", elements: [] },
+            { position: 1, kind: "content", elements: [] },
+          ],
+        },
+      },
+      include: { slides: { orderBy: { position: "asc" } } },
+    });
+    const res = await asHost(api().post(`/decks/${deck.id}/sessions`)).expect(201);
+    const sessionId = (res.body as { id: string }).id;
+    const { phones } = await room(sessionId, 3);
+
+    // Slide 1: two claps from two phones.
+    phones[0].emit("reaction", { emoji: "👏" });
+    phones[1].emit("reaction", { emoji: "👏" });
+    await wait(SETTLE_MS);
+    await asHost(api().patch(`/sessions/${sessionId}`))
+      .send({ currentSlideId: deck.slides[1].id })
+      .expect(200);
+    // Slide 2: one party and one more clap.
+    phones[2].emit("reaction", { emoji: "🎉" });
+    await wait(REACTION_INTERVAL_MS);
+    phones[0].emit("reaction", { emoji: "👏" });
+    await wait(SETTLE_MS);
+
+    // The live view says nothing about counts.
+    const live = await asHost(api().get(`/sessions/${sessionId}/live`)).expect(200);
+    expect(JSON.stringify(live.body)).not.toContain("👏");
+
+    await asHost(api().patch(`/sessions/${sessionId}`))
+      .send({ status: "ended" })
+      .expect(200);
+    const results = await asHost(api().get(`/sessions/${sessionId}/results`)).expect(200);
+    expect((results.body as SessionResults).reactions).toEqual([
+      { slidePosition: 0, counts: { "👏": 2 } },
+      { slidePosition: 1, counts: { "👏": 1, "🎉": 1 } },
+    ]);
   });
 
   it("lets the host turn reactions off and on again", async () => {

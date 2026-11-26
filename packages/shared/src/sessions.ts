@@ -4,6 +4,7 @@
 import type { SessionStatus } from "./events";
 import type { LiveActivity, PollTally } from "./live";
 import type { LiveQuestion } from "./participants";
+import type { ReactionEmoji } from "./reactions";
 import type { WordCloudTally } from "./words";
 
 /** One row of GET /sessions, newest first. */
@@ -38,6 +39,12 @@ export interface ActivityResult {
   cloud: WordCloudTally | null;
 }
 
+/** The reactions sent while one slide was showing. Only slides that got at least one. */
+export interface SlideReactions {
+  slidePosition: number;
+  counts: Partial<Record<ReactionEmoji, number>>;
+}
+
 /** GET /sessions/{sessionId}/results. Only for an ended session. */
 export interface SessionResults {
   session: SessionSummary;
@@ -46,4 +53,6 @@ export interface SessionResults {
   qaShown: boolean;
   /** Every question but deleted ones. Hidden ones are included, marked. Anonymous: no author. */
   questions: LiveQuestion[];
+  /** In slide order. Only the history shows these: live screens never show a count. */
+  reactions: SlideReactions[];
 }

@@ -6,8 +6,8 @@ import { REACTION_EMOJIS, REACTION_INTERVAL_MS, type ReactionEmoji } from "@modd
 import { cn } from "@/lib/cn";
 import { useCanSend } from "@/lib/realtime/live-status";
 
-/** i18n key of each emoji's name, for screen readers. */
-const EMOJI_NAMES = {
+/** i18n key of each emoji's name (in `live.reactions`), for screen readers. */
+export const EMOJI_NAMES = {
   "👏": "clap",
   "❤️": "heart",
   "😂": "laugh",

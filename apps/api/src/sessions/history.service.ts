@@ -1,9 +1,12 @@
 import { Injectable, Logger } from "@nestjs/common";
 import {
   qaShown,
+  REACTION_EMOJIS,
   type ActivityResult,
+  type ReactionEmoji,
   type SessionResults,
   type SessionSummary,
+  type SlideReactions,
 } from "@moddeck/shared";
 import { z } from "zod";
 import { ApiException } from "../common/api-error";
@@ -82,7 +85,7 @@ export class HistoryService {
       this.logger.warn(`Flush before results failed for session ${sessionId}: ${String(err)}`);
     });
 
-    const [slides, runs, questions] = await Promise.all([
+    const [slides, runs, questions, reactionRows] = await Promise.all([
       this.prisma.slide.findMany({
         where: { deckId: session.deck.id, activity: { isNot: null } },
         orderBy: { position: "asc" },
@@ -96,6 +99,10 @@ export class HistoryService {
         where: { sessionId, status: { not: "deleted" } },
         select: questionSelect,
         orderBy: { createdAt: "asc" },
+      }),
+      this.prisma.reactionCount.findMany({
+        where: { sessionId, count: { gt: 0 } },
+        select: { emoji: true, count: true, slide: { select: { position: true } } },
       }),
     ]);
 
@@ -121,6 +128,7 @@ export class HistoryService {
       activities,
       qaShown: qaShown(session.settings) || questions.length > 0,
       questions: questions.map(questionView),
+      reactions: slideReactions(reactionRows),
     };
   }
 
@@ -147,6 +155,20 @@ export class HistoryService {
     if (!session) throw sessionNotFound();
     return session;
   }
+}
+
+/** One entry per slide, in slide order. Rows for an emoji no longer in the set are left out. */
+function slideReactions(
+  rows: { emoji: string; count: number; slide: { position: number } }[],
+): SlideReactions[] {
+  const bySlide = new Map<number, SlideReactions>();
+  for (const { emoji, count, slide } of rows) {
+    if (!(REACTION_EMOJIS as readonly string[]).includes(emoji)) continue;
+    const entry = bySlide.get(slide.position) ?? { slidePosition: slide.position, counts: {} };
+    entry.counts[emoji as ReactionEmoji] = count;
+    bySlide.set(slide.position, entry);
+  }
+  return [...bySlide.values()].sort((a, b) => a.slidePosition - b.slidePosition);
 }
 
 const sessionLive = () =>

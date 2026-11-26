@@ -4,8 +4,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import type { ActivityResult, LiveQuestion, SessionResults } from "@moddeck/shared";
+import {
+  REACTION_EMOJIS,
+  type ActivityResult,
+  type LiveQuestion,
+  type ReactionEmoji,
+  type SessionResults,
+  type SlideReactions,
+} from "@moddeck/shared";
 import { RichText } from "@/components/content/RichText";
+import { EMOJI_NAMES } from "@/components/join/ReactionBar";
 import { PollChart } from "@/components/poll/PollChart";
 import { HostPage } from "@/components/shell/HostPage";
 import { EmptyState } from "@/components/states/EmptyState";
@@ -31,8 +39,9 @@ type Load =
   | { status: "ready"; results: SessionResults };
 
 /**
- * Results of one ended session (F10): a card per activity in slide order, then the Q&A list.
- * The numbers are the ones the room saw: removed participants and hidden words are left out.
+ * Results of one ended session (F10): a card per activity in slide order, the reactions, then the
+ * Q&A list. The numbers are the ones the room saw: removed participants and hidden words are left
+ * out. Reaction counts show only here: the live screens never count them.
  */
 export function SessionResultsView({ sessionId }: { sessionId: string }) {
   const t = useTranslations("history");
@@ -150,6 +159,8 @@ export function SessionResultsView({ sessionId }: { sessionId: string }) {
             </ul>
           )}
 
+          <ReactionsCard slides={ready.reactions} />
+
           <QaCard shown={ready.qaShown} questions={ready.questions} />
         </>
       )}
@@ -202,6 +213,94 @@ function ActivityCard({ result }: { result: ActivityResult }) {
         </>
       )}
     </Card>
+  );
+}
+
+function ReactionsCard({ slides }: { slides: SlideReactions[] }) {
+  const t = useTranslations("history.results");
+  const totals = REACTION_EMOJIS.map(
+    (emoji) => [emoji, slides.reduce((sum, slide) => sum + (slide.counts[emoji] ?? 0), 0)] as const,
+  );
+  const total = totals.reduce((sum, [, count]) => sum + count, 0);
+
+  return (
+    <Card className="flex flex-col gap-4">
+      <header className="flex items-baseline gap-2">
+        <h2 className="text-lg font-bold">{t("reactions.title")}</h2>
+        {total > 0 && (
+          <span className="text-sm text-muted">{t("reactions.count", { count: total })}</span>
+        )}
+      </header>
+
+      {total === 0 ? (
+        <p className="text-sm text-muted">{t("reactions.empty")}</p>
+      ) : (
+        <>
+          <ul className="flex flex-wrap gap-3">
+            {totals.map(([emoji, count]) => (
+              <li key={emoji}>
+                <ReactionCount emoji={emoji} count={count} size="large" />
+              </li>
+            ))}
+          </ul>
+          <section aria-label={t("reactions.bySlide")} className="flex flex-col gap-2">
+            <h3 className="text-sm font-semibold">{t("reactions.bySlide")}</h3>
+            <ul className="flex flex-col divide-y divide-neutral-200">
+              {slides.map((slide) => (
+                <li
+                  key={slide.slidePosition}
+                  className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2"
+                >
+                  <span className="w-20 shrink-0 text-sm font-semibold">
+                    {t("slide", { number: slide.slidePosition + 1 })}
+                  </span>
+                  <ul className="flex flex-wrap gap-2">
+                    {REACTION_EMOJIS.filter((emoji) => (slide.counts[emoji] ?? 0) > 0).map(
+                      (emoji) => (
+                        <li key={emoji}>
+                          <ReactionCount emoji={emoji} count={slide.counts[emoji]!} />
+                        </li>
+                      ),
+                    )}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </>
+      )}
+    </Card>
+  );
+}
+
+function ReactionCount({
+  emoji,
+  count,
+  size = "small",
+}: {
+  emoji: ReactionEmoji;
+  count: number;
+  size?: "small" | "large";
+}) {
+  const t = useTranslations("history.results.reactions");
+  const tName = useTranslations("live.reactions");
+  return (
+    <span
+      role="img"
+      aria-label={t("emoji", { name: tName(EMOJI_NAMES[emoji]), count })}
+      className={cn(
+        "inline-flex items-center rounded-full border border-neutral-200 tabular-nums",
+        size === "large"
+          ? "gap-2 px-3 py-1.5 text-base font-semibold"
+          : "gap-1 px-2 py-0.5 text-sm",
+        count === 0 && "text-muted",
+      )}
+    >
+      <span aria-hidden="true" className={size === "large" ? "text-2xl" : "text-base"}>
+        {emoji}
+      </span>
+      <span aria-hidden="true">{count}</span>
+    </span>
   );
 }
 
