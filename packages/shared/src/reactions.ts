@@ -1,5 +1,6 @@
 // Live reactions (F11, R1-15): a student taps one of a fixed set of emojis and it floats up on the
-// projector. Reactions are live only: nothing is saved, and they never enter the replay log.
+// projector. Live screens show no count, and reactions never enter the replay log. The server
+// keeps a total per slide and emoji (never who tapped) for the session history.
 
 import { z } from "zod";
 

@@ -361,6 +361,13 @@
       "noWords": "ไม่มีใครส่งคำ",
       "hiddenNote": "คำที่คุณซ่อนไว้จะไม่แสดง เหมือนบนจอโปรเจกเตอร์",
       "noActivities": "เด็คนี้ไม่มีโพลหรือเวิร์ดคลาวด์",
+      "reactions": {
+        "title": "รีแอคชัน",
+        "count": "{count, plural, other {# รีแอคชัน}}",
+        "empty": "ไม่มีใครส่งรีแอคชัน",
+        "bySlide": "แยกตามสไลด์",
+        "emoji": "{name}: {count}"
+      },
       "qa": {
         "title": "ถาม-ตอบ",
         "count": "{count, plural, other {# คำถาม}}",
