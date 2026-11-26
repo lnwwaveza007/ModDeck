@@ -126,7 +126,15 @@ const first = slide("s1", 0, [heading, snippet, formula]);
 const empty = slide("s2", 1, []);
 const poll = slide("s3", 2, [], {
   kind: "poll",
-  activity: { id: "a3", type: "poll", prompt: "Q", options: [], maxEntries: 1, imageRef: null },
+  activity: {
+    id: "a3",
+    type: "poll",
+    prompt: "Q",
+    options: [],
+    maxEntries: 1,
+    imageRef: null,
+    imageWithResults: false,
+  },
 });
 
 const cloud = slide("s4", 1, [], {
@@ -138,6 +146,7 @@ const cloud = slide("s4", 1, [], {
     options: [],
     maxEntries: 1,
     imageRef: null,
+    imageWithResults: false,
   },
 });
 
@@ -638,6 +647,7 @@ describe("DeckEditor: the side panel", () => {
       allowAnswerChange: false,
       maxEntries: 3,
       imageRef: null,
+      imageWithResults: false,
     });
     await renderEditor([first, cloud]);
     fireEvent.click(slideButton(2));
@@ -652,6 +662,7 @@ describe("DeckEditor: the side panel", () => {
       prompt: "What did you learn?",
       maxEntries: 3,
       imageRef: null,
+      imageWithResults: false,
     });
   });
 
@@ -734,6 +745,7 @@ describe("DeckEditor: slides", () => {
           options: [],
           maxEntries: 1,
           imageRef: null,
+          imageWithResults: false,
         },
       }),
     );

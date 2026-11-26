@@ -87,6 +87,8 @@ export const activityWordingBodySchema = z.object({
   maxEntries: z.int().min(WORD_ENTRIES_MIN).max(WORD_ENTRIES_MAX).optional(),
   // Uploaded through POST /decks/{deckId}/slide-images. null removes it; missing keeps it.
   imageRef: z.string().regex(SLIDE_IMAGE_REF_PATTERN).nullable().optional(),
+  // On: the picture stays next to the answers after the start. Missing keeps it.
+  imageWithResults: z.boolean().optional(),
   options: z
     .array(
       z.object({
@@ -125,6 +127,8 @@ export interface LiveActivity {
   maxEntries: number;
   /** Shown with the question until the activity starts. */
   imageRef: string | null;
+  /** On: the picture stays next to the answers after the start. */
+  imageWithResults: boolean;
 }
 
 /** The counts of one poll run. `answered`: how many people have an answer. */

@@ -14,6 +14,8 @@ export interface WordCloudDraft {
   maxEntries: number;
   /** Shown with the prompt until the word cloud starts. */
   imageRef: string | null;
+  /** On: the picture stays next to the words after the start. */
+  imageWithResults: boolean;
 }
 
 export function wordCloudDraftOf(slide: Pick<SlideDto, "activity">): WordCloudDraft {
@@ -21,6 +23,7 @@ export function wordCloudDraftOf(slide: Pick<SlideDto, "activity">): WordCloudDr
     prompt: slide.activity?.prompt ?? "",
     maxEntries: slide.activity?.maxEntries ?? WORD_ENTRIES_DEFAULT,
     imageRef: slide.activity?.imageRef ?? null,
+    imageWithResults: slide.activity?.imageWithResults ?? false,
   };
 }
 
@@ -34,4 +37,5 @@ export const wordCloudBody = ({
   prompt,
   maxEntries,
   imageRef,
-}: WordCloudDraft): ActivityWordingBody => ({ prompt, maxEntries, imageRef });
+  imageWithResults,
+}: WordCloudDraft): ActivityWordingBody => ({ prompt, maxEntries, imageRef, imageWithResults });

@@ -35,6 +35,7 @@ const view = (
     allowAnswerChange: false,
     maxEntries,
     imageRef: null,
+    imageWithResults: false,
   },
   run: { activityId: "a1", activityRunId: "r1", state, endsAt: null, reopened: false },
   results: null,
@@ -429,6 +430,7 @@ describe("applyRoomEvent for a word cloud", () => {
         options: [],
         maxEntries: 3,
         imageRef: null,
+        imageWithResults: false,
       }),
     );
     expect(edited?.activity).toMatchObject({ prompt: "New?", maxEntries: 3, imageRef: null });
@@ -436,7 +438,12 @@ describe("applyRoomEvent for a word cloud", () => {
 });
 
 describe("WordCloudEditor", () => {
-  const draft: WordCloudDraft = { prompt: "One word?", maxEntries: 1, imageRef: null };
+  const draft: WordCloudDraft = {
+    prompt: "One word?",
+    maxEntries: 1,
+    imageRef: null,
+    imageWithResults: false,
+  };
 
   it("reports every change of the prompt and the limit", () => {
     const onChange = jest.fn();
@@ -452,12 +459,14 @@ describe("WordCloudEditor", () => {
       prompt: "Another?",
       maxEntries: 1,
       imageRef: null,
+      imageWithResults: false,
     });
     fireEvent.click(screen.getByRole("radio", { name: "3" }));
     expect(onChange).toHaveBeenLastCalledWith({
       prompt: "Another?",
       maxEntries: 3,
       imageRef: null,
+      imageWithResults: false,
     });
     expect(screen.getByRole("radio", { name: "3" })).toBeChecked();
   });
@@ -479,7 +488,7 @@ describe("WordCloudEditor", () => {
   it("warns while the prompt is empty", () => {
     renderWithIntl(
       <WordCloudEditor
-        initial={{ prompt: "", maxEntries: 2, imageRef: null }}
+        initial={{ prompt: "", maxEntries: 2, imageRef: null, imageWithResults: false }}
         onChange={jest.fn()}
         onUploadImage={jest.fn()}
       />,
@@ -500,29 +509,49 @@ describe("word cloud drafts", () => {
           options: [],
           maxEntries: 3,
           imageRef: null,
+          imageWithResults: false,
         },
       }),
-    ).toEqual({ prompt: "Q", maxEntries: 3, imageRef: null });
+    ).toEqual({ prompt: "Q", maxEntries: 3, imageRef: null, imageWithResults: false });
     expect(wordCloudDraftOf({ activity: null })).toEqual({
       prompt: "",
       maxEntries: 1,
       imageRef: null,
+      imageWithResults: false,
     });
   });
 
   it("is complete with a prompt and a limit of 1 to 3", () => {
-    expect(isWordCloudComplete({ prompt: "Q", maxEntries: 1, imageRef: null })).toBe(true);
-    expect(isWordCloudComplete({ prompt: "  ", maxEntries: 1, imageRef: null })).toBe(false);
-    expect(isWordCloudComplete({ prompt: "Q", maxEntries: 0, imageRef: null })).toBe(false);
-    expect(isWordCloudComplete({ prompt: "Q", maxEntries: 4, imageRef: null })).toBe(false);
-    expect(isWordCloudComplete({ prompt: "Q", maxEntries: 1.5, imageRef: null })).toBe(false);
+    expect(
+      isWordCloudComplete({ prompt: "Q", maxEntries: 1, imageRef: null, imageWithResults: false }),
+    ).toBe(true);
+    expect(
+      isWordCloudComplete({ prompt: "  ", maxEntries: 1, imageRef: null, imageWithResults: false }),
+    ).toBe(false);
+    expect(
+      isWordCloudComplete({ prompt: "Q", maxEntries: 0, imageRef: null, imageWithResults: false }),
+    ).toBe(false);
+    expect(
+      isWordCloudComplete({ prompt: "Q", maxEntries: 4, imageRef: null, imageWithResults: false }),
+    ).toBe(false);
+    expect(
+      isWordCloudComplete({
+        prompt: "Q",
+        maxEntries: 1.5,
+        imageRef: null,
+        imageWithResults: false,
+      }),
+    ).toBe(false);
   });
 
   it("sends the prompt and the limit, and no options", () => {
-    expect(wordCloudBody({ prompt: "Q", maxEntries: 2, imageRef: null })).toEqual({
+    expect(
+      wordCloudBody({ prompt: "Q", maxEntries: 2, imageRef: null, imageWithResults: false }),
+    ).toEqual({
       prompt: "Q",
       maxEntries: 2,
       imageRef: null,
+      imageWithResults: false,
     });
   });
 });

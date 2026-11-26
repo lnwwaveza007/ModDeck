@@ -70,6 +70,7 @@ const poll: LiveSlide = {
     allowAnswerChange: false,
     maxEntries: 1,
     imageRef: null,
+    imageWithResults: false,
   },
 };
 
@@ -401,6 +402,7 @@ describe("AudienceScreen", () => {
         options: poll.activity!.options,
         maxEntries: 1,
         imageRef: null,
+        imageWithResults: false,
       },
       2,
     );
@@ -638,6 +640,7 @@ const cloudSlide: LiveSlide = {
     allowAnswerChange: false,
     maxEntries: 2,
     imageRef: null,
+    imageWithResults: false,
   },
 };
 
@@ -847,6 +850,28 @@ describe("LiveStage activity image", () => {
   it("takes the picture away once answers open", () => {
     renderWithIntl(<LiveStage slide={withImage} run={run("live")} now={0} />, "en");
     expect(screen.queryByRole("img", { name: "Activity picture" })).not.toBeInTheDocument();
+    expect(screen.getByText("Alpha")).toBeInTheDocument();
+  });
+
+  it("keeps the picture next to the options and the chart when the host asks for it", () => {
+    const kept: LiveSlide = {
+      ...withImage,
+      activity: { ...withImage.activity!, imageWithResults: true },
+    };
+    const { unmount } = renderWithIntl(<LiveStage slide={kept} run={run("live")} now={0} />, "en");
+    expect(screen.getByRole("img", { name: "Activity picture" })).toBeInTheDocument();
+    expect(screen.getByText("Alpha")).toBeInTheDocument();
+    unmount();
+    renderWithIntl(
+      <LiveStage
+        slide={kept}
+        run={run("results_shown")}
+        tally={{ votes: { [kept.activity!.options[0]!.id]: 2 }, answered: 2 }}
+        now={0}
+      />,
+      "en",
+    );
+    expect(screen.getByRole("img", { name: "Activity picture" })).toBeInTheDocument();
     expect(screen.getByText("Alpha")).toBeInTheDocument();
   });
 });

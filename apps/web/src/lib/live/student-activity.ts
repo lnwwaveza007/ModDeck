@@ -31,6 +31,7 @@ export function applyRoomEvent(
           options: event.data.options,
           maxEntries: event.data.maxEntries,
           imageRef: event.data.imageRef,
+          imageWithResults: event.data.imageWithResults,
         },
       };
     case "word_update": {

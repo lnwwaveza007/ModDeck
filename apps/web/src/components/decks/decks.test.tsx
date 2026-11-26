@@ -138,6 +138,7 @@ describe("DeckList", () => {
         options: [],
         maxEntries: 1,
         imageRef: null,
+        imageWithResults: false,
       },
     };
     const withSlide = deck({ firstSlide: titleSlide });

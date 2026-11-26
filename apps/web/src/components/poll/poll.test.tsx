@@ -31,6 +31,7 @@ const view = (
     allowAnswerChange: false,
     maxEntries: 1,
     imageRef: null,
+    imageWithResults: false,
   },
   run: { activityId: "a1", activityRunId: "r1", state, endsAt: null, reopened: false },
   results: null,
@@ -266,6 +267,7 @@ describe("applyRoomEvent", () => {
         options: [],
         maxEntries: 1,
         imageRef: null,
+        imageWithResults: false,
       }),
     );
     expect(edited?.activity.prompt).toBe("New?");
@@ -278,11 +280,20 @@ describe("poll drafts", () => {
     prompt,
     rows: labels.map((label, i) => ({ key: `k${i}`, label })),
     imageRef: null,
+    imageWithResults: false,
   });
 
   it("starts a new poll with two empty options", () => {
     const { rows, prompt } = pollDraftOf({
-      activity: { id: "a", type: "poll", prompt: "", options: [], maxEntries: 1, imageRef: null },
+      activity: {
+        id: "a",
+        type: "poll",
+        prompt: "",
+        options: [],
+        maxEntries: 1,
+        imageRef: null,
+        imageWithResults: false,
+      },
     });
     expect(prompt).toBe("");
     expect(rows.map((row) => row.label)).toEqual(["", ""]);
@@ -306,14 +317,21 @@ describe("poll drafts", () => {
         { key: "k", label: "b" },
       ],
       imageRef: "0b9f4c2e-8f3a-4d6b-9c1e-2a7d5e8f1b3c.png",
+      imageWithResults: true,
     });
     expect(body.options).toEqual([{ id: "o1", label: "a" }, { label: "b" }]);
     expect(body.imageRef).toBe("0b9f4c2e-8f3a-4d6b-9c1e-2a7d5e8f1b3c.png");
+    expect(body.imageWithResults).toBe(true);
   });
 
   it("gives saved rows their ids, and leaves a row added since then", () => {
     const sent = draft("Q", ["a", "b"]).rows;
-    const current = { prompt: "Q2", rows: [...sent, { key: "new", label: "c" }], imageRef: null };
+    const current = {
+      prompt: "Q2",
+      rows: [...sent, { key: "new", label: "c" }],
+      imageRef: null,
+      imageWithResults: false,
+    };
     const next = withSavedIds(current, sent, [{ id: "id-a" }, { id: "id-b" }]);
     expect(next.rows.map((row) => row.id)).toEqual(["id-a", "id-b", undefined]);
     expect(next.prompt).toBe("Q2");
@@ -329,6 +347,7 @@ describe("PollEditor", () => {
           prompt: "Q",
           rows: labels.map((label, i) => ({ key: `k${i}`, label })),
           imageRef: null,
+          imageWithResults: false,
         }}
         onUploadImage={jest.fn()}
         onChange={onChange}
@@ -348,6 +367,32 @@ describe("PollEditor", () => {
       target: { value: "$x$" },
     });
     expect(onChange.mock.lastCall?.[0].rows[1].label).toBe("$x$");
+  });
+
+  it("offers to keep the picture with the results only when there is a picture", () => {
+    renderEditor(["a", "b"]);
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    const onChange = jest.fn();
+    renderWithIntl(
+      <PollEditor
+        initial={{
+          prompt: "Q",
+          rows: [
+            { key: "k0", label: "a" },
+            { key: "k1", label: "b" },
+          ],
+          imageRef: "0b9f4c2e-8f3a-4d6b-9c1e-2a7d5e8f1b3c.png",
+          imageWithResults: false,
+        }}
+        onUploadImage={jest.fn()}
+        onChange={onChange}
+      />,
+      "en",
+    );
+    const box = screen.getByRole("checkbox", { name: "Keep the picture with the results" });
+    expect(box).not.toBeChecked();
+    fireEvent.click(box);
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ imageWithResults: true }));
   });
 
   it("keeps at least two options", () => {

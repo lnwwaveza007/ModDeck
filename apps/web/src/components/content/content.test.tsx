@@ -238,6 +238,7 @@ describe("SlideRenderer", () => {
             options: [],
             maxEntries: 1,
             imageRef: null,
+            imageWithResults: false,
           },
         }}
       />,

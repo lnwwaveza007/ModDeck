@@ -220,6 +220,8 @@ model Activity {
   maxEntriesPerPerson Int          @default(1) @map("max_entries_per_person") // word cloud, 1 to 3
   // Shown with the question until the activity starts, then the answers take its place.
   imageRef            String?      @map("image_ref")
+  // On: the picture stays next to the answers after the start instead of going away.
+  imageWithResults    Boolean      @default(false) @map("image_with_results")
 
   slide   Slide            @relation(fields: [slideId], references: [id], onDelete: Cascade)
   options ActivityOption[]
