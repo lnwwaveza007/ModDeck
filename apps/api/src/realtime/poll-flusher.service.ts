@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from "@nest
 import { randomUUID } from "node:crypto";
 import Redis, { type Result } from "ioredis";
 import { PrismaService } from "../prisma/prisma.service";
+import { MetricsService } from "../metrics/metrics.service";
 import { REDIS } from "../redis/redis.module";
 import { flushStreamKey } from "./poll-store.service";
 import { wordFlushStreamKey } from "./word-store.service";
@@ -95,6 +96,7 @@ export class PollFlusherService implements OnModuleInit, OnModuleDestroy {
   constructor(
     @Inject(REDIS) private readonly redis: Redis,
     private readonly prisma: PrismaService,
+    private readonly metrics: MetricsService,
   ) {
     this.redis.defineCommand("releaseFlushLock", { numberOfKeys: 1, lua: RELEASE_SCRIPT });
   }
@@ -117,10 +119,18 @@ export class PollFlusherService implements OnModuleInit, OnModuleDestroy {
         select: { sessionId: true },
         distinct: ["sessionId"],
       });
-      for (const { sessionId } of live) await this.flush(sessionId, false);
+      let pendingEntries = 0;
+      this.metrics.flushLag.set(0);
+      for (const { sessionId } of live) {
+        pendingEntries += await this.redis.xlen(flushStreamKey(sessionId));
+        pendingEntries += await this.redis.xlen(wordFlushStreamKey(sessionId));
+        await this.flush(sessionId, false);
+      }
+      this.metrics.flushLag.set(pendingEntries);
       this.retryDelayMs = FLUSH_INTERVAL_MS;
       this.retryAfter = 0;
     } catch (err) {
+      this.metrics.errors.inc({ source: "flush" });
       this.logger.error(
         `Answer flush failed; retrying in ${this.retryDelayMs}ms: ${String(err)}`,
         err instanceof Error ? err.stack : undefined,

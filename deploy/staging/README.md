@@ -65,7 +65,15 @@ Open `http://<STAGING_HOST>/ca.crt` and install it.
 
 Then open `https://<STAGING_HOST>`.
 
-## Operating
+## Monitoring
+
+Prometheus and Grafana run in the staging Compose stack. Prometheus scrapes `api:4000/metrics` every 5 seconds, retains seven days, and loads the `ModDeckApiDown` alert rule. Grafana provisions the MD-8 WebSocket load-test dashboard and Prometheus datasource. Grafana is intentionally not published as an open VM port; from an authorized workstation, use an SSH tunnel:
+
+```bash
+ssh -L 3001:127.0.0.1:3001 <staging-vm>
+```
+
+Then open `http://localhost:3001`. Anonymous access is read-only. Dashboard panels include connected sessions/participants, accepted answer rate, queued flush entries, and API error rate in addition to the MD-8 load-test metrics. The sessions and participant figures describe connected participants on this API instance; flush lag is the count of pending Redis stream entries. The API metrics endpoint is available only on the Compose network. API HTTP access logs are JSON lines with `request_id` and a `session_id` when the session ID is present in the request path; find them with `docker compose logs api | grep '<session-uuid>'`. Alert state is visible in Prometheus at `http://localhost:9090/alerts` via an SSH tunnel (`ssh -L 9090:127.0.0.1:9090 <staging-vm>`). To verify the down alert, stop the API briefly with `docker compose stop api`, wait at least 20 seconds, confirm `ModDeckApiDown` is firing in Prometheus, then restore it with `docker compose start api`.
 
 ```bash
 cd /opt/moddeck

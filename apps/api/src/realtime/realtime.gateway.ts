@@ -107,6 +107,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     const { identity } = client.data;
     if (identity.role !== "participant") return;
     const { participantId, sessionId } = identity;
+    this.metrics.participantConnected(sessionId, participantId);
     // The host's participant list shows them online from now on.
     this.channel.enter(client, participantId, sessionId);
     this.announce(sessionId, participantId);
@@ -124,6 +125,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     // A socket that failed the handshake has no identity.
     const identity = client.data.identity as SocketData["identity"] | undefined;
     if (identity?.role === "participant") {
+      this.metrics.participantDisconnected(identity.sessionId, identity.participantId);
       this.touch(identity.participantId);
       // Offline only when this was their last socket: the announce counts the ones left.
       this.announce(identity.sessionId, identity.participantId);
@@ -221,6 +223,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       );
       switch (outcome.status) {
         case "accepted":
+          this.metrics.answerRate.inc({ type: "poll" });
           this.voteBatcher.schedule(identity.sessionId, activityRunId);
           return { ok: true, duplicate: false, result: { optionIds: [outcome.optionId] } };
         case "duplicate":
@@ -236,6 +239,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       }
     } catch (err) {
       // Safe to send again: the answerId keeps it from counting twice.
+      this.metrics.errors.inc({ source: "vote" });
       this.logger.error(`Vote failed: ${String(err)}`);
       return voteError("INTERNAL", "Could not save the vote");
     }
@@ -270,6 +274,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       );
       switch (outcome.status) {
         case "accepted":
+          this.metrics.answerRate.inc({ type: "word" });
           this.wordBatcher.schedule(identity.sessionId, activityRunId);
           return { ok: true, duplicate: false, result: { text: outcome.text, sent: outcome.sent } };
         case "duplicate":
@@ -290,6 +295,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       }
     } catch (err) {
       // Safe to send again: the answerId keeps it from counting twice.
+      this.metrics.errors.inc({ source: "word" });
       this.logger.error(`Word failed: ${String(err)}`);
       return wordError("INTERNAL", "Could not save the word");
     }
