@@ -53,4 +53,8 @@ describe("tidyText", () => {
   it("collapses spaces and drops empty lines", () => {
     expect(tidyText("  a   b \n\n c ")).toBe("a b\nc");
   });
+
+  it("drops NUL and other control characters", () => {
+    expect(tidyText("a\u0000b\u0007\n\u0000\nc\td")).toBe("ab\nc d");
+  });
 });
