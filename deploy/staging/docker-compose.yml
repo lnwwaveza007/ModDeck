@@ -31,7 +31,7 @@ services:
       retries: 10
 
   api:
-    image: ${API_IMAGE:?set API_IMAGE in .env}
+    image: "${API_IMAGE:?set API_IMAGE in .env}"
     restart: unless-stopped
     environment:
       API_PORT: 4000
@@ -63,8 +63,36 @@ services:
       redis:
         condition: service_healthy
 
+  prometheus:
+    image: prom/prometheus:v3.15.0
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=7d
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheusdata:/prometheus
+    depends_on:
+      api:
+        condition: service_started
+
+  grafana:
+    image: grafana/grafana:13.2.3
+    restart: unless-stopped
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/md8.json
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafanadata:/var/lib/grafana
+    depends_on:
+      - prometheus
+
   web:
-    image: ${WEB_IMAGE:?set WEB_IMAGE in .env}
+    image: "${WEB_IMAGE:?set WEB_IMAGE in .env}"
     restart: unless-stopped
     healthcheck:
       # Under a basePath "/" is a 404, so probe a real page below the prefix.
@@ -98,3 +126,5 @@ volumes:
   redisdata:
   slides:
   imports:
+  prometheusdata:
+  grafanadata:

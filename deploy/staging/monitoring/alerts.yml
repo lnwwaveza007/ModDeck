@@ -1,0 +1,11 @@
+groups:
+  - name: staging-api
+    rules:
+      - alert: ModDeckApiDown
+        expr: up{job="moddeck-api"} == 0
+        for: 15s
+        labels:
+          severity: critical
+        annotations:
+          summary: "ModDeck staging API is down"
+          description: "Prometheus has been unable to scrape the staging API for 15 seconds."
