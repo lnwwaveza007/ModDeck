@@ -77,9 +77,18 @@ export function checkThai(text: string) {
   };
 }
 
-/** Joins the text items of a page, one line per item with a line end, and tidies the spaces. */
+// Control characters other than tab and line end. Some PDFs carry NUL in their text, and Postgres
+// refuses a text value with NUL in it.
+// eslint-disable-next-line no-control-regex
+const CONTROL_CHARS = /[\u0000-\u0008\u000B-\u001F\u007F]/g;
+
+/**
+ * Joins the text items of a page, one line per item with a line end, tidies the spaces and drops
+ * control characters.
+ */
 export function tidyText(text: string): string {
   return text
+    .replace(CONTROL_CHARS, "")
     .split("\n")
     .map((line) => line.replace(/[ \t]+/g, " ").trim())
     .filter(Boolean)

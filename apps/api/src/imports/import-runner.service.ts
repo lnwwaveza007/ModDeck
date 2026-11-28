@@ -249,7 +249,15 @@ export class ImportRunnerService implements OnModuleInit, OnModuleDestroy {
           case "page":
             current = undefined;
             enqueue(async () => {
-              await this.savePage(importId, m);
+              try {
+                await this.savePage(importId, m);
+              } catch (error) {
+                // A page the database refuses would be refused again on every try: it fails.
+                this.logger.error(
+                  `Import ${importId}: could not save page ${m.page}: ${String(error)}`,
+                );
+                await this.failPages(importId, [m.page], "PAGE_RENDER_FAILED");
+              }
               pending.delete(m.page);
             });
             break;

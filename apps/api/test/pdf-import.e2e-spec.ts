@@ -559,6 +559,25 @@ describe("pdf import runner faults (e2e)", () => {
     expect(await readdir(process.env.IMPORTS_DIR!)).toEqual([]);
   });
 
+  it("fails a page the database refuses and finishes the import", async () => {
+    mockScript = (job, emit, exit) => {
+      if (job.mode !== "render") return;
+      for (const page of job.pages) {
+        emit({ type: "start", page });
+        // Postgres refuses NUL in a text value.
+        const message = ok(page);
+        emit(page === 2 && message.type === "page" ? { ...message, text: "a\u0000b" } : message);
+      }
+      emit({ type: "done" });
+      exit(0);
+    };
+    const result = await startImport();
+    expect(result).toMatchObject({ status: "done", donePages: 2, failedPages: 1 });
+    expect(result.pages[1]).toMatchObject({ status: "failed", errorCode: "PAGE_RENDER_FAILED" });
+    // One worker run: the page is not tried again and again.
+    expect(mockJobs).toHaveLength(1);
+  });
+
   it("does not save a page whose slide the host deleted", async () => {
     mockScript = (job, emit, exit) => {
       if (job.mode !== "render") return;
