@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { Logger } from "@nestjs/common";
 import { Test, type TestingModule } from "@nestjs/testing";
 import Redis from "ioredis";
+import { MetricsService } from "../src/metrics/metrics.service";
 import { PrismaService } from "../src/prisma/prisma.service";
 import { REDIS } from "../src/redis/redis.module";
 import { PollFlusherService } from "../src/realtime/poll-flusher.service";
@@ -26,6 +27,7 @@ describe("PollFlusherService (real Redis + PostgreSQL)", () => {
     moduleRef = await Test.createTestingModule({
       providers: [
         PrismaService,
+        MetricsService,
         PollStoreService,
         // PollStoreService reads word cloud runs through it.
         WordStoreService,
